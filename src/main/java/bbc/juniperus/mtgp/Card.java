@@ -9,12 +9,11 @@ public class Card {
 	
 	
 	public Card(String name, String type, String edition, int price){
-		this.name = name;
+		this.name = name.replaceAll("[`´]", "'");
 		this.type = type;
 		this.edition = edition;
 		this.price = price;
 	}
-
 
 	public String getName() {
 		return name;

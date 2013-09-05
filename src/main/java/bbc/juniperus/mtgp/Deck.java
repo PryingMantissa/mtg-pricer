@@ -10,13 +10,17 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.JOptionPane;
+
+import org.w3c.dom.Document;
+
 public class Deck {
 	
 	List<String> cardNames = new ArrayList<String>();
 	Map<String, Integer> cardQuantity = new HashMap<String, Integer>();
 	
 	//To find word + n whitespace+word pair after that.
-	String regExpName = "[a-zA-Z'-]+(\\s+[a-zA-Z']+)*";
+	String regExpName = "[a-zA-Z/'-]+(\\s+[a-zA-Z/']+)*";
 	String regExpNumber = "\\d+";
 
 	public void readFromFile(String path) throws IOException{
@@ -45,6 +49,9 @@ public class Deck {
 			
 			//System.out.println(name + "  " + quantity);
 			
+			//In case of split cards are written in bad format.
+			name = name.replace("/", " // ");
+			
 			cardNames.add(name);
 			cardQuantity.put(name, Integer.parseInt(quantity));
 			
@@ -56,8 +63,10 @@ public class Deck {
 	
 	public static void main (String[] args) throws IOException{
 		
+		Deck d = new Deck();
+		d.readFromFile("d:\\deck.txt");
 		
-		new Deck().readFromFile("d:\\deck.txt");
+		System.out.println(d);
 		
 	}
 	
@@ -69,6 +78,18 @@ public class Deck {
 	
 	public int getQuantityOf(String cardName){
 		return cardQuantity.get(cardName);
+	}
+	
+	@Override
+	public String toString(){
+		StringBuilder sb = new StringBuilder();
+		
+		for (String n : cardNames){
+			sb.append(n).append(" ").append(cardQuantity.get(n)).append("\n");
+		}
+		
+		return sb.toString();
+		
 	}
 	
 }
