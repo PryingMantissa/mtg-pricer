@@ -1,6 +1,7 @@
 package bbc.juniperus.mtgp;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,8 +26,9 @@ public class Deck {
 
 	public void readFromFile(String path) throws IOException{
 		
-		BufferedReader reader = new BufferedReader(new FileReader(path));
-		
+		BufferedReader reader = null;
+		reader = new BufferedReader(new FileReader(path));
+	
 		String line;
 		while ( (line =reader.readLine()) != null){
 			
@@ -44,11 +46,13 @@ public class Deck {
 			mName.find();
 			mNumber.find();
 			
-			String name = mName.group();
-			String quantity = mNumber.group();
 			
-			//System.out.println(name + "  " + quantity);
-			
+			String name = null;
+			String quantity = null;
+
+			name = mName.group();
+			quantity = mNumber.group();
+
 			//In case of split cards are written in bad format.
 			name = name.replace("/", " // ");
 			
@@ -63,10 +67,19 @@ public class Deck {
 	
 	public static void main (String[] args) throws IOException{
 		
+		String name = "Rogue´s Passage";
+		String name2 = "Honza";
+		
+		System.out.printf("%-20s", name);
+		System.out.println("eeee");
+		System.out.printf("%-20s", name2);
+		System.out.println("eeee");
+		
+		/*
 		Deck d = new Deck();
 		d.readFromFile("d:\\deck.txt");
 		
-		System.out.println(d);
+		System.out.println(d);*/
 		
 	}
 	

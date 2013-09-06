@@ -9,6 +9,7 @@ public class Card {
 	
 	
 	public Card(String name, String type, String edition, int price){
+	
 		this.name = name.replaceAll("[`´]", "'");
 		this.type = type;
 		this.edition = edition;

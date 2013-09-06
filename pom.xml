@@ -4,18 +4,16 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-    <parent>
-        <groupId>bbc.juniperus</groupId>
-        <version>1.0</version>
-        <artifactId>allo-app</artifactId>
-    </parent>
-    
+  
     <modelVersion>4.0.0</modelVersion>
     <groupId>bbc.juniperus</groupId>
+    <packaging>jar</packaging>
     <artifactId>mtg-pricer</artifactId>
     <name>MtG Pricer App</name>
+    <version>1.0</version>
 
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <dependencies>
@@ -26,4 +24,35 @@
         </dependency>
     </dependencies>
 
+    <build>
+    <finalName>${artifactId}</finalName>
+    <plugins>
+        <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <executions>
+                <execution>
+                        <id>package-jar-with-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <archive>
+                                <manifest>
+                                    <mainClass>bbc.juniperus.mtgp.MtgPricer</mainClass>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                </execution>
+            </executions>
+        </plugin>
+      </plugins>
+    </build>
+    
+    
+    
 </project>

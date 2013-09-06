@@ -2,38 +2,58 @@ package bbc.juniperus.mtgp;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.swing.JOptionPane;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class MtgPricer {
 	
 	public final int resultsPerPageCR = 30;
 	
-	public static void main (String[] args) throws IOException{
+	public static void main (String[] args){
 
-		
 		String path = args[0];
+		
 		Deck d = new Deck();
-		d.readFromFile(path);
+		
+		try {
+			d.readFromFile(path);
+		} catch (FileNotFoundException e){
+			System.out.println("The File could not be found.");
+			System.exit(1);
+		} catch (IOException e) {
+			System.out.println("An error when reading from the file.");
+			System.out.println(e.getMessage());
+			System.exit(1);
+		} catch (IllegalStateException e){
+			System.out.println("The deck file could not be parsed");
+			System.exit(1);
+		}
+		
+		System.out.println("Deck file parsed.\n\nRetrieving now info from http://www.cernyrytir.cz/\n");
 		
 		MtgPricer mp = new MtgPricer();
-		mp.evalDeck(d);
+		try {
+			mp.evalDeck(d);
+		} catch (UnknownHostException e){
+			System.out.println("The server could not be reached. Try later.");
+			System.out.println(e.getMessage());
+		} catch (IOException e) {
+			System.out.println("There is a connection problem. Try later.");
+			System.out.println(e.getMessage());
+		}
 	}
 	
 	
@@ -42,15 +62,45 @@ public class MtgPricer {
 		int priceTotal = 0;
 		
 		List<String> cardNames = deck.getCardNames();
+		System.out.print("Card in deck");
+		System.out.print("                  "); //18 spaces
+		System.out.print("Card found on cernyrytir.cz");
+		System.out.print("                              ");
+		System.out.print("Piece price");
+		System.out.print("          ");
+		System.out.println("Total price");
+		
+		System.out.println("***************************************"
+				+ "*****************************************************"
+				+ "****************************");
 		
 		for (String name :cardNames){
 			Card c = findCard(name);
 			int q = deck.getQuantityOf(name);
-			System.out.println(c + "\t" + q + " x " + c.getPrice() + " = " + q*c.getPrice());
+			System.out.printf("%-30s",name);
+			
+			if (c == null){
+				System.out.println("- not found -");
+				continue;
+			}
+			System.out.printf("%-60s",c.getName() + " /" + c.getType() + "/ - " +
+					c.getEdition());
+			System.out.printf("%7s",c.getPrice() + " Kc");
+			System.out.printf("%-9s", "   x " +q);
+			System.out.print("=");
+			System.out.printf("%8s",c.getPrice() *q + " Kc");
+			System.out.println();
+			
 			priceTotal +=q * c.getPrice();
 		}
 		
-		System.out.println("\n*********\nTotal price " + priceTotal);
+		System.out.println("***************************************"
+				+ "*****************************************************"
+				+ "****************************");
+		
+		System.out.println("                                        "
+				+ "                                            "
+				+ "        Total deck price: " + priceTotal + " Kc");
 		
 	}
 	
@@ -71,7 +121,7 @@ public class MtgPricer {
 		 * Also foil version of cards (Mountain - foil) will be removed (they are more expensive anyway).
 		 */
 		
-		normalizedCardName = normalizedCardName.replace("`", "'"); //Be sure to have "'" instead of "`" so it can be compared.
+		normalizedCardName = normalizedCardName.replaceAll("[`´]", "'"); //Be sure to have "'" instead of "`" so it can be compared.
 		
 		for (Card card: new ArrayList<Card>(foundCards)){
 
@@ -80,10 +130,8 @@ public class MtgPricer {
 			
 		}
 		
-		if (foundCards.size() < 1){
-			System.out.println(normalizedCardName + " not found");
+		if (foundCards.size() < 1)
 			return null;
-		}
 		
 		//Select the cheapest card.
 		Card cheapest = foundCards.get(0);
