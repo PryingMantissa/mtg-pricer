@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Serializable;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,7 +13,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-public class Deck {
+public class Deck implements Serializable {
+	
+	private static final long serialVersionUID = 1L;
 	
 	//Any sequence of letter,',-,/ or white space (includes leading and trailing white spaces).
 	public final static String REG_EXP_NAME = "[a-zA-Z\\s'-/]+";

@@ -26,6 +26,7 @@ public abstract class CardPricer {
 	
 	public abstract String getURL();
 	public abstract String getName();
+	public abstract String getCurrency();
 	
 	
 	/**

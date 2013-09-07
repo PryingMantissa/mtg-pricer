@@ -2,12 +2,11 @@ package bbc.juniperus.mtgp.cardpricing;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Currency;
 import java.util.List;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
-
 import bbc.juniperus.mtgp.domain.Card;
 
 public class CernyRytirCardPricer extends CardPricer{
@@ -15,9 +14,13 @@ public class CernyRytirCardPricer extends CardPricer{
 	public static final int RESULT_PER_PAGE = 30;
 	public static final String URL = "http://www.cernyrytir.cz/";
 	public static final String NAME = "Cerny Rytir";
+	public static Currency currency;
 	
 	/** Default constructor*/
-	CernyRytirCardPricer(){}
+	CernyRytirCardPricer(){
+		
+		currency = Currency.getInstance("CZK");
+	}
 
 	/**
 	 * Retrieves the list of cards that match the card name.
@@ -126,6 +129,11 @@ public class CernyRytirCardPricer extends CardPricer{
 	@Override
 	public String getName() {
 		return NAME;
+	}
+
+	@Override
+	public String getCurrency() {
+		return currency.getSymbol();
 	}
 	
 	

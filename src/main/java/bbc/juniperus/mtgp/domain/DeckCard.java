@@ -1,10 +1,14 @@
 package bbc.juniperus.mtgp.domain;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 
-public class DeckCard {
+public class DeckCard implements Serializable{
+	
+
+	private static final long serialVersionUID = 1L;
 	
 	private int quantity;
 	private String name;
@@ -31,6 +35,10 @@ public class DeckCard {
 	
 	public void addFoundCard(String sourceName, Card card){
 		foundCards.put(sourceName, card);
+	}
+	
+	public Card getFoundCard(String sourceName){
+		return foundCards.get(sourceName);
 	}
 	
 
