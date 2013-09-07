@@ -22,7 +22,7 @@ public abstract class CardPricer {
 	 * @return List of found cards.
 	 * @throws IOException
 	 */
-	abstract List<Card> getCardResults(String cardName) throws IOException;
+	abstract List<Card> getCardResults(String normalizedCardName) throws IOException;
 	
 	public abstract String getURL();
 	public abstract String getName();
@@ -101,16 +101,16 @@ public abstract class CardPricer {
 	 * @param text String containing the number
 	 * @return found number
 	 */
-	static int getIntFromString(String text){
+	static double getDoubleFromString(String text){
 		
-		String regExp = "\\d+";
+		String regExp = "[\\d.,]+";
 		Pattern p = Pattern.compile(regExp);
 		Matcher m = p.matcher(text);
 		
 		m.find();
-		String no = m.group();
+		String no = m.group().replace(",",".");
 		
-		return Integer.parseInt(no);
+		return Double.parseDouble(no);
 		
 	}
 	

@@ -12,5 +12,9 @@ public class CardPricerFactory {
 		return new CernyRytirCardPricer();
 	}
 	
+	public static CardPricer getModraVeverickaPricer(){
+		return new ModraVeverickaCardPricer();
+	}
+	
 
 }

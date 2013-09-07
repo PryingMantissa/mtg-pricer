@@ -51,7 +51,7 @@ public class CernyRytirCardPricer extends CardPricer{
 		
 		//If the special element exists, it has more pages -> calculate how many.
 		if (span.size() > 0){
-			int resultsCount  = getIntFromString(span.text());
+			int resultsCount  = (int) getDoubleFromString(span.text());
 			pagesTotal = (int) Math.ceil((float) resultsCount / RESULT_PER_PAGE);
 			
 			//Load cards from other pages as well.
@@ -99,7 +99,7 @@ public class CernyRytirCardPricer extends CardPricer{
 				type = resultRows.get(i).select("td:eq(0)").text();
 				price = resultRows.get(i).select("td:eq(2)").text();
 				//Add card
-				foundCards.add(new Card(name,type, edition, getIntFromString(price)));
+				foundCards.add(new Card(name,type, edition, getDoubleFromString(price)));
 			}
 		}
 		

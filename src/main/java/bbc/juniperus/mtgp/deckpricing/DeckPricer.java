@@ -80,7 +80,7 @@ public class DeckPricer {
 			
 			//No card found. Set the message why.
 			if (foundCard == null){
-				foundCard = new Card(null,null,null, -1);
+				foundCard = new Card("- Not Found -","N/A","N/A", -1);
 				foundCard.setNotFound(errorMsg == null? "Not found" : errorMsg);
 			}
 				
@@ -95,41 +95,46 @@ public class DeckPricer {
 		
 		String sourceName = cardPricer.getName();
 		StringBuilder sb = new StringBuilder();
-		int colWidths[] = new int[] {30,2,30,15,20,15};
-		int maxColWidths[] = new int[colWidths.length];
+		int colWidths[] = new int[6];
+		double deckPrice = 0;
+		
 		
 		//Set default values.
-		Arrays.fill(maxColWidths, 0);
+		Arrays.fill(colWidths, 0);
 		
 		//Iterate the list and find the max lengts for each column.
 		for (DeckCard card : deck.getCards()){
 			
-			if (maxColWidths[0] < card.getName().length())
-				maxColWidths[0] = card.getName().length();
+			if (colWidths[0] < card.getName().length())
+				colWidths[0] = card.getName().length();
 			
-			if (maxColWidths[1] < (card.getQuantity()+"").length())
-				maxColWidths[1] = (card.getQuantity()+"").length();
+			if (colWidths[1] < (card.getQuantity()+"").length())
+				colWidths[1] = (card.getQuantity()+"").length();
 			
 			Card fCard = card.getFoundCard(sourceName);
 			
-			if (maxColWidths[2] < fCard.getName().length())
-				maxColWidths[2] = fCard.getName().length();
+			if (colWidths[2] < fCard.getName().length())
+				colWidths[2] = fCard.getName().length();
 			
-			if (maxColWidths[3] < fCard.getType().length())
-				maxColWidths[3] = fCard.getType().length();
+			if (colWidths[3] < fCard.getType().length())
+				colWidths[3] = fCard.getType().length();
 			
-			if (maxColWidths[4] < fCard.getEdition().length())
-				maxColWidths[4] = fCard.getEdition().length();
+			if (colWidths[4] < fCard.getEdition().length())
+				colWidths[4] = fCard.getEdition().length();
 			
-			int priceLength = (fCard.getPrice() + " "
-								+ cardPricer.getCurrency()).length();
-			if (maxColWidths[5] < priceLength)
-				maxColWidths[5] = priceLength;
+			
+			String price;
+			if (fCard.getPrice() < 0)
+				price = "N/A " + cardPricer.getCurrency();
+			else
+				price = String.format("%.2f", fCard.getPrice()) + " " +cardPricer.getCurrency();
+			
+			if (colWidths[5] < price.length())
+				colWidths[5] = price.length();
 			
 		}
 		
 		String interColString =" | ";
-		colWidths = maxColWidths;
 
 		for (DeckCard card : deck.getCards()){
 			//Name and quantity of original deck cards.
@@ -142,11 +147,19 @@ public class DeckPricer {
 			sb.append(allignLeft(fCard.getName(),colWidths[2], interColString));
 			sb.append(allignLeft(fCard.getType(),colWidths[3], interColString));
 			sb.append(allignLeft(fCard.getEdition(),colWidths[4], interColString));
-			sb.append(allignRight(fCard.getPrice() + " " +cardPricer.getCurrency()
-					,colWidths[5], interColString));
+			
+			String price;
+			if (fCard.getPrice() < 0)
+				price = "N/A " + cardPricer.getCurrency();
+			else{
+				price = String.format("%.2f", fCard.getPrice()) + " " +cardPricer.getCurrency();
+				deckPrice += card.getQuantity()*fCard.getPrice(); 
+			}
+			sb.append(allignRight(price,colWidths[5], interColString));
 			sb.append("\n");
 		}
 		
+		sb.append("Total deck price is: " + String.format("%.2f",deckPrice) + " " +cardPricer.getCurrency());
 		return sb.toString();
 		
 	}
@@ -213,19 +226,23 @@ public class DeckPricer {
 		String path = "d:\\deck.txt";
 		String savePath = "d:\\savedDeck.dck";
 		DeckPricer dp = new DeckPricer();
+		
+		CardPricer cPricer = CardPricerFactory.getCernyRytirPricer();
+		
+		cPricer = CardPricerFactory.getModraVeverickaPricer();
+		
+		Deck deck =dp.loadEvalueteDeck(path,cPricer);
+		
 		/*
-		
-		Deck deck =dp.loadEvalueteDeck(path);
 		serializeDeck(deck,savePath );
-		*/
 		Deck deck2 = deserializeDeck(savePath);
+		*/
 		
-		//System.out.println(deck2);
 		
-		System.out.println(dp.produceReport(deck2, CardPricerFactory.getCernyRytirPricer()));
+		System.out.println(dp.produceReport(deck,cPricer));
 	}
 	
-	public Deck loadEvalueteDeck(String path){
+	public Deck loadEvalueteDeck(String path, CardPricer cardPricer){
 
 		addProgressListener(new CardProgressListener() {
 			
@@ -248,10 +265,9 @@ public class DeckPricer {
 		
 		System.out.println("Starting price getting\n");
 		
-		
-		CardPricer cPricer = CardPricerFactory.getCernyRytirPricer();
+
 		try {
-			evaluateDeck(deck,cPricer);
+			evaluateDeck(deck,cardPricer);
 		} catch (DeckPricerException e) {
 			System.out.println("Erro when evaluting deck: " + e.getMessage());
 			System.exit(1);

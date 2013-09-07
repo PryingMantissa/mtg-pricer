@@ -12,12 +12,13 @@ public class Card implements Serializable{
 	private double price;
 	private String notFoundMsg;
 	
-	public Card(String name, String type, String edition, int price){
+	public Card(String name, String type, String edition, double d){
 	
-		this.name = name.replaceAll("[`´]", "'");
+		if (name != null)
+			this.name = name.replaceAll("[`´]", "'");
 		this.type = type;
 		this.edition = edition;
-		this.price = price;
+		this.price = d;
 	}
 
 	public String getName() {
