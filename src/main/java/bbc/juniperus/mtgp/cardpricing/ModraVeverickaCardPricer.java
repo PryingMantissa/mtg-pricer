@@ -47,7 +47,7 @@ public class ModraVeverickaCardPricer extends CardPricer{
 			Element card = resultRows.get(i);
 			name = card.select("div.name a").text();
 			price = card.select("div.price").text();
-			foundCards.add(new Card(name,type, edition, getDoubleFromString(price)));
+			foundCards.add(new Card(name,type, edition, getDoubleFromString(price,1)));
 		}
 		
 		return foundCards;
@@ -58,7 +58,7 @@ public class ModraVeverickaCardPricer extends CardPricer{
 	private String getQueryUrl(String cardName){
 		//Number of page size specified in URL - 10000.
 		final String  queryString="x-cards,x-page-1-size-10000-order-name-asc.html?onclick=run_shopping_assistant&"
-				+ "filter_name=" + cardName;
+				+ "filter_name=" + cardName.replace(" ", "+");
 		return URL + queryString;
 	}
 	
@@ -83,7 +83,6 @@ public class ModraVeverickaCardPricer extends CardPricer{
 	public static void main(String[] args) throws IOException{
 		
 		ModraVeverickaCardPricer pc = new ModraVeverickaCardPricer();
-		
 		System.out.println(pc.getCardResults("Goblin"));
 	}
 }

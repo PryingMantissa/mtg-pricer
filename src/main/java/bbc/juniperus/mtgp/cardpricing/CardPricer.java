@@ -45,15 +45,19 @@ public abstract class CardPricer {
 		 * Also foil version of cards (Mountain - foil) will be removed (they are more expensive anyway).
 		 */
 		
-		normalizedCardName = normalizedCardName.replaceAll("[`´]", "'"); //Be sure to have "'" instead of "`" so it can be compared.
+		normalizedCardName = normalizedCardName.replaceAll("[`´]", "'"); //Be sure to have "'" instead of "`"  and "´"
+		//so it can be compared.
 		
-		for (Card card: new ArrayList<Card>(foundCards)){
-
+		
+		if (foundCards == null || foundCards.size() < 1)
+			return null;
+		
+		
+		for (Card card: new ArrayList<Card>(foundCards))
 			if (!card.getName().equalsIgnoreCase(normalizedCardName))
 				foundCards.remove(card);
-			
-		}
 		
+		//If all the results have been filtered out.
 		if (foundCards.size() < 1)
 			return null;
 		
@@ -96,23 +100,46 @@ public abstract class CardPricer {
 	
 	
 	
+	
+	
+	
 	/**
 	 * Return the first occurrence of the number in a String. If not found, an exception is thrown.
 	 * @param text String containing the number
 	 * @return found number
 	 */
-	static double getDoubleFromString(String text){
+	static double getDoubleFromString(String text, int position){
 		
-		String regExp = "[\\d.,]+";
-		Pattern p = Pattern.compile(regExp);
+		String regex = "[\\d.,]+";
+		Pattern p = Pattern.compile(regex);
 		Matcher m = p.matcher(text);
 		
-		m.find();
+		if (position != 1){
+			System.out.println(position);
+			System.out.println(text);
+		}
+		
+		for (int i =0; i < position;i++)
+			m.find();
 		String no = m.group().replace(",",".");
 		
 		return Double.parseDouble(no);
 		
 	}
+	
+	
+	static int countRegexMatches(String text, String regex){
+		
+		Pattern p = Pattern.compile(regex);
+		Matcher m = p.matcher(text);
+		int counter =0;
+		
+		while(m.find())
+			counter++;
+		
+		return counter;
+	}
+	
 	
 	/**
 	 * Transform  a name of the card containing more spaces than standard

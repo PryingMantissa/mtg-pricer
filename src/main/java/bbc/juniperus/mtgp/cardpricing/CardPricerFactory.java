@@ -16,5 +16,8 @@ public class CardPricerFactory {
 		return new ModraVeverickaCardPricer();
 	}
 	
+	public static CardPricer getDragonPricer(){
+		return  new DragonHostCardPricer();
+	}
 
 }

@@ -47,12 +47,11 @@ public class CernyRytirCardPricer extends CardPricer{
 		//Determine if there are also additional pages.
 		Document doc = Jsoup.parse(html);
 		Elements span = doc.select("span.kusovkytext");
-		int pagesTotal = 1;
 		
 		//If the special element exists, it has more pages -> calculate how many.
 		if (span.size() > 0){
-			int resultsCount  = (int) getDoubleFromString(span.text());
-			pagesTotal = (int) Math.ceil((float) resultsCount / RESULT_PER_PAGE);
+			int resultsCount  = (int) getDoubleFromString(span.text(),0);
+			int pagesTotal = (int) Math.ceil((float) resultsCount / RESULT_PER_PAGE);
 			
 			//Load cards from other pages as well.
 			for (int i =2; i <= pagesTotal; i++){
@@ -99,7 +98,7 @@ public class CernyRytirCardPricer extends CardPricer{
 				type = resultRows.get(i).select("td:eq(0)").text();
 				price = resultRows.get(i).select("td:eq(2)").text();
 				//Add card
-				foundCards.add(new Card(name,type, edition, getDoubleFromString(price)));
+				foundCards.add(new Card(name,type, edition, getDoubleFromString(price,1)));
 			}
 		}
 		

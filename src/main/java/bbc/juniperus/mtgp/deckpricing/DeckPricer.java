@@ -222,14 +222,17 @@ public class DeckPricer {
 	//Testing main
 	public static void main(String[] args) {
 		
-		@SuppressWarnings("unused")
+		
 		String path = "d:\\deck.txt";
+		@SuppressWarnings("unused")
 		String savePath = "d:\\savedDeck.dck";
 		DeckPricer dp = new DeckPricer();
 		
 		CardPricer cPricer = CardPricerFactory.getCernyRytirPricer();
 		
 		cPricer = CardPricerFactory.getModraVeverickaPricer();
+		
+		cPricer = CardPricerFactory.getDragonPricer();
 		
 		Deck deck =dp.loadEvalueteDeck(path,cPricer);
 		
