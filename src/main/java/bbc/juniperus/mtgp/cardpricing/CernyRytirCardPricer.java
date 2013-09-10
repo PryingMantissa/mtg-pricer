@@ -7,7 +7,7 @@ import java.util.List;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
-import bbc.juniperus.mtgp.domain.Card;
+import bbc.juniperus.mtgp.domain.CardResult;
 
 public class CernyRytirCardPricer extends CardPricer{
 	
@@ -29,14 +29,14 @@ public class CernyRytirCardPricer extends CardPricer{
 	 * @throws IOException
 	 */
 	@Override
-	public List<Card> getCardResults(String cardName) throws IOException{
+	public List<CardResult> getCardResults(String cardName) throws IOException{
 		
 		/** 1. load the cards from the first page (might be last as well)*/
 		
 		//Get the html result page from the query as String.
 		String html =  getHTMLString(createURL(cardName,1));
 		
-		List<Card> foundCards = new ArrayList<Card>();
+		List<CardResult> foundCards = new ArrayList<CardResult>();
 		
 		//Add all results we found on the first page.
 		foundCards.addAll(extractCardsFromHtml(html));
@@ -50,7 +50,7 @@ public class CernyRytirCardPricer extends CardPricer{
 		
 		//If the special element exists, it has more pages -> calculate how many.
 		if (span.size() > 0){
-			int resultsCount  = (int) getDoubleFromString(span.text(),0);
+			int resultsCount  = (int) getDoubleFromString(span.text(),1);
 			int pagesTotal = (int) Math.ceil((float) resultsCount / RESULT_PER_PAGE);
 			
 			//Load cards from other pages as well.
@@ -68,11 +68,11 @@ public class CernyRytirCardPricer extends CardPricer{
 	 * @param html
 	 * @return
 	 */
-	public List<Card> extractCardsFromHtml(String html){
+	public List<CardResult> extractCardsFromHtml(String html){
 		
 		Document doc = Jsoup.parse(html);
 		
-		List<Card> foundCards = new ArrayList<Card>();
+		List<CardResult> foundCards = new ArrayList<CardResult>();
 		
 		//Find second table with kusovkytext class which contains the elements with info.
 		//Extract table rows containing the required info.
@@ -98,7 +98,7 @@ public class CernyRytirCardPricer extends CardPricer{
 				type = resultRows.get(i).select("td:eq(0)").text();
 				price = resultRows.get(i).select("td:eq(2)").text();
 				//Add card
-				foundCards.add(new Card(name,type, edition, getDoubleFromString(price,1)));
+				foundCards.add(new CardResult(name,type, edition, getDoubleFromString(price,1)));
 			}
 		}
 		

@@ -10,7 +10,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import bbc.juniperus.mtgp.domain.Card;
+import bbc.juniperus.mtgp.domain.CardResult;
 
 public class ModraVeverickaCardPricer extends CardPricer{
 
@@ -25,16 +25,16 @@ public class ModraVeverickaCardPricer extends CardPricer{
 	
 
 	@Override
-	List<Card> getCardResults(String normalizedCardName) throws IOException {
+	List<CardResult> getCardResults(String normalizedCardName) throws IOException {
 		String html = getHTMLString(getQueryUrl(normalizedCardName));
 		return extractCardsFromHtml(html);
 	}
 
 	
-	private List<Card> extractCardsFromHtml(String html){
+	private List<CardResult> extractCardsFromHtml(String html){
 		
 		Document doc = Jsoup.parse(html);
-		List<Card> foundCards = new ArrayList<Card>();
+		List<CardResult> foundCards = new ArrayList<CardResult>();
 
 		Elements resultRows = doc.select("#card_list").select("div.card");
 		
@@ -47,7 +47,7 @@ public class ModraVeverickaCardPricer extends CardPricer{
 			Element card = resultRows.get(i);
 			name = card.select("div.name a").text();
 			price = card.select("div.price").text();
-			foundCards.add(new Card(name,type, edition, getDoubleFromString(price,1)));
+			foundCards.add(new CardResult(name,type, edition, getDoubleFromString(price,1)));
 		}
 		
 		return foundCards;

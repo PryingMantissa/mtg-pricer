@@ -15,7 +15,7 @@ public class DeckCard implements Serializable{
 	/** Store the found cards for this DeckCard. The key is the name of the
 	 * pricing web.
 	 */
-	private Map<String,Card> foundCards = new HashMap<String,Card>();
+	private Map<String,CardResult> foundCards = new HashMap<String,CardResult>();
 	
 	public DeckCard(String name, int quantity){
 		this.name = name;
@@ -33,11 +33,11 @@ public class DeckCard implements Serializable{
 	}
 
 	
-	public void addFoundCard(String sourceName, Card card){
+	public void addFoundCard(String sourceName, CardResult card){
 		foundCards.put(sourceName, card);
 	}
 	
-	public Card getFoundCard(String sourceName){
+	public CardResult getCardResult(String sourceName){
 		return foundCards.get(sourceName);
 	}
 	

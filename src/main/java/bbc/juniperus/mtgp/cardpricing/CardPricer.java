@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import bbc.juniperus.mtgp.domain.Card;
+import bbc.juniperus.mtgp.domain.CardResult;
 
 public abstract class CardPricer {
 	
@@ -22,7 +22,7 @@ public abstract class CardPricer {
 	 * @return List of found cards.
 	 * @throws IOException
 	 */
-	abstract List<Card> getCardResults(String normalizedCardName) throws IOException;
+	abstract List<CardResult> getCardResults(String normalizedCardName) throws IOException;
 	
 	public abstract String getURL();
 	public abstract String getName();
@@ -35,10 +35,10 @@ public abstract class CardPricer {
 	 * @return
 	 * @throws IOException
 	 */
-	public Card findCheapestCard(String cardName) throws IOException{
+	public CardResult findCheapestCard(String cardName) throws IOException{
 		
 		String normalizedCardName = normalizeCardName(cardName);
-		List<Card> foundCards = getCardResults(normalizedCardName);
+		List<CardResult> foundCards = getCardResults(normalizedCardName);
 		
 		/* Remove cards which does not exactly match the name
 		 * e.g. Mountain search return Goblin Mountaineer as well.
@@ -53,7 +53,7 @@ public abstract class CardPricer {
 			return null;
 		
 		
-		for (Card card: new ArrayList<Card>(foundCards))
+		for (CardResult card: new ArrayList<CardResult>(foundCards))
 			if (!card.getName().equalsIgnoreCase(normalizedCardName))
 				foundCards.remove(card);
 		
@@ -62,9 +62,9 @@ public abstract class CardPricer {
 			return null;
 		
 		//Select the cheapest card.
-		Card cheapest = foundCards.get(0);
+		CardResult cheapest = foundCards.get(0);
 		
-		for (Card c : foundCards)
+		for (CardResult c : foundCards)
 			if (cheapest.getPrice() > c.getPrice())
 				cheapest = c;
 		

@@ -2,7 +2,7 @@ package bbc.juniperus.mtgp.domain;
 
 import java.io.Serializable;
 
-public class Card implements Serializable{
+public class CardResult implements Serializable{
 	
 	private static final long serialVersionUID = 1L;
 	
@@ -12,7 +12,7 @@ public class Card implements Serializable{
 	private double price;
 	private String notFoundMsg;
 	
-	public Card(String name, String type, String edition, double d){
+	public CardResult(String name, String type, String edition, double d){
 	
 		if (name != null)
 			this.name = name.replaceAll("[`´]", "'");

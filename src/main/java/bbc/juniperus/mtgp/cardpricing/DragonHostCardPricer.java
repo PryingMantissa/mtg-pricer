@@ -10,7 +10,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import bbc.juniperus.mtgp.domain.Card;
+import bbc.juniperus.mtgp.domain.CardResult;
 
 public class DragonHostCardPricer extends CardPricer {
 	public static final int RESULT_PER_PAGE = 120;
@@ -24,14 +24,14 @@ public class DragonHostCardPricer extends CardPricer {
 	
 
 	@Override
-	List<Card> getCardResults(String normalizedCardName) throws IOException {
+	List<CardResult> getCardResults(String normalizedCardName) throws IOException {
 		
 		System.out.println("Looking for " + normalizedCardName);
 		
 		String html = getHTMLString(getQueryUrl(normalizedCardName,1));
 		
 		//Parse the first page.
-		List<Card> results = extractCardsFromHtml(html);
+		List<CardResult> results = extractCardsFromHtml(html);
 		
 		//Find out how many pages of results there are.
 		int resultsCount = getResultsCountFromHtml(html);
@@ -88,10 +88,10 @@ public class DragonHostCardPricer extends CardPricer {
 		return result;
 	}
 	
-	private List<Card> extractCardsFromHtml(String html){
+	private List<CardResult> extractCardsFromHtml(String html){
 		
 		Document doc = Jsoup.parse(html);
-		List<Card> foundCards = new ArrayList<Card>();
+		List<CardResult> foundCards = new ArrayList<CardResult>();
 
 		Elements resultRows = doc.select("div.col-main").select("li.item");
 		
@@ -105,7 +105,7 @@ public class DragonHostCardPricer extends CardPricer {
 			
 			name = card.select("h2.product-name a").text();
 			price = card.select("span.price").text();
-			foundCards.add(new Card(name,type, edition, getDoubleFromString(price,1)));
+			foundCards.add(new CardResult(name,type, edition, getDoubleFromString(price,1)));
 			
 		}
 		
@@ -145,7 +145,7 @@ public class DragonHostCardPricer extends CardPricer {
 		
 		DragonHostCardPricer pc = new DragonHostCardPricer();
 		
-		List<Card> l = pc.getCardResults("Enlarge");
+		List<CardResult> l = pc.getCardResults("Enlarge");
 		System.out.println(l.size());
 		System.out.println(l);
 		

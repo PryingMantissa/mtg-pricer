@@ -19,70 +19,71 @@ import java.util.List;
 
 import bbc.juniperus.mtgp.cardpricing.CardPricer;
 import bbc.juniperus.mtgp.cardpricing.CardPricerFactory;
-import bbc.juniperus.mtgp.domain.Card;
+import bbc.juniperus.mtgp.domain.CardResult;
 import bbc.juniperus.mtgp.domain.Deck;
 import bbc.juniperus.mtgp.domain.DeckCard;
 
-public class DeckPricer {
+public class DeckEval {
 
 	/** Number of times in the row when the DeckPricer will accept exception
 	 * when looking for card.
 	 */
 	public static final int MAX_TRIES = 5;
-	private List<CardProgressListener> listeners = new ArrayList<CardProgressListener>();
+	private List<CardPricingProgressListener> listeners = new ArrayList<CardPricingProgressListener>();
 	
-	public void addProgressListener(CardProgressListener listener){
+	public void addProgressListener(CardPricingProgressListener listener){
 		listeners.add(listener);
 	}
 	
-	public void fireCardEvaluated(Card card){
-		for (CardProgressListener pl : listeners)
+	public void fireCardEvaluated(CardResult card){
+		for (CardPricingProgressListener pl : listeners)
 			pl.cardEvaluated(card);
 	}
 	
 	
-	public Deck loadDeck(String path) throws DeckPricerException{
+	public Deck loadDeck(String path) throws DeckEvalException{
 		
 		File f = new File(path);
 		
 		if (!f.exists())
-			throw new DeckPricerException("The file does not exits.");
+			throw new DeckEvalException("The file does not exits.");
 
 		Deck deck = new Deck();
 		
 		try {
 			deck.readFromFile(f);
 		} catch (IOException e) {
-			throw new DeckPricerException("Error when reading from the file.\n" + e.getMessage());
+			throw new DeckEvalException("Error when reading from the file.\n" + e.getMessage());
 		} catch (ParseException e) {
-			throw new DeckPricerException("Error when parsing the file.\n" + e.getMessage());
+			throw new DeckEvalException("Error when parsing the file.\n" + e.getMessage());
 		}
 		
 		return deck;
 	}
 	
 	
-	public void evaluateDeck(Deck deck, CardPricer pricer) throws DeckPricerException{
+	public void evaluateDeck(Deck deck, CardPricer pricer) throws DeckEvalException{
 		
 		int notFoundCounter = 0;
 		String errorMsg = null;
 		for (DeckCard card : deck.getCards()){
-			Card foundCard = null;
+			CardResult foundCard = null;
 			try {
 				foundCard = pricer.findCheapestCard(card.getName());
 			} catch (IOException e) {
 				notFoundCounter ++;
 				if (notFoundCounter > MAX_TRIES)
-					throw new DeckPricerException("Error when attempting to get price of the cards." +
+					throw new DeckEvalException("Error when attempting to get price of the cards." +
 													"Too many failed attemps in a row(" + MAX_TRIES +").");
 				errorMsg = "Error while getting the price: " +e.getMessage();
 			}
 			
 			//No card found. Set the message why.
 			if (foundCard == null){
-				foundCard = new Card("- Not Found -","N/A","N/A", -1);
+				foundCard = new CardResult("- Not Found -","N/A","N/A", -1);
 				foundCard.setNotFound(errorMsg == null? "Not found" : errorMsg);
 			}
+			
 				
 			card.addFoundCard(pricer.getName(), foundCard);
 			//Fire it for listeners.
@@ -91,77 +92,79 @@ public class DeckPricer {
 	}
 	
 	
-	public String produceReport(Deck deck, CardPricer cardPricer){
+	public String produceReport(Deck deck, CardPricer[] cardPricers){
 		
-		String sourceName = cardPricer.getName();
-		StringBuilder sb = new StringBuilder();
-		int colWidths[] = new int[6];
-		double deckPrice = 0;
-		
+		//2 main columns + 2 per CardPricer (card name and price)
+		int colWidths[] = new int[2 + cardPricers.length*2 ];
+		double[] deckPrices = new double[cardPricers.length];
 		
 		//Set default values.
 		Arrays.fill(colWidths, 0);
 		
-		//Iterate the list and find the max lengts for each column.
+		//Iterate the list and find the max length for each column.
 		for (DeckCard card : deck.getCards()){
 			
 			if (colWidths[0] < card.getName().length())
 				colWidths[0] = card.getName().length();
 			
-			if (colWidths[1] < (card.getQuantity()+"").length())
-				colWidths[1] = (card.getQuantity()+"").length();
+			String q = Integer.toString(card.getQuantity());
+			if (colWidths[1] < q.length())
+				colWidths[1] = (q.length());
 			
-			Card fCard = card.getFoundCard(sourceName);
-			
-			if (colWidths[2] < fCard.getName().length())
-				colWidths[2] = fCard.getName().length();
-			
-			if (colWidths[3] < fCard.getType().length())
-				colWidths[3] = fCard.getType().length();
-			
-			if (colWidths[4] < fCard.getEdition().length())
-				colWidths[4] = fCard.getEdition().length();
-			
-			
-			String price;
-			if (fCard.getPrice() < 0)
-				price = "N/A " + cardPricer.getCurrency();
-			else
-				price = String.format("%.2f", fCard.getPrice()) + " " +cardPricer.getCurrency();
-			
-			if (colWidths[5] < price.length())
-				colWidths[5] = price.length();
-			
+			int index =2;
+			for (CardPricer cp : cardPricers){
+				CardResult cardResult = card.getCardResult(cp.getName());
+				
+				if (colWidths[index] < cardResult.getName().length())
+					colWidths[index] = cardResult.getName().length();
+				index++;
+				
+				//Make String version of card price.
+				String price = formatPrice(cardResult, cp);
+				if (colWidths[index] < price.length())
+					colWidths[index] = price.length();
+				index++;
+				
+			}
 		}
+		
+		
 		
 		String interColString =" | ";
 
+		StringBuilder sb = new StringBuilder();
 		for (DeckCard card : deck.getCards()){
+			int index = 0;
 			//Name and quantity of original deck cards.
-			sb.append("| " + allignLeft(card.getName(),colWidths[0], interColString));
-			sb.append(allignRight(card.getQuantity()+"",colWidths[1], interColString));
-			//sb.append(emptyCol);
-			
-			Card fCard = card.getFoundCard(sourceName);
-			
-			sb.append(allignLeft(fCard.getName(),colWidths[2], interColString));
-			sb.append(allignLeft(fCard.getType(),colWidths[3], interColString));
-			sb.append(allignLeft(fCard.getEdition(),colWidths[4], interColString));
-			
-			String price;
-			if (fCard.getPrice() < 0)
-				price = "N/A " + cardPricer.getCurrency();
-			else{
-				price = String.format("%.2f", fCard.getPrice()) + " " +cardPricer.getCurrency();
-				deckPrice += card.getQuantity()*fCard.getPrice(); 
+			sb.append("| " + allignLeft(card.getName(),colWidths[index], interColString));
+			sb.append(allignRight(card.getQuantity()+"",colWidths[index], interColString));
+
+			for (CardPricer cp : cardPricers){
+				CardResult cardResult = card.getCardResult(cp.getName());
+				
+				sb.append(allignLeft(cardResult.getName(),colWidths[index], interColString));
+				index++;
+
+				//Make String version of card price.
+				String price = formatPrice(cardResult, cp);
+				sb.append(allignRight(price,colWidths[index], interColString));
+				index++;
+				
 			}
-			sb.append(allignRight(price,colWidths[5], interColString));
 			sb.append("\n");
 		}
-		
-		sb.append("Total deck price is: " + String.format("%.2f",deckPrice) + " " +cardPricer.getCurrency());
+
+		//sb.append("Total deck price is: " + String.format("%.2f",deckPrice) + " " +cardPricer.getCurrency());
 		return sb.toString();
 		
+	}
+	
+	
+	public static String formatPrice(CardResult cardResult, CardPricer cardPricer){
+		String price = cardResult.getPrice() < 0 ? "N/A" : String.format("%.2f", cardResult.getPrice());
+		price = price + " " + cardPricer.getCurrency();
+		
+		return price;
 	}
 	
 	
@@ -226,31 +229,37 @@ public class DeckPricer {
 		String path = "d:\\deck.txt";
 		@SuppressWarnings("unused")
 		String savePath = "d:\\savedDeck.dck";
-		DeckPricer dp = new DeckPricer();
+		DeckEval dp = new DeckEval();
 		
+		
+		
+		Deck deck = null;
 		CardPricer cPricer = CardPricerFactory.getCernyRytirPricer();
+		deck =dp.loadEvalueteDeck(path,cPricer);
 		
 		cPricer = CardPricerFactory.getModraVeverickaPricer();
+		deck =dp.loadEvalueteDeck(path,cPricer);
 		
 		cPricer = CardPricerFactory.getDragonPricer();
+		deck =dp.loadEvalueteDeck(path,cPricer);
 		
-		Deck deck =dp.loadEvalueteDeck(path,cPricer);
 		
-		/*
 		serializeDeck(deck,savePath );
-		Deck deck2 = deserializeDeck(savePath);
-		*/
+		/*
+		deck = deserializeDeck(savePath);
+		
 		
 		
 		System.out.println(dp.produceReport(deck,cPricer));
+		*/
 	}
 	
 	public Deck loadEvalueteDeck(String path, CardPricer cardPricer){
 
-		addProgressListener(new CardProgressListener() {
+		addProgressListener(new CardPricingProgressListener() {
 			
 			@Override
-			public void cardEvaluated(Card card) {
+			public void cardEvaluated(CardResult card) {
 				System.out.println("Ready: " + card);
 				
 			}
@@ -259,7 +268,7 @@ public class DeckPricer {
 		Deck deck = null;
 		try {
 			deck = loadDeck(path);
-		} catch (DeckPricerException e) {
+		} catch (DeckEvalException e) {
 			System.out.println("Error when loading the deck: " + e.getMessage());
 			System.exit(1);
 		}
@@ -271,7 +280,7 @@ public class DeckPricer {
 
 		try {
 			evaluateDeck(deck,cardPricer);
-		} catch (DeckPricerException e) {
+		} catch (DeckEvalException e) {
 			System.out.println("Erro when evaluting deck: " + e.getMessage());
 			System.exit(1);
 		}
