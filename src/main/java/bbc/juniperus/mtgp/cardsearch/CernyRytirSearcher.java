@@ -1,15 +1,18 @@
-package bbc.juniperus.mtgp.cardpricing;
+package bbc.juniperus.mtgp.cardsearch;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Currency;
+import java.util.Date;
 import java.util.List;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+
 import bbc.juniperus.mtgp.domain.CardResult;
 
-public class CernyRytirCardPricer extends CardPricer{
+public class CernyRytirSearcher extends Searcher{
 	
 	public static final int RESULT_PER_PAGE = 30;
 	public static final String URL = "http://www.cernyrytir.cz/";
@@ -17,7 +20,7 @@ public class CernyRytirCardPricer extends CardPricer{
 	public static Currency currency;
 	
 	/** Default constructor*/
-	CernyRytirCardPricer(){
+	CernyRytirSearcher(){
 		
 		currency = Currency.getInstance("CZK");
 	}
@@ -98,7 +101,8 @@ public class CernyRytirCardPricer extends CardPricer{
 				type = resultRows.get(i).select("td:eq(0)").text();
 				price = resultRows.get(i).select("td:eq(2)").text();
 				//Add card
-				foundCards.add(new CardResult(name,type, edition, getDoubleFromString(price,1)));
+				foundCards.add(new CardResult(name,type, edition, 
+						getDoubleFromString(price,1),NAME,new Date(), currency));
 			}
 		}
 		

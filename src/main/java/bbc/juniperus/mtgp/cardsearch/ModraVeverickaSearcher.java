@@ -1,8 +1,9 @@
-package bbc.juniperus.mtgp.cardpricing;
+package bbc.juniperus.mtgp.cardsearch;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Currency;
+import java.util.Date;
 import java.util.List;
 
 import org.jsoup.Jsoup;
@@ -12,14 +13,14 @@ import org.jsoup.select.Elements;
 
 import bbc.juniperus.mtgp.domain.CardResult;
 
-public class ModraVeverickaCardPricer extends CardPricer{
+public class ModraVeverickaSearcher extends Searcher{
 
 	//public static final int RESULT_PER_PAGE = 50;
 	public static final String URL = "http://www.modravevericka.sk/";
 	public static final String NAME = "Modra Vevericka";
 	public static Currency currency;
 	
-	public ModraVeverickaCardPricer() {
+	public ModraVeverickaSearcher() {
 		currency = Currency.getInstance("EUR");
 	}
 	
@@ -47,7 +48,8 @@ public class ModraVeverickaCardPricer extends CardPricer{
 			Element card = resultRows.get(i);
 			name = card.select("div.name a").text();
 			price = card.select("div.price").text();
-			foundCards.add(new CardResult(name,type, edition, getDoubleFromString(price,1)));
+			foundCards.add(new CardResult(name,type, edition, 
+										getDoubleFromString(price,1),NAME,new Date(), currency));
 		}
 		
 		return foundCards;
@@ -82,7 +84,7 @@ public class ModraVeverickaCardPricer extends CardPricer{
 	//Testing main
 	public static void main(String[] args) throws IOException{
 		
-		ModraVeverickaCardPricer pc = new ModraVeverickaCardPricer();
+		ModraVeverickaSearcher pc = new ModraVeverickaSearcher();
 		System.out.println(pc.getCardResults("Goblin"));
 	}
 }

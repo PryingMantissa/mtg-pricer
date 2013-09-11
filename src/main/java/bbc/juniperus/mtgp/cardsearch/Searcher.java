@@ -1,4 +1,4 @@
-package bbc.juniperus.mtgp.cardpricing;
+package bbc.juniperus.mtgp.cardsearch;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 
 import bbc.juniperus.mtgp.domain.CardResult;
 
-public abstract class CardPricer {
+public abstract class Searcher {
 	
 	
 	/**

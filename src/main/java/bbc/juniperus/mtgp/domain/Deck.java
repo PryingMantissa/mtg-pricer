@@ -8,7 +8,9 @@ import java.io.Serializable;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,7 +23,8 @@ public class Deck implements Serializable {
 	public final static String REG_EXP_NAME = "[a-zA-Z\\s'-/]+";
 	public final static String REG_EXP_NUMBER = "\\d+";
 	
-	private List<DeckCard> cards = new ArrayList<DeckCard>();
+	private List<Card> cards = new ArrayList<Card>();
+	private Map<Card,Integer> quantityMap = new HashMap<Card,Integer>();
 	
 	/**
 	 * Parses the file on the given path and stores parsed cards.
@@ -51,7 +54,9 @@ public class Deck implements Serializable {
 											REG_EXP_NUMBER + "(number) and " + REG_EXP_NAME +
 											"(name of the card)",0);
 			}
-			cards.add(card);
+			Card c = new Card(card.getName());
+			cards.add(c);
+			quantityMap.put(c, card.getQuantity());
 		}
 		reader.close();
 	}
@@ -93,16 +98,26 @@ public class Deck implements Serializable {
 	 * Returns  <code>List</code> containing <code>Deck</code>'s  {@link DeckCard} objects.
 	 * @return unmodifiable <code>List</code>
 	 */
-	public List<DeckCard> getCards(){
+	public List<Card> getCards(){
 		return Collections.unmodifiableList(cards);
+	}
+	
+	
+	public List<Integer> getQuantity(){
+		List<Integer > list = new ArrayList<Integer>();
+		
+		for (Card c : cards)
+			list.add(quantityMap.get(c));
+		
+		return list;
 	}
 	
 	@Override
 	public String toString(){
 		
 		StringBuilder sb = new StringBuilder();
-		for (DeckCard card : cards)
-			sb.append(card + "\n");
+		for (Card card : cards)
+			sb.append(card.getName() + " - " + quantityMap.get(card) + "\n");
 			
 		return sb.toString();
 	}
