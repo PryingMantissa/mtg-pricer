@@ -22,6 +22,7 @@ import java.util.Map;
 
 import bbc.juniperus.mtgp.cardsearch.Searcher;
 import bbc.juniperus.mtgp.cardsearch.SearcherFactory;
+import bbc.juniperus.mtgp.datastruc.DataTable;
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.domain.CardResult;
 import bbc.juniperus.mtgp.domain.Deck;
@@ -42,41 +43,21 @@ public class Pricer implements SearchProgressListener{
 	private List<List<String>> reportMatrix = new ArrayList<List<String>>();
 	private int colsCount;
 	private int[] colsWidth;
-	
+	private DataTable data = new DataTable();
 	
 	public void fill(List<Card> cardsList, List<Integer> quantity){	
-		cards.clear();
-		
-		if (quantity ==null){
-			withQuantity = false;
-			cards.addAll(cardsList);
-			return;
-		}
-		
-		withQuantity = true;
-		
-		if (cardsList.size() != quantity.size())
+
+		if (quantity != null && cardsList.size() != quantity.size())
 			throw new IllegalArgumentException("Card List size does not match quantity List size");
 		
 		for (int i=0; i  < cardsList.size(); i++ ){
-			Card card = cardsList.get(i);
-			cards.add(card);
-			quantityMap.put(card, quantity.get(i));
+			
+			//If no quantity List was passed, then set quantity of all to 1.
+			int q = quantity == null? 1 : quantity.get(i);
+			data.addCard(cardsList.get(i), q);
 		}
 		
-		
 	}
-	
-
-	public void clearCards(){
-		cards.clear();
-	}
-	
-	public List<Card> getCards(){
-		return Collections.unmodifiableList(cards);
-	}
-
-	
 	
 	public void addSearcher(Searcher searcher){
 		searchers.add(searcher);
@@ -92,16 +73,16 @@ public class Pricer implements SearchProgressListener{
 	}
 	
 	
-	public void find() throws DeckEvalException{
+	public void runLookUp() throws DeckEvalException{
 		for (Searcher s : searchers)
-			find(s);
+			lookUpWith(s);
 	}
 	
-	
-	public void find(Searcher searcher) throws DeckEvalException{
+
+	public void lookUpWith(Searcher searcher) throws DeckEvalException{
 		
 		//Search for all cards using the Searcher.
-		for (Card card : cards){
+		for (Card card : data.getCards()){
 			CardResult result = null;
 			try {
 				result = searcher.findCheapestCard(card.getName());
@@ -110,16 +91,12 @@ public class Pricer implements SearchProgressListener{
 													e.getMessage());
 			}
 	
-			Map<String,CardResult>  resultSet = results.get(card);
-			if (resultSet == null)
-				resultSet = new HashMap<String,CardResult>();
-			resultSet.put(searcher.getName(),result);
-			results.put(card, resultSet);
-			//Fire it for listeners.
+			data.addResult(card, result, searcher.getName());
 			fireCardSearched(card,result, searcher);
 		}
 	}
 	
+
 	/**
 	 * Create String matrix and also determine the maximum length of String in each column.
 	 */
@@ -328,12 +305,7 @@ public class Pricer implements SearchProgressListener{
 		return String.format("%1$,.2f", d);
 	}
 	
-	public void serializeResults(String path){
-		
-		/*
-		results.put(new Card("kokot"), null);
-		results.put(new Card("pica"), null);
-		*/
+	public void serializeData(String path){
 		
 		try{
 			OutputStream fileOs = new FileOutputStream(path);
@@ -341,9 +313,9 @@ public class Pricer implements SearchProgressListener{
 			ObjectOutput objectOs = new ObjectOutputStream(bufferOs);
 		      
 		      try{
-		    	  objectOs.writeObject(results);
+		    	  objectOs.writeObject(data);
 		      }finally{
-		    	  objectOs.close();
+		    	  objectOs.close(); 
 		      }
 
 		}catch(IOException e){
@@ -352,15 +324,15 @@ public class Pricer implements SearchProgressListener{
 	}
 	
 	@SuppressWarnings("unchecked")
-	public void  deserializeResults(String path){
+	public void  deserializeData(String path){
 		
-		Map<Card,Map<String,CardResult>> result = null;
+		DataTable result = null;
 		try{
 		      InputStream fileIs = new FileInputStream(path);
 		      InputStream bufferIs = new BufferedInputStream(fileIs);
 		      ObjectInput objectIs = new ObjectInputStream(bufferIs);
 		      try{
-		    	  result = (Map<Card,Map<String,CardResult>>) objectIs.readObject();
+		    	  result = (DataTable) objectIs.readObject();
 		      }
 		      finally{
 		    	  objectIs.close();
@@ -373,7 +345,7 @@ public class Pricer implements SearchProgressListener{
 	    	System.out.println("Loading deck failed: " + e.getMessage());
 	    }
 		
-		results = result;
+		data = result;
 	}
 	
 	
@@ -400,7 +372,7 @@ public class Pricer implements SearchProgressListener{
 		
 		searchers.add(SearcherFactory.getCernyRytirPricer());
 		searchers.add(SearcherFactory.getModraVeverickaPricer());
-		searchers.add(SearcherFactory.getDragonPricer());
+		//searchers.add(SearcherFactory.getDragonPricer());
 		
 		
 		pc.fill(deck.getCards(), deck.getQuantity());
@@ -410,14 +382,36 @@ public class Pricer implements SearchProgressListener{
 		
 		pc.addProgressListener(pc);
 		
-		//pc.find();
+		//pc.runLookUp();
 		
-		System.out.println(pc.results);
-		//pc.serializeResults(savePath);
+		//pc.serializeData(savePath);
 		
-		pc.deserializeResults(savePath);
-		System.out.println(pc.results);
-		System.out.println(pc.produceReport());
+		pc.deserializeData(savePath);
+		System.out.println(pc.data.stringify());
+		pc.data.setUp();
+		int cols = pc.data.getColumnCount();
+		int rows = pc.data.getRowCount();
+		
+		for (int i = 0; i < cols; i++) {
+			System.out.print(pc.data.getColumnWidth(i) +" ");
+			
+		}
+		
+		System.out.println();
+		System.out.println("Printing resultsssss " + cols);
+		
+		for (int i =0; i<rows;i++){
+			for (int j=0;j<cols;j++)
+				System.out.print(pc.data.getValue(i, j) + " | ");
+			System.out.println();
+		}
+		
+	
+		//pc.data.createCSVReport("d:\\cards.csv");
+		System.out.println(pc.data.generateReportString());
+		
+		
+		//System.out.println(pc.produceReport());
 		
 		/*
 		Card c = pc.results.keySet().iterator().next();

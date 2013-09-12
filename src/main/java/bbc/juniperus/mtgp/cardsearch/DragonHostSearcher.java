@@ -12,6 +12,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import bbc.juniperus.mtgp.domain.CardResult;
+import bbc.juniperus.mtgp.domain.Source;
 
 public class DragonHostSearcher extends Searcher {
 	public static final int RESULT_PER_PAGE = 120;
@@ -107,7 +108,7 @@ public class DragonHostSearcher extends Searcher {
 			name = card.select("h2.product-name a").text();
 			price = card.select("span.price").text();
 			foundCards.add(new CardResult(name,type, edition, 
-					getDoubleFromString(price,1),NAME,new Date(), currency));
+					getDoubleFromString(price,1),new Source(NAME),new Date(), currency));
 			
 		}
 		

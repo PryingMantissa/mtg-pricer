@@ -11,6 +11,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 import bbc.juniperus.mtgp.domain.CardResult;
+import bbc.juniperus.mtgp.domain.Source;
 
 public class CernyRytirSearcher extends Searcher{
 	
@@ -102,7 +103,7 @@ public class CernyRytirSearcher extends Searcher{
 				price = resultRows.get(i).select("td:eq(2)").text();
 				//Add card
 				foundCards.add(new CardResult(name,type, edition, 
-						getDoubleFromString(price,1),NAME,new Date(), currency));
+						getDoubleFromString(price,1),new Source(NAME),new Date(), currency));
 			}
 		}
 		

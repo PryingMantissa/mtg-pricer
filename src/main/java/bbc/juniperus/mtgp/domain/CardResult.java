@@ -13,12 +13,12 @@ public class CardResult implements Serializable{
 	private String edition;
 	private double price;
 	private String notFoundMsg;
-	private String source;
+	private Source source;
 	private Date date;
 	private Currency currency;
 	
 	public CardResult(String name, String type, String edition,
-						double price, String source, Date date, Currency currency){
+						double price, Source source, Date date, Currency currency){
 		if (name != null)
 			this.name = name.replaceAll("[`´]", "'");
 		this.type = type;
@@ -51,7 +51,10 @@ public class CardResult implements Serializable{
 	public Currency getCurrency(){
 		return currency;
 	}
-
+	
+	public Source getSource(){
+		return source;
+	}
 	
 	
 
@@ -61,7 +64,7 @@ public class CardResult implements Serializable{
 		if (notFoundMsg != null)
 			return "N/A: " + notFoundMsg;
 		
-		return this.getClass().getSimpleName() + "[" + name + ", " + type +", " + 
+		return this.getClass().getSimpleName() + "[@" + source + ": " + name + ", " + type +", " + 
 				", " + edition  +", " + price + "]";
 	}
 

@@ -12,6 +12,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import bbc.juniperus.mtgp.domain.CardResult;
+import bbc.juniperus.mtgp.domain.Source;
 
 public class ModraVeverickaSearcher extends Searcher{
 
@@ -49,7 +50,7 @@ public class ModraVeverickaSearcher extends Searcher{
 			name = card.select("div.name a").text();
 			price = card.select("div.price").text();
 			foundCards.add(new CardResult(name,type, edition, 
-										getDoubleFromString(price,1),NAME,new Date(), currency));
+										getDoubleFromString(price,1),new Source(NAME),new Date(), currency));
 		}
 		
 		return foundCards;
