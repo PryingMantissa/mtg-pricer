@@ -10,11 +10,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableModel;
+
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.domain.CardResult;
 import bbc.juniperus.mtgp.domain.Source;
 
-public class DataTable implements Serializable{
+public class DataModel extends AbstractTableModel implements Serializable{
 
 	private static final long serialVersionUID = 1L;
 
@@ -28,16 +33,17 @@ public class DataTable implements Serializable{
 	private List<ColumnMeta> columns = new ArrayList<ColumnMeta>();
 	private List<Source> sources = new ArrayList<Source>();
 	private List<Source> shownSources = new ArrayList<Source>();
+	private List<TableModelListener> listeners = new ArrayList<TableModelListener>();
 	
-	public DataTable(){
-
+	public DataModel(){
+		columns.add(new ColumnMeta(ColumnMeta.Type.NAME));
+		columns.add(new ColumnMeta(ColumnMeta.Type.QUANTITY));
 	}
 	
-
-	public String getValue(int row,int column){
-		
+	@Override
+	public Object getValueAt(int row,int column){
 		ColumnMeta col = columns.get(column);
-		String res = getRow(col.getSource(),col.getType(),row);
+		String res = getValue(col.getSource(),col.getType(),row);
 
 		return res;
 	}
@@ -45,7 +51,7 @@ public class DataTable implements Serializable{
 	
 	public String getPaddedValue(int row,int column){
 		ColumnMeta col = columns.get(column);
-		String res = getRow(col.getSource(),col.getType(),row);
+		String res = getValue(col.getSource(),col.getType(),row);
 		
 		if (col.getAlligment() == ColumnMeta.RIGHT)
 			res = allignRight(res, col.getWidth());
@@ -55,11 +61,14 @@ public class DataTable implements Serializable{
 		return res;
 	}
 	
+	@Override
 	public int getRowCount(){
 		return cards.size();
 	}
 	
+	@Override
 	public int getColumnCount(){
+		System.out.println("column count is asked for");
 		return columns.size();
 	}
 	
@@ -76,7 +85,7 @@ public class DataTable implements Serializable{
 		return res;
 	}
 	
-	private String getRow(Source s, ColumnMeta.Type type, int row){
+	private String getValue(Source s, ColumnMeta.Type type, int row){
 		
 		if (s == null)
 			return getRow(type,row);
@@ -138,9 +147,16 @@ public class DataTable implements Serializable{
 	}
 	
 	
-	public void addResult(Card card, CardResult result, String sourceName){
-		
+	public void addResults(Map<Card,CardResult> results, String sourceName){
 		Source source = new Source(sourceName);
+		for (Card c : results.keySet())
+				addResult(c, results.get(c), source);
+		fireTableStructureChanged();
+	}
+	
+	
+	private void addResult(Card card, CardResult result, Source source){
+		
 		Map<Source,CardResult> resultSet = results.get(card);
 		
 		if (resultSet == null){
@@ -152,7 +168,10 @@ public class DataTable implements Serializable{
 		if (!sources.contains(source)){
 			sources.add(source);
 			shownSources.add(source);
+			columns.add(new ColumnMeta(ColumnMeta.Type.RESULT_NAME,source));
+			columns.add(new ColumnMeta(ColumnMeta.Type.RESULT_PRICE,source));
 		}
+		
 	}
 	
 	public void setUp(){
@@ -161,14 +180,6 @@ public class DataTable implements Serializable{
 	}
 	
 	private void createColumnsMetaData(){
-		
-		columns.add(new ColumnMeta(ColumnMeta.Type.NAME));
-		columns.add(new ColumnMeta(ColumnMeta.Type.QUANTITY));
-		
-		for (Source s : sources){
-			columns.add(new ColumnMeta(ColumnMeta.Type.RESULT_NAME,s));
-			columns.add(new ColumnMeta(ColumnMeta.Type.RESULT_PRICE,s));
-		}
 		
 		//columns.add(new Column(Column.Type.CHEAPEST_PRICE));
 	}
@@ -182,7 +193,7 @@ public class DataTable implements Serializable{
 	private  void findMaxColumnWidth(ColumnMeta col){
 		int maxW = 0;
 		for (int i = 0; i < getRowCount(); i++) {
-			int curW = getRow(col.getSource(),col.getType(),i).length();
+			int curW = getValue(col.getSource(),col.getType(),i).length();
 			if (curW > maxW)
 				maxW = curW;
 		}
@@ -206,7 +217,7 @@ public class DataTable implements Serializable{
 			
 			for (int i = 0; i < getRowCount(); i++) {
 				for (int j = 0; j < getColumnCount(); j++){
-					writer.print(getValue(i,j));
+					writer.print(getValueAt(i,j));
 					writer.print(sep);
 				}
 				writer.print("\n");
@@ -271,5 +282,24 @@ public class DataTable implements Serializable{
 		return sb.toString();
 		
 	}
-	
+
+
+	@Override
+	public Class<?> getColumnClass(int columnIndex) {
+		//Just as broad as possible. Could be changed to String maybe.
+		return Object.class;
+	}
+
+
+	@Override
+	public String getColumnName(int columnIndex) {
+		return columns.get(columnIndex).getHeaderName();
+	}
+
+
+	@Override
+	public boolean isCellEditable(int rowIndex, int columnIndex) {
+		//Cells are view only.
+		return false;
+	}
 }

@@ -14,7 +14,7 @@ import org.jsoup.select.Elements;
 import bbc.juniperus.mtgp.domain.CardResult;
 import bbc.juniperus.mtgp.domain.Source;
 
-public class DragonHostSearcher extends Searcher {
+class DragonHostSearcher extends Searcher {
 	public static final int RESULT_PER_PAGE = 120;
 	public static final String URL = "http://shop.dragonhost.eu/";
 	public static final String NAME = "Draco";

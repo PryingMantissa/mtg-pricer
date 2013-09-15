@@ -13,7 +13,7 @@ import org.jsoup.select.Elements;
 import bbc.juniperus.mtgp.domain.CardResult;
 import bbc.juniperus.mtgp.domain.Source;
 
-public class CernyRytirSearcher extends Searcher{
+class CernyRytirSearcher extends Searcher{
 	
 	public static final int RESULT_PER_PAGE = 30;
 	public static final String URL = "http://www.cernyrytir.cz/";

@@ -7,51 +7,62 @@ public class ColumnMeta {
 	public static final int LEFT = 8;
 	public static final int RIGHT = 9;
 	
+	private static final String[] headerNames = new String[]{"<html>Card <br>name</html>","Quantity","Card","Price","Type","Edition",
+		"Price total","Lowest price"};
+	
 	public static enum Type{
-		NAME, //Name of the card
-		QUANTITY, //Quantity specified
-		RESULT_NAME(true), //Name of the card result
-		RESULT_PRICE(true), //Price of the single card result
-		RESULT_TYPE(true),  //Type (Common,Uncommon,Rare) of the card result
-		RESULT_EDITION(true), //Edition of result card
-		RESULT_TOTAL_PRICE(true), //Quantity * single price of card result
-		CHEAPEST_PRICE; //Cheapest price in the row
+	
+		NAME(headerNames[0]), //Name of the card
+		QUANTITY(headerNames[1]), //Quantity specified
+		RESULT_NAME(true, headerNames[2]), //Name of the card result
+		RESULT_PRICE(true, headerNames[3]), //Price of the single card result
+		RESULT_TYPE(true, headerNames[4]),  //Type (Common,Uncommon,Rare) of the card result
+		RESULT_EDITION(true, headerNames[5]), //Edition of result card
+		RESULT_TOTAL_PRICE(true, headerNames[6]), //Quantity * single price of card result
+		CHEAPEST_PRICE(headerNames[7]); //Cheapest price in the row
 		
 		//Define if the column is containing card results.
 		private boolean sourceColumn;
-		
-		Type(boolean sourceColumn){this.sourceColumn = sourceColumn;}
-		
-		Type(){}
-		
-		boolean isSourceColumn(){
-			return sourceColumn;
+		private String header;
+
+		Type(boolean sourceColumn, String header){
+			this.sourceColumn = sourceColumn;
+			this.header = header;
 		}
+		
+		Type(String header){
+			this.header = header;
+		}		
 	}
 
 	private Type type;
 	private Source source;
 	private int width;
 	private int alligment;
+	private String headerName;
 	
 	public ColumnMeta(Type type){
-		if (type.isSourceColumn())
+		if (type.sourceColumn)
 			throw new IllegalArgumentException("This is source column type."
 					+ "You need to specify source.");
 		
 		this.type = type;
 		detectAndSetAlligment();
+		headerName = type.header; //Might be changed later.
 	}
 	
 
 	public ColumnMeta(Type type, Source source){
 		
-		if (!type.isSourceColumn())
+		if (!type.sourceColumn)
 			throw new IllegalArgumentException("This is not source column type.");
 		
 		this.type = type;
 		this.source = source;
 		detectAndSetAlligment();
+		headerName = "<html>" + source.getName() + "<br>" + type.header + "</html>"
+				
+				; //Might be changed later.
 	}
 
 	
@@ -67,6 +78,8 @@ public class ColumnMeta {
 			
 	}
 	
+
+
 	public Type getType() {
 		return type;
 	}
@@ -96,8 +109,16 @@ public class ColumnMeta {
 	public void setAlligment(int alligment) {
 		this.alligment = alligment;
 	}
-	
-	
+
+
+	public String getHeaderName() {
+		return headerName;
+	}
+
+
+	public void setHeaderName(String headerName) {
+		this.headerName = headerName;
+	}
 	
 	
 	/**

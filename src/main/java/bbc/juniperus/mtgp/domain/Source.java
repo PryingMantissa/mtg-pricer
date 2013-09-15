@@ -16,6 +16,11 @@ public class Source implements Serializable{
 		return "source@" +name;
 	}
 	
+	
+	public String getName(){
+		return name;
+	}
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof Source &&

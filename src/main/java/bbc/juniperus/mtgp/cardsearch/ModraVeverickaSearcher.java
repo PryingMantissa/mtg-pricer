@@ -14,7 +14,7 @@ import org.jsoup.select.Elements;
 import bbc.juniperus.mtgp.domain.CardResult;
 import bbc.juniperus.mtgp.domain.Source;
 
-public class ModraVeverickaSearcher extends Searcher{
+class ModraVeverickaSearcher extends Searcher{
 
 	//public static final int RESULT_PER_PAGE = 50;
 	public static final String URL = "http://www.modravevericka.sk/";

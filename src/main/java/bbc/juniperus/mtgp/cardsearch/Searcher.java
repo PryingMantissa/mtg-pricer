@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 
 import bbc.juniperus.mtgp.domain.CardResult;
 
-public abstract class Searcher {
+abstract class Searcher {
 	
 	
 	/**

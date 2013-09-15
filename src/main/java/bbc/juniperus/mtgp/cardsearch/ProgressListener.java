@@ -1,10 +1,9 @@
-package bbc.juniperus.mtgp.deckpricing;
+package bbc.juniperus.mtgp.cardsearch;
 
-import bbc.juniperus.mtgp.cardsearch.Searcher;
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.domain.CardResult;
 
-public interface SearchProgressListener {
+public interface ProgressListener {
 	
 	void cardSearched(Card card, CardResult result, Searcher searcher);
 	
