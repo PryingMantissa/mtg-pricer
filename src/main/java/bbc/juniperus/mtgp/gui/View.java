@@ -4,14 +4,17 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Arrays;
 
+import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -19,6 +22,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JViewport;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.ViewportLayout;
 import javax.swing.border.Border;
@@ -47,6 +51,7 @@ public class View extends JPanel {
 	private Border emptyBorder = BorderFactory.createEmptyBorder(t,t, t, t);
 	private Border lowB = BorderFactory.createLoweredBevelBorder();
 	
+	private Component orig;
 	
 	
 	public View(String name, DataModel savedSearchData){
@@ -119,15 +124,20 @@ public class View extends JPanel {
 		table = new JTable(pricer.data());
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		
+		table.setGridColor(Color.red);
 		//table.setBorder(boderRed);
 		//table.getTableHeader().setBackground(Color.white);
 		table.getTableHeader().setReorderingAllowed(false);
 		table.setGridColor(Color.LIGHT_GRAY);
 		
+		//table.getColumn(null).getHeaderRenderer();
+		
 		//table.getTableHeader().setBackground(Color.yellow);
 		//table.getTableHeader().setBorder(boderRed);
 		
-		table.getTableHeader().setDefaultRenderer(new HeaderCellRenderer());
+		table.getTableHeader().setDefaultRenderer(
+				new HeaderCellRenderer(table.getTableHeader().getDefaultRenderer()));
+		table.setAutoCreateRowSorter(true);
 		//table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 	}
 	
@@ -155,7 +165,7 @@ public class View extends JPanel {
 		scrollPane.setColumnHeader(new JViewport(){
 			@Override public Dimension getPreferredSize() {
 		        Dimension d = super.getPreferredSize();
-		        d.height = 36;
+		        d.height = 25;
 		        return d;
 			}
 		});
@@ -175,49 +185,58 @@ public class View extends JPanel {
 	
 	private class HeaderCellRenderer extends DefaultTableCellRenderer{
 		
-		Border bottomRightBorder = BorderFactory.createMatteBorder(0, 0, 1, 1,Color.gray);
+		
+		TableCellRenderer  o;
+		
+		public HeaderCellRenderer(TableCellRenderer  original){
+			o = original;
+		}
 		
 		@Override
-		public Component getTableCellRendererComponent(JTable arg0, Object arg1,
-				boolean arg2, boolean arg3, int arg4, int arg5) {
-			
-			System.out.println("wut");
-			Stack.printStack();
-			
-			
-			String text = arg1.toString();
-			String[] parts = text.split("\\|"); 
-			
-			if (parts.length ==1)
-				return getHeaderComp(parts[0]);
-			else
-				return getHeaderComp(parts[0],parts[1]);
+	    public Component getTableCellRendererComponent(
+	            JTable table, Object value, boolean isSelected,
+	            boolean hasFocus, int row, int column) {
 
-		}
-		
-		
-		private Component getHeaderComp(String name){
-			JLabel comp = new JLabel(name);
-			comp.setHorizontalAlignment(JLabel.CENTER);
-			comp.setBorder(bottomRightBorder);
-			return comp;
-		}
-		
-		private Component getHeaderComp(String name ,String name2){
-			JPanel comp = new JPanel(new GridLayout(2,1));
-			
-			JLabel l1 = (JLabel) getHeaderComp(name);
-			JLabel l2 = (JLabel)getHeaderComp(setBold(name2));
-			comp.add(l1);
-			comp.add(l2);
-			
-			return comp;
-		}
-		
-		private String setBold(String word){
-				return "<html><i>" + word + "</i></html>";
-		}
-		
+	        // returns component used for default header rendering
+	        // makes it independent on current L&F
+
+	        Component retr = o.getTableCellRendererComponent(
+	                table, value, isSelected, hasFocus, row, column);
+
+	        
+	        System.out.println(retr instanceof JLabel);
+	        
+	        if ( JLabel.class.isAssignableFrom(retr.getClass()) ) {
+
+	            JLabel jl = (JLabel) retr;
+	            jl.setText("   " + jl.getText());
+	            jl.setFont(jl.getFont().deriveFont(Font.BOLD));
+	           // jl.setHorizontalAlignment(SwingConstants.CENTER);
+	            jl.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.gray));
+	            
+	            if (column == 5 || column == 3)
+	            	jl.setText("");
+	            	
+
+	        }
+	        
+	        return retr;
+
+	    }
+
+	    @Override
+	    public void validate() {}
+
+	    @Override
+	    public void revalidate() {}
+
+	    @Override
+	    public void firePropertyChange(
+	        String propertyName, boolean oldValue, boolean newValue) {}
+
+	    @Override
+	    public void firePropertyChange(
+	        String propertyName, Object oldValue, Object newValue) {}
 		
 	}
 	

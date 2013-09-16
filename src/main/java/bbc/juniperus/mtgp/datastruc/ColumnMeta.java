@@ -60,7 +60,9 @@ public class ColumnMeta {
 		this.type = type;
 		this.source = source;
 		detectAndSetAlligment();
-		headerName = source.getName() + "|" + type.header;
+		//headerName = source.getName() + "|" + type.header;
+		//headerName = "<html>" + source.getName() + "<br>" + type.header + "</html>";
+		headerName = "<html><b>" + source.getName() + "</b></html>";
 	}
 
 	
