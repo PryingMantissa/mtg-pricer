@@ -13,6 +13,7 @@ import java.util.Map;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
 import bbc.juniperus.mtgp.domain.Card;
@@ -36,6 +37,7 @@ public class DataModel extends AbstractTableModel implements Serializable{
 	private List<TableModelListener> listeners = new ArrayList<TableModelListener>();
 	
 	public DataModel(){
+		cards = new HashMap<Integer,Card>();
 		columns.add(new ColumnMeta(ColumnMeta.Type.NAME));
 		columns.add(new ColumnMeta(ColumnMeta.Type.QUANTITY));
 	}
@@ -63,7 +65,10 @@ public class DataModel extends AbstractTableModel implements Serializable{
 	
 	@Override
 	public int getRowCount(){
+		if (cards == null)
+			return 0;
 		return cards.size();
+		
 	}
 	
 	@Override
@@ -174,16 +179,10 @@ public class DataModel extends AbstractTableModel implements Serializable{
 		
 	}
 	
+
 	public void setUp(){
-		createColumnsMetaData();
-		findMaxColumnsWidth();
+		setMaxColumnsWidth();
 	}
-	
-	private void createColumnsMetaData(){
-		
-		//columns.add(new Column(Column.Type.CHEAPEST_PRICE));
-	}
-	
 	
 	public int getColumnWidth(int col){
 		return columns.get(col).getWidth();
@@ -202,7 +201,7 @@ public class DataModel extends AbstractTableModel implements Serializable{
 	
 	
 	
-	private void findMaxColumnsWidth(){
+	private void setMaxColumnsWidth(){
 		for (ColumnMeta cm : columns)
 			findMaxColumnWidth(cm);
 	}

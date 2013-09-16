@@ -7,7 +7,7 @@ public class ColumnMeta {
 	public static final int LEFT = 8;
 	public static final int RIGHT = 9;
 	
-	private static final String[] headerNames = new String[]{"<html>Card <br>name</html>","Quantity","Card","Price","Type","Edition",
+	private static final String[] headerNames = new String[]{"<html>Card name</html>","Quantity","Card","Price","Type","Edition",
 		"Price total","Lowest price"};
 	
 	public static enum Type{
@@ -60,9 +60,7 @@ public class ColumnMeta {
 		this.type = type;
 		this.source = source;
 		detectAndSetAlligment();
-		headerName = "<html>" + source.getName() + "<br>" + type.header + "</html>"
-				
-				; //Might be changed later.
+		headerName = source.getName() + "|" + type.header;
 	}
 
 	

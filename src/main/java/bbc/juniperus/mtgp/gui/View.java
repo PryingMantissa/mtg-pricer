@@ -4,11 +4,13 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.Arrays;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -16,6 +18,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JViewport;
 import javax.swing.UIManager;
 import javax.swing.ViewportLayout;
 import javax.swing.border.Border;
@@ -27,6 +30,7 @@ import javax.swing.table.TableColumn;
 
 import bbc.juniperus.mtgp.cardsearch.Pricer;
 import bbc.juniperus.mtgp.datastruc.DataModel;
+import bbc.juniperus.mtgp.utils.Stack;
 
 public class View extends JPanel {
 
@@ -35,13 +39,13 @@ public class View extends JPanel {
 	private JTable table;
 	private String name;
 	private JScrollPane scrollPane;
-	private int t = 7;
+	private int t = 5;
 	private Border boderRed = BorderFactory.createLineBorder(Color.red, t);
 	private Border boderGreen = BorderFactory.createLineBorder(Color.GREEN,t);
 	private Border boderBlue = BorderFactory.createLineBorder(Color.blue, t);
 	private Border borderHeader = BorderFactory.createMatteBorder(0, 0, 1, 1, Color.gray);
 	private Border emptyBorder = BorderFactory.createEmptyBorder(t,t, t, t);
-	private Border lowB = BorderFactory.createEtchedBorder();
+	private Border lowB = BorderFactory.createLoweredBevelBorder();
 	
 	
 	
@@ -76,10 +80,11 @@ public class View extends JPanel {
 	
 	public void prepare(){
 		autoWidthColumns();
-		System.out.println(table.getTableHeader().getDefaultRenderer());
+		//System.out.println(table.getTableHeader().getDefaultRenderer());
+		//System.out.println(UIManager.getDefaults().getUIClass("TableHeader"));
+
+		//pricer.data().fireTableStructureChanged();
 		
-		
-		System.out.println(UIManager.getDefaults().getUIClass("TableHeader"));
 		//System.out.println("cc model " + table.getModel().getColumnCount());
 		System.out.println("cc " + table.getColumnCount());
 	}
@@ -122,52 +127,15 @@ public class View extends JPanel {
 		//table.getTableHeader().setBackground(Color.yellow);
 		//table.getTableHeader().setBorder(boderRed);
 		
-		
-		table.getTableHeader().setDefaultRenderer(new DefaultTableCellRenderer() {
-			
-			@Override
-			public Component getTableCellRendererComponent(JTable arg0, Object arg1,
-					boolean arg2, boolean arg3, int arg4, int arg5) {
-				
-				
-				System.out.println(arg1.getClass());
-				
-				setText(arg1.toString());
-				setHorizontalAlignment(JLabel.CENTER);
-				
-				Border eb = BorderFactory.createEmptyBorder(1,1,0,0);
-				setBackground(Color.lightGray);
-				setBorder(borderHeader);
-				
-				JPanel p = new JPanel(new BorderLayout());
-				
-				
-				JLabel a = new JLabel("hore");
-				JLabel b = new JLabel("dole");
-				
-				
-				a.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1,Color.gray));
-				b.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1,Color.gray));
-				
-				
-				p.add(a, BorderLayout.NORTH);
-				p.add(b, BorderLayout.CENTER);
-				
-				return p;
-			}
-		});
-		
-		
-		
-		
+		table.getTableHeader().setDefaultRenderer(new HeaderCellRenderer());
 		//table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 	}
 	
 	
 	private void setUpGui(){
 		setLayout(new BorderLayout());
-		setBackground(Color.white);
-		setBorder(emptyBorder);
+		//setBackground(Color.white);
+		//setBorder(lowB);
 		
 		scrollPane = new JScrollPane();
 		//table.setBorder(emptyBorder);
@@ -179,11 +147,24 @@ public class View extends JPanel {
 		
 		scrollPane.getViewport().setBackground(Color.white);
 		scrollPane.setBorder(boderGreen);
-		scrollPane.setBackground(Color.green);
 		scrollPane.getViewport().add(table);
 		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		scrollPane.setBorder(null);
+		
+		
+		scrollPane.setColumnHeader(new JViewport(){
+			@Override public Dimension getPreferredSize() {
+		        Dimension d = super.getPreferredSize();
+		        d.height = 36;
+		        return d;
+			}
+		});
+		
 		//table.setBackground(Color.white);
+		
+		
+		//pan.add(table.getTableHeader(), BorderLayout.NORTH);
+		//pan.add(table, BorderLayout.CENTER);
 		add(scrollPane);
 	}
 	
@@ -192,10 +173,53 @@ public class View extends JPanel {
 	}
 	
 	
-	private class MtgColumnModel extends DefaultTableColumnModel {
+	private class HeaderCellRenderer extends DefaultTableCellRenderer{
+		
+		Border bottomRightBorder = BorderFactory.createMatteBorder(0, 0, 1, 1,Color.gray);
+		
+		@Override
+		public Component getTableCellRendererComponent(JTable arg0, Object arg1,
+				boolean arg2, boolean arg3, int arg4, int arg5) {
+			
+			System.out.println("wut");
+			Stack.printStack();
+			
+			
+			String text = arg1.toString();
+			String[] parts = text.split("\\|"); 
+			
+			if (parts.length ==1)
+				return getHeaderComp(parts[0]);
+			else
+				return getHeaderComp(parts[0],parts[1]);
+
+		}
+		
+		
+		private Component getHeaderComp(String name){
+			JLabel comp = new JLabel(name);
+			comp.setHorizontalAlignment(JLabel.CENTER);
+			comp.setBorder(bottomRightBorder);
+			return comp;
+		}
+		
+		private Component getHeaderComp(String name ,String name2){
+			JPanel comp = new JPanel(new GridLayout(2,1));
+			
+			JLabel l1 = (JLabel) getHeaderComp(name);
+			JLabel l2 = (JLabel)getHeaderComp(setBold(name2));
+			comp.add(l1);
+			comp.add(l2);
+			
+			return comp;
+		}
+		
+		private String setBold(String word){
+				return "<html><i>" + word + "</i></html>";
+		}
+		
 		
 	}
-	
 	
 	private class Kokot implements TableCellRenderer{
 

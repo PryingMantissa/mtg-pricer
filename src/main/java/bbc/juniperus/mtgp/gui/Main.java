@@ -34,6 +34,7 @@ public class Main {
 	private JFrame window;
 	private JPanel parentView;
 	private JTabbedPane tabPane;
+	private View view;
 	private Map<Class<? extends AbstractAction>,AbstractAction> actionMap 
 					= new HashMap<Class<? extends AbstractAction>,AbstractAction>();
 	int t =5;
@@ -52,6 +53,7 @@ public class Main {
 			}
 			
 		});
+		
 	}
 	
 	
@@ -67,7 +69,7 @@ public class Main {
 			e.printStackTrace();
 		}
 		
-		//System.out.println(view.pricer().data().stringify());
+		System.out.println(view.pricer().data().stringify());
 		
 		addView(view);
 		view.prepare();
@@ -77,8 +79,8 @@ public class Main {
 		
 		setLookAndFeel();
 		window = new JFrame();
-		parentView = new JPanel();
-		tabPane = new JTabbedPane();
+		parentView = new JPanel(new BorderLayout());
+		//tabPane = new JTabbedPane();
 		window.setTitle("Mtg pricer");
 		window.setSize(600, 400);
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -86,13 +88,15 @@ public class Main {
 		
 		parentView = new JPanel(new BorderLayout());
 		parentView.setBorder(emptyBorder);
-		parentView.add(tabPane);
+		//parentView.add(tabPane);
 		
 		
 		createMenu();
 		
 		//parentView.add(new JButton(new ImportCardsAction()));
 		window.add(parentView, BorderLayout.CENTER);
+		
+		
 	}
 	
 	private Component getFilePicker(){
@@ -159,15 +163,11 @@ public class Main {
 	
 
 	public void addView(View view){
-		
-		tabPane.addTab(view.getName(), view);
+		this.view = view;
+		parentView.removeAll();
+		parentView.add(view);
+		window.validate();
 	}
-	
-	private View getActiveView(){
-		return (View) tabPane.getSelectedComponent();
-	}
-	
-	
 	
 	public static void main(String[] args){
 		new Main();
@@ -201,9 +201,9 @@ public class Main {
 			}
 			
 			//System.out.println(view.pricer().data().stringify());
-			
-			addView(view);
 			view.prepare();
+			addView(view);
+			
 			
 		}
 		
@@ -219,18 +219,18 @@ public class Main {
 
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
-			getActiveView().pricer().addSearcher(SearcherFactory.getCernyRytirPricer());
-			getActiveView().pricer().addSearcher(SearcherFactory.getModraVeverickaPricer());
+			view.pricer().addSearcher(SearcherFactory.getCernyRytirPricer());
+			view.pricer().addSearcher(SearcherFactory.getModraVeverickaPricer());
 			
 			Thread t = new Thread(new Runnable() {
 				
 				@Override
 				public void run() {
 					try {
-						getActiveView().pricer().runLookUp();
-						getActiveView().prepare();
+						view.pricer().runLookUp();
+						view.prepare();
 						
-						System.out.println(getActiveView().pricer().data().stringify());
+						System.out.println(view.pricer().data().stringify());
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
