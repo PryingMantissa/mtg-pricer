@@ -26,11 +26,13 @@ import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.ViewportLayout;
 import javax.swing.border.Border;
+import javax.swing.event.TableColumnModelEvent;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 
 import bbc.juniperus.mtgp.cardsearch.Pricer;
 import bbc.juniperus.mtgp.datastruc.DataModel;
@@ -79,8 +81,11 @@ public class View extends JPanel {
 	
 
 	
-	
 	public void prepare(){
+		updateTable();
+	}
+	
+	public void updateTable(){
 		autoWidthColumns();
 		//System.out.println(table.getTableHeader().getDefaultRenderer());
 		//System.out.println(UIManager.getDefaults().getUIClass("TableHeader"));
@@ -121,15 +126,19 @@ public class View extends JPanel {
 	
 	private void setUpTable(){
 		table = new JTable(pricer.data());
-		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		ColumnModel cm = new ColumnModel(table.getColumnModel());
+		table.setColumnModel(cm);
 		
-		table.setGridColor(Color.red);
+		System.out.println(table.getColumnCount());
+		//System.out.println(table.getColumnModel().getColumn(0).getHeaderValue());
+		System.out.println("pica");
+		
+		table.setModel(pricer.data());
+		
+		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		//table.setBorder(boderRed);
 		//table.getTableHeader().setBackground(Color.white);
 		table.getTableHeader().setReorderingAllowed(false);
-		table.setGridColor(Color.LIGHT_GRAY);
-		
-		//table.getColumn(null).getHeaderRenderer();
 		
 		//table.getTableHeader().setBackground(Color.yellow);
 		//table.getTableHeader().setBorder(boderRed);
@@ -184,7 +193,7 @@ public class View extends JPanel {
 	
 	private class HeaderCellRenderer extends DefaultTableCellRenderer{
 		
-		
+		private static final long serialVersionUID = 1L;
 		TableCellRenderer  o;
 		
 		public HeaderCellRenderer(TableCellRenderer  original){
@@ -219,6 +228,31 @@ public class View extends JPanel {
 	    }
 		
 	}
+	
+	
+	private class ColumnModel extends DefaultTableColumnModel{
+		
+		
+		ColumnModel(TableColumnModel model){
+			for (int i = 0; i < model.getColumnCount() ; i++)
+				addColumn(model.getColumn(i));
+		}
+		
+		
+		@Override
+		public TableColumn getColumn(int colIndex){
+			TableColumn col = super.getColumn(colIndex);
+			
+			//TableColumn col = new TableColumn();
+			col.setHeaderValue("pica");
+			
+			System.out.println(col);
+			return col;
+		}
+		
+	}
+	
+	
 	
 	private class Kokot implements TableCellRenderer{
 

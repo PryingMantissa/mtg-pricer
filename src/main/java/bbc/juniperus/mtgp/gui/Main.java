@@ -69,7 +69,7 @@ public class Main {
 			e.printStackTrace();
 		}
 		
-		System.out.println(view.pricer().data().stringify());
+		//System.out.println(view.pricer().data().stringify());
 		
 		addView(view);
 		view.prepare();

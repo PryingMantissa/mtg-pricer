@@ -294,6 +294,8 @@ public class DataModel extends AbstractTableModel implements Serializable{
 		
 		ColumnMeta col = columns.get(columnIndex);
 		
+		
+		
 		if (columnIndex == 0)
 			return col.getHeaderName();
 			
