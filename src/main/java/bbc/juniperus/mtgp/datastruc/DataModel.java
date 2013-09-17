@@ -73,7 +73,6 @@ public class DataModel extends AbstractTableModel implements Serializable{
 	
 	@Override
 	public int getColumnCount(){
-		System.out.println("column count is asked for");
 		return columns.size();
 	}
 	
@@ -292,7 +291,19 @@ public class DataModel extends AbstractTableModel implements Serializable{
 
 	@Override
 	public String getColumnName(int columnIndex) {
-		return columns.get(columnIndex).getHeaderName();
+		
+		ColumnMeta col = columns.get(columnIndex);
+		
+		if (columnIndex == 0)
+			return col.getHeaderName();
+			
+		Source source = col.getSource();
+		Source sourceBefore = columns.get(columnIndex-1).getSource();
+		
+		if (source == null || !source.equals(sourceBefore))
+			return col.getHeaderName();
+		
+		return "";
 	}
 
 

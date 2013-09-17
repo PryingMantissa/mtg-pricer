@@ -71,9 +71,6 @@ public class View extends JPanel {
 	
 	public void loadCardListFromFile(File file) throws IOException, ParseException{
 		pricer.loadCardsFromFile(file);
-		
-		int c = table.getColumnCount();
-		System.out.println("cc " + c);
 	}
 	
 	public String getName(){
@@ -91,32 +88,34 @@ public class View extends JPanel {
 		//pricer.data().fireTableStructureChanged();
 		
 		//System.out.println("cc model " + table.getModel().getColumnCount());
-		System.out.println("cc " + table.getColumnCount());
 	}
 	
 	private void autoWidthColumns(){
 		
-	int margin =5;
-	for (int i = 0; i < table.getColumnCount();i++){	
-		
-		TableColumn col = table.getColumnModel().getColumn(i);
-		
-		TableCellRenderer renderer = table.getTableHeader().getDefaultRenderer();
-
-        Component comp = renderer.getTableCellRendererComponent(table, col.getHeaderValue(), false, false, 0, 0);
-
-        int width = comp.getPreferredSize().width;
-		
-		for (int row = 0; row < table.getRowCount(); row++) {
-		     renderer = table.getCellRenderer(row, i);
-		     comp = table.prepareRenderer(renderer, row, i);
-		     width = Math.max (comp.getPreferredSize().width, width);
-		     }
-		
-		width+= margin;
-		System.out.println(width);
-		col.setPreferredWidth(width);
-	}
+		int margin =5;
+		for (int i = 0; i < table.getColumnCount();i++){	
+			
+			TableColumn col = table.getColumnModel().getColumn(i);
+			
+			TableCellRenderer renderer = table.getTableHeader().getDefaultRenderer();
+	
+	        Component comp = renderer.getTableCellRendererComponent(table, col.getHeaderValue(), false, false, 0, 0);
+	        
+	        //System.out.println(comp);
+	        
+	        int width = comp.getPreferredSize().width;
+	        System.out.println("col " + i + " width " + width);
+			
+	        
+			for (int row = 0; row < table.getRowCount(); row++) {
+			     renderer = table.getCellRenderer(row, i);
+			     comp = table.prepareRenderer(renderer, row, i);
+			     width = Math.max (comp.getPreferredSize().width, width);
+			     }
+			
+			width+= margin;
+			col.setPreferredWidth(width);
+		}
 	}
 	
 	
@@ -138,7 +137,7 @@ public class View extends JPanel {
 		table.getTableHeader().setDefaultRenderer(
 				new HeaderCellRenderer(table.getTableHeader().getDefaultRenderer()));
 		table.setAutoCreateRowSorter(true);
-		//table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 	}
 	
 	
@@ -202,41 +201,22 @@ public class View extends JPanel {
 
 	        Component retr = o.getTableCellRendererComponent(
 	                table, value, isSelected, hasFocus, row, column);
-
-	        
-	        System.out.println(retr instanceof JLabel);
-	        
 	        if ( JLabel.class.isAssignableFrom(retr.getClass()) ) {
 
 	            JLabel jl = (JLabel) retr;
-	            jl.setText("   " + jl.getText());
+	           // jl.setText("" + jl.getText());
 	            jl.setFont(jl.getFont().deriveFont(Font.BOLD));
 	           // jl.setHorizontalAlignment(SwingConstants.CENTER);
 	            jl.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.gray));
 	            
-	            if (column == 5 || column == 3)
-	            	jl.setText("");
-	            	
-
-	        }
 	        
+	            //jl.setPreferredSize(null);
+	            
+	            
+	        }
 	        return retr;
 
 	    }
-
-	    @Override
-	    public void validate() {}
-
-	    @Override
-	    public void revalidate() {}
-
-	    @Override
-	    public void firePropertyChange(
-	        String propertyName, boolean oldValue, boolean newValue) {}
-
-	    @Override
-	    public void firePropertyChange(
-	        String propertyName, Object oldValue, Object newValue) {}
 		
 	}
 	
