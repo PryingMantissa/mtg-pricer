@@ -1,6 +1,7 @@
 package bbc.juniperus.mtgp.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -19,6 +20,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
@@ -27,6 +29,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.Border;
 import javax.swing.table.TableModel;
 
+import bbc.juniperus.mtgp.cardsearch.Searcher;
 import bbc.juniperus.mtgp.cardsearch.SearcherFactory;
 
 public class Main {
@@ -35,10 +38,13 @@ public class Main {
 	private JPanel parentView;
 	private JTabbedPane tabPane;
 	private View view;
+	private JPanel statusPane;
+	
 	private Map<Class<? extends AbstractAction>,AbstractAction> actionMap 
 					= new HashMap<Class<? extends AbstractAction>,AbstractAction>();
 	int t =5;
 	Border emptyBorder = BorderFactory.createEmptyBorder(t,t, t, t);
+	Border defBorder = BorderFactory.createLineBorder(Color.gray);
 	
 	public Main(){
 		createActions();
@@ -93,8 +99,18 @@ public class Main {
 		
 		createMenu();
 		
+		
+		statusPane = new JPanel();
+		statusPane.setBorder(BorderFactory.createCompoundBorder(emptyBorder, defBorder));
+		
+		/*
+		progressBar = new JProgressBar(0,50);
+		progressBar.setValue(0);
+		progressBar.setStringPainted(true);
+		*/
 		//parentView.add(new JButton(new ImportCardsAction()));
 		window.add(parentView, BorderLayout.CENTER);
+		window.add(statusPane, BorderLayout.SOUTH);
 		
 		
 	}
@@ -219,13 +235,20 @@ public class Main {
 
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
-			view.pricer().addSearcher(SearcherFactory.getCernyRytirPricer());
-			view.pricer().addSearcher(SearcherFactory.getModraVeverickaPricer());
 			
+			final Searcher cr = SearcherFactory.getCernyRytirPricer();
+			view.pricer().addSearcher(cr);
+			//view.pricer().addSearcher(SearcherFactory.getModraVeverickaPricer());
+			//view.pricer().addSearcher(SearcherFactory.getDragonPricer());
 			Thread t = new Thread(new Runnable() {
 				
 				@Override
 				public void run() {
+					
+					statusPane.add(new StatusBar(view.pricer(),cr));
+					statusPane.validate();
+					
+					
 					try {
 						view.pricer().runLookUp();
 						view.prepare();

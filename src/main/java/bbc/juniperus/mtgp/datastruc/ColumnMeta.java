@@ -1,11 +1,13 @@
 package bbc.juniperus.mtgp.datastruc;
 
+import javax.swing.SwingConstants;
+
 import bbc.juniperus.mtgp.domain.Source;
 
 public class ColumnMeta {
 	
-	public static final int LEFT = 8;
-	public static final int RIGHT = 9;
+	public static final int LEFT = SwingConstants.LEFT;
+	public static final int RIGHT = SwingConstants.RIGHT;
 	
 	private static final String[] headerNames = new String[]{"Card name","Quantity","Card","Price","Type","Edition",
 		"Price total","Lowest price"};

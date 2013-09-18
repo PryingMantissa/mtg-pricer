@@ -22,6 +22,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JViewport;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.ViewportLayout;
@@ -35,6 +36,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
 import bbc.juniperus.mtgp.cardsearch.Pricer;
+import bbc.juniperus.mtgp.datastruc.Cell;
 import bbc.juniperus.mtgp.datastruc.DataModel;
 import bbc.juniperus.mtgp.utils.Stack;
 
@@ -124,29 +126,34 @@ public class View extends JPanel {
 	}
 	
 	
+	
+	private Color gridColor = new Color(225,225,225);
+	
 	private void setUpTable(){
 		table = new JTable(pricer.data());
-		ColumnModel cm = new ColumnModel(table.getColumnModel());
-		table.setColumnModel(cm);
-		
-		System.out.println(table.getColumnCount());
-		//System.out.println(table.getColumnModel().getColumn(0).getHeaderValue());
-		System.out.println("pica");
+		//ColumnModel cm = new ColumnModel(table.getColumnModel());
+		//table.setColumnModel(cm);
 		
 		table.setModel(pricer.data());
 		
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-		//table.setBorder(boderRed);
-		//table.getTableHeader().setBackground(Color.white);
 		table.getTableHeader().setReorderingAllowed(false);
 		
-		//table.getTableHeader().setBackground(Color.yellow);
-		//table.getTableHeader().setBorder(boderRed);
-		
+		/*
 		table.getTableHeader().setDefaultRenderer(
 				new HeaderCellRenderer(table.getTableHeader().getDefaultRenderer()));
+		*/
+		
 		table.setAutoCreateRowSorter(true);
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		table.setGridColor(gridColor);
+		table.getColumnModel();
+		table.setDefaultRenderer(Object.class, new CellRenderer());
+		table.setShowHorizontalLines(false);
+		table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		
+		
+		
 	}
 	
 	
@@ -191,6 +198,68 @@ public class View extends JPanel {
 	}
 	
 	
+	
+	Color colorLightGray = new Color(200,200,200);
+	
+	private class CellRenderer extends JLabel implements TableCellRenderer{
+
+		@Override
+		public Component getTableCellRendererComponent(JTable arg0,
+				Object val, boolean isSelected, boolean hasFocus, int row, int col) {
+			
+			
+			Cell cell = (Cell) val;
+			String text = cell.getText();
+			
+			JPanel panel = new JPanel(new BorderLayout());
+			JLabel lbl = new JLabel();
+			
+			if (text == null){
+				text = "-not found-";
+				lbl.setForeground(Color.red);
+			}
+			lbl.setText(text);
+			lbl.setHorizontalAlignment(cell.getColumnMeta().getAlligment());
+			
+			
+			Border brdThinEmpty = BorderFactory.createEmptyBorder(1, 1, 1, 1);
+			Border brdDefEmpty = BorderFactory.createEmptyBorder(2,2,2,2);
+			lbl.setBorder(brdDefEmpty);
+			Color color;
+			
+			Border brdDashed = BorderFactory.createDashedBorder(Color.gray);
+			
+			Border brd = brdThinEmpty;
+
+			if (isSelected)
+				color = gridColor;
+			else
+				color = Color.WHITE;
+			
+			if (hasFocus)
+				brd = brdDashed;
+			
+			
+			
+			setText("kokot");
+			//setBorder(brd);
+			
+			panel.add(lbl);
+			panel.setBackground(color);
+			panel.setBorder(brd);
+			
+			return panel;
+		}
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	
 	private class HeaderCellRenderer extends DefaultTableCellRenderer{
 		
 		private static final long serialVersionUID = 1L;
@@ -229,7 +298,7 @@ public class View extends JPanel {
 		
 	}
 	
-	
+	/*
 	private class ColumnModel extends DefaultTableColumnModel{
 		
 		
@@ -252,16 +321,7 @@ public class View extends JPanel {
 		
 	}
 	
+	*/
 	
-	
-	private class Kokot implements TableCellRenderer{
 
-		@Override
-		public Component getTableCellRendererComponent(JTable arg0,
-				Object arg1, boolean arg2, boolean arg3, int arg4, int arg5) {
-			// TODO Auto-generated method stub
-			return null;
-		}
-		
-	}
 }

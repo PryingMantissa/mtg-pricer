@@ -34,7 +34,7 @@ import bbc.juniperus.mtgp.gui.Main;
 
 public class Pricer implements ProgressListener{
 
-	private List<ProgressListener> listeners = new ArrayList<ProgressListener>();
+	private Map<ProgressListener,Searcher> listeners = new HashMap<ProgressListener,Searcher>();
 	private List<Searcher> searchers = new ArrayList<Searcher>();
 	private DataModel data = new DataModel();
 	//Any sequence of letter,',-,/ or white space (includes leading and trailing white spaces).
@@ -71,11 +71,13 @@ public class Pricer implements ProgressListener{
 		//Search for all cards using the Searcher.
 		for (Card card : data.getCards()){
 			CardResult result = null;
+			
+			fireCardSearchStarted(card, searcher);
 			result = searcher.findCheapestCard(card.getName());
 
 			results.put(card, result);
 			System.out.println("For " + card + " found " + result);
-			fireCardSearched(card,result, searcher);
+			fireCardSearchEnded(result, searcher);
 		}
 		
 		return results;
@@ -165,96 +167,50 @@ public class Pricer implements ProgressListener{
 		data = result;
 	}
 	
+	public int getCardListSize(){
+		return data.getRowCount();
+	}
+	
+	
+	
 	public DataModel data(){
 		return data;
 	}
 		
 	//Testing main
-	public static void main(String[] args) throws IOException, ParseException,ClassNotFoundException {
+	public static void main(String[] args) {
 		
-	
-		String path = "d:\\deck.txt";
-		@SuppressWarnings("unused")
-		String savePath = "d:\\savePricer.prc";
-
-		Pricer pc = new Pricer();
-		
-		pc.addSearcher(SearcherFactory.getCernyRytirPricer());
-		pc.addSearcher(SearcherFactory.getModraVeverickaPricer());
-		pc.addSearcher(SearcherFactory.getDragonPricer());
-		
-		pc.addProgressListener(pc);
-		
-		//pc.runLookUp();
-		
-		//pc.serializeData(savePath);
-		
-		pc.loadDataFromBin(savePath);
-		
-		
-		System.out.println(pc.data.stringify());
-		pc.data.setUp();
-		int cols = pc.data.getColumnCount();
-		int rows = pc.data.getRowCount();
-		
-		for (int i = 0; i < cols; i++) {
-			System.out.print(pc.data.getColumnWidth(i) +" ");
-			
-		}
-		
-		System.out.println();
-		System.out.println("Printing resultsssss " + cols);
-		
-		for (int i =0; i<rows;i++){
-			for (int j=0;j<cols;j++)
-				System.out.print(pc.data.getValueAt(i, j) + " | ");
-			System.out.println();
-		}
-		
-	
-		//pc.data.createCSVReport("d:\\cards.csv");
-		System.out.println(pc.data.generateReportString());
-		
-		
-		
-		
-		//System.out.println(pc.produceReport());
-		
-		/*
-		Card c = pc.results.keySet().iterator().next();
-		
-		System.out.println(c);
-		System.out.println(pc.results.get(c).get("Modra Vevericka"));
-		*/
-		
-		
-		/*
-		deck = deserializeDeck(savePath);
-		
-		
-		
-		System.out.println(dp.produceReport(deck,cPricer));
-		*/
 	}
-
-	
 	
 	/**================ Listener related methods*/
 	
-	public void addProgressListener(ProgressListener listener){
-		listeners.add(listener);
+	public void addProgressListener(ProgressListener listener, Searcher searcher){
+		listeners.put(listener, searcher);
 	}
 	
-	public void fireCardSearched(Card card,CardResult result, Searcher searcher){
-		for (ProgressListener pl : listeners)
-			pl.cardSearched(card,result,searcher);
+	public void fireCardSearchStarted(Card card, Searcher searcher){
+		for (ProgressListener pl : listeners.keySet())
+			if (listeners.get(pl) == null ||  listeners.get(pl).equals(searcher))
+					pl.cardSearchStarted(card,searcher);
 	}
+	
+	public void fireCardSearchEnded(CardResult result, Searcher searcher){
+		for (ProgressListener pl : listeners.keySet())
+			if (listeners.get(pl) == null ||  listeners.get(pl).equals(searcher))
+				pl.cardSearchEnded(result,searcher);
+	}
+	
 	
 	@Override
-	public void cardSearched(Card card, CardResult result, Searcher searcher) {
-		System.out.println("End of search: " + card.getName() +" with " + 
-							searcher.getName() + " , result: " + result);
+	public void cardSearchEnded(CardResult result, Searcher searcher) {
+		System.out.println(searcher.getName() + " , result: " + result);
 		
+		
+	}
+
+	@Override
+	public void cardSearchStarted(Card card, Searcher searcher) {
+		System.out.print("Searchin for " + card.getName() + " ");
 		
 	}
 	

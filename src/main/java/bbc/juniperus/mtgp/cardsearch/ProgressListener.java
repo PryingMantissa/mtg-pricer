@@ -5,6 +5,7 @@ import bbc.juniperus.mtgp.domain.CardResult;
 
 public interface ProgressListener {
 	
-	void cardSearched(Card card, CardResult result, Searcher searcher);
+	void cardSearchStarted(Card card, Searcher searcher);
+	void cardSearchEnded(CardResult result, Searcher searcher);
 	
 }

@@ -47,7 +47,7 @@ public class DataModel extends AbstractTableModel implements Serializable{
 		ColumnMeta col = columns.get(column);
 		String res = getValue(col.getSource(),col.getType(),row);
 
-		return res;
+		return new Cell(res,col);
 	}
 	
 	
@@ -94,7 +94,6 @@ public class DataModel extends AbstractTableModel implements Serializable{
 		if (s == null)
 			return getRow(type,row);
 		
-		String na = "-not found-";
 		Card c = cards.get(row);
 		Map<Source,CardResult>  resultSet = results.get(c);
 		
@@ -105,7 +104,7 @@ public class DataModel extends AbstractTableModel implements Serializable{
 		CardResult result = resultSet.get(s);
 
 		if (result == null)
-			return na;
+			return null;
 		
 		String stringRes;
 		if (type == ColumnMeta.Type.RESULT_NAME)
