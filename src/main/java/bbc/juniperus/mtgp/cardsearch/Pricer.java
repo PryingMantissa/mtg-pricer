@@ -59,14 +59,41 @@ public class Pricer implements ProgressListener{
 	
 	
 	public void runLookUp() throws IOException{
+		
 		for (Searcher s : searchers){
-			Map<Card,CardResult> results =harvestResults(s);
-			data.addResults(results, s.getName());
+			new Thread(new Executor(s)).start();
 		}
 	}
 	
+	
+	private class Executor implements Runnable{
+		
+		Searcher searcher;
+		
+		Executor(Searcher s){
+			searcher = s;
+		}
+
+		@Override
+		public void run() {
+			Map<Card, CardResult> results = null;
+			try {
+				results = harvestResults(searcher);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			synchronized (this){
+				data.addResults(results, searcher.getName());
+			}
+		}
+		
+	}
+	
+	
 	private Map<Card,CardResult> harvestResults(Searcher searcher) throws IOException {
 		
+		System.out.println("harvesting " + searcher);
 		Map<Card, CardResult> results = new HashMap<Card,CardResult>();
 		//Search for all cards using the Searcher.
 		for (Card card : data.getCards()){

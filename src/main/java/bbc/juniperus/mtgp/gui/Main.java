@@ -3,6 +3,7 @@ package bbc.juniperus.mtgp.gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
@@ -27,6 +28,7 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.Border;
+import javax.swing.border.EtchedBorder;
 import javax.swing.table.TableModel;
 
 import bbc.juniperus.mtgp.cardsearch.Searcher;
@@ -38,13 +40,16 @@ public class Main {
 	private JPanel parentView;
 	private JTabbedPane tabPane;
 	private View view;
-	private JPanel statusPane;
+	private JPanel resultsPane;
 	
 	private Map<Class<? extends AbstractAction>,AbstractAction> actionMap 
 					= new HashMap<Class<? extends AbstractAction>,AbstractAction>();
-	int t =5;
-	Border emptyBorder = BorderFactory.createEmptyBorder(t,t, t, t);
-	Border defBorder = BorderFactory.createLineBorder(Color.gray);
+	static int t =4;
+	static Border emptyBorder = BorderFactory.createEmptyBorder(t,t, t, t);
+	static Border defBorder = BorderFactory.createLineBorder(Color.gray);
+	static Border leBord = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
+	static Border etr = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
+	public static  Border titledB = BorderFactory.createTitledBorder(etr, "Results");
 	
 	public Main(){
 		createActions();
@@ -61,7 +66,6 @@ public class Main {
 		});
 		
 	}
-	
 	
 	private void testView(){
 		View view = new View("Test");
@@ -86,7 +90,6 @@ public class Main {
 		setLookAndFeel();
 		window = new JFrame();
 		parentView = new JPanel(new BorderLayout());
-		//tabPane = new JTabbedPane();
 		window.setTitle("Mtg pricer");
 		window.setSize(600, 400);
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -94,23 +97,18 @@ public class Main {
 		
 		parentView = new JPanel(new BorderLayout());
 		parentView.setBorder(emptyBorder);
-		//parentView.add(tabPane);
+		
+		createMenuBar();
+		
+		resultsPane = new JPanel(new BorderLayout());
+		
+		resultsPane.setBorder(BorderFactory.createCompoundBorder(emptyBorder, titledB));
 		
 		
-		createMenu();
+		resultsPane.setVisible(false);
 		
-		
-		statusPane = new JPanel();
-		statusPane.setBorder(BorderFactory.createCompoundBorder(emptyBorder, defBorder));
-		
-		/*
-		progressBar = new JProgressBar(0,50);
-		progressBar.setValue(0);
-		progressBar.setStringPainted(true);
-		*/
-		//parentView.add(new JButton(new ImportCardsAction()));
 		window.add(parentView, BorderLayout.CENTER);
-		window.add(statusPane, BorderLayout.SOUTH);
+		window.add(resultsPane, BorderLayout.SOUTH);
 		
 		
 	}
@@ -139,10 +137,7 @@ public class Main {
 		}
 	}
 	
-	
-	
-	
-	private void createMenu(){
+	private void createMenuBar(){
 		JMenuBar  menuBar = new JMenuBar();
 		
 		JMenu fileMenu = new JMenu();
@@ -237,18 +232,27 @@ public class Main {
 		public void actionPerformed(ActionEvent arg0) {
 			
 			final Searcher cr = SearcherFactory.getCernyRytirPricer();
+			final Searcher mv = SearcherFactory.getModraVeverickaPricer();
+			final Searcher fp = SearcherFactory.getDragonPricer();
+
 			view.pricer().addSearcher(cr);
-			//view.pricer().addSearcher(SearcherFactory.getModraVeverickaPricer());
-			//view.pricer().addSearcher(SearcherFactory.getDragonPricer());
+			view.pricer().addSearcher(mv);
+			view.pricer().addSearcher(fp);
+			
 			Thread t = new Thread(new Runnable() {
 				
 				@Override
 				public void run() {
 					
-					statusPane.add(new StatusBar(view.pricer(),cr));
-					statusPane.validate();
 					
+					ResultsPanel resultsPanel = new ResultsPanel(view.pricer());
 					
+					resultsPanel.addFeedBackRow(cr);
+					resultsPanel.addFeedBackRow(mv);
+					resultsPanel.addFeedBackRow(fp);
+					resultsPane.add(resultsPanel, BorderLayout.WEST);
+					resultsPane.revalidate();
+					resultsPane.setVisible(true);
 					try {
 						view.pricer().runLookUp();
 						view.prepare();

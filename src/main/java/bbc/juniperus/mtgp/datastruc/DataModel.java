@@ -129,7 +129,9 @@ public class DataModel extends AbstractTableModel implements Serializable{
 	}
 	
 	/**Util*/
-	private  String formatDouble(double d){
+	
+	//TODO move to utility class out of this
+	public  static String formatDouble(double d){
 		return String.format("%1$,.2f", d);
 	}
 	

@@ -27,6 +27,7 @@ import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.ViewportLayout;
 import javax.swing.border.Border;
+import javax.swing.border.EtchedBorder;
 import javax.swing.event.TableColumnModelEvent;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableColumnModel;
@@ -63,6 +64,7 @@ public class View extends JPanel {
 		this.name = name;
 		setUpTable();
 		setUpGui();
+		
 	}
 
 	public View(String name){   
@@ -174,9 +176,17 @@ public class View extends JPanel {
 		scrollPane.setBorder(boderGreen);
 		scrollPane.getViewport().add(table);
 		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-		scrollPane.setBorder(null);
 		
 		
+		
+		scrollPane.setBorder(BorderFactory.createLoweredBevelBorder());
+		
+		scrollPane.setBorder(BorderFactory.createLoweredSoftBevelBorder());
+		
+		scrollPane.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
+		
+		
+		//scrollPane.setBorder(BorderFactory.createLineBorder(gridColor, 1));
 		scrollPane.setColumnHeader(new JViewport(){
 			@Override public Dimension getPreferredSize() {
 		        Dimension d = super.getPreferredSize();
@@ -191,6 +201,7 @@ public class View extends JPanel {
 		//pan.add(table.getTableHeader(), BorderLayout.NORTH);
 		//pan.add(table, BorderLayout.CENTER);
 		add(scrollPane);
+		//setBorder(BorderFactory.createCompoundBorder(Main.titledB,Main.emptyBorder));
 	}
 	
 	public Pricer pricer(){
