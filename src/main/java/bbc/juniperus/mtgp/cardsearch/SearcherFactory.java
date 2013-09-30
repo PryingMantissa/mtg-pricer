@@ -7,6 +7,9 @@ public class SearcherFactory {
 	public static final int MODRA_VEVERICKA = 778;
 	public static final int DRAGON = 779;
 	
+	private static CernyRytirSearcher cernyRytir;
+	private static ModraVeverickaSearcher modraVevericka;
+	private static DragonHostSearcher dragon;
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
@@ -28,17 +31,28 @@ public class SearcherFactory {
 		return result;
 	}
 	
+	public static Searcher[] getAll(){
+		return new Searcher[]{getCernyRytirPricer(),getModraVeverickaPricer(),getDragonPricer()};
+	}
+	
+	
 	
 	public static Searcher getCernyRytirPricer(){
-		return new CernyRytirSearcher();
+		if (cernyRytir == null)
+			cernyRytir = new CernyRytirSearcher();
+		return cernyRytir;
 	}
 	
 	public static Searcher getModraVeverickaPricer(){
-		return new ModraVeverickaSearcher();
+		if (modraVevericka == null)
+			modraVevericka = new ModraVeverickaSearcher();
+		return modraVevericka;
 	}
 	
 	public static Searcher getDragonPricer(){
-		return  new DragonHostSearcher();
+		if (dragon == null)
+			dragon = new DragonHostSearcher();
+		return dragon;
 	}
 
 }

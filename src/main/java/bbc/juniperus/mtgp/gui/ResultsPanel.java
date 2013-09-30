@@ -17,7 +17,7 @@ public class ResultsPanel extends JPanel {
 	 */
 	private static final long serialVersionUID = 1L;
 	private Pricer pricer;
-	private List<StatusRow> rows = new ArrayList<StatusRow>();
+	private List<SearchFeedbackPanel> rows = new ArrayList<SearchFeedbackPanel>();
 	private int maxFirstColW;
 	
 	public ResultsPanel(Pricer pricer){
@@ -28,11 +28,11 @@ public class ResultsPanel extends JPanel {
 	
 	
 	public void addFeedBackRow(Searcher searcher){
-		StatusRow row  = new StatusRow(pricer,searcher);
+		SearchFeedbackPanel row  = new SearchFeedbackPanel(pricer,searcher);
 		
 		if (row.getNameLabelWidth() > maxFirstColW){
 			maxFirstColW = row.getNameLabelWidth();
-			for (StatusRow s : rows)
+			for (SearchFeedbackPanel s : rows)
 				s.setNameLabelWidth(maxFirstColW);
 		}
 		else

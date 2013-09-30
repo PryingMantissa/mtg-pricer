@@ -41,7 +41,7 @@ import bbc.juniperus.mtgp.datastruc.Cell;
 import bbc.juniperus.mtgp.datastruc.DataModel;
 import bbc.juniperus.mtgp.utils.Stack;
 
-public class View extends JPanel {
+public class CardsView extends JPanel {
 
 	private static final long serialVersionUID = 1L;
 	private Pricer pricer;
@@ -55,11 +55,12 @@ public class View extends JPanel {
 	private Border borderHeader = BorderFactory.createMatteBorder(0, 0, 1, 1, Color.gray);
 	private Border emptyBorder = BorderFactory.createEmptyBorder(t,t, t, t);
 	private Border lowB = BorderFactory.createLoweredBevelBorder();
+	private Border trueEmpty = BorderFactory.createEmptyBorder();
 	
 	private Component orig;
 	
 	
-	public View(String name, DataModel savedSearchData){
+	public CardsView(String name, DataModel savedSearchData){
 		pricer = new Pricer(savedSearchData);
 		this.name = name;
 		setUpTable();
@@ -67,7 +68,7 @@ public class View extends JPanel {
 		
 	}
 
-	public View(String name){   
+	public CardsView(String name){   
 		pricer = new Pricer();
 		this.name = name;
 		setUpTable();
@@ -173,17 +174,17 @@ public class View extends JPanel {
 		//pan.add(table, BorderLayout.WEST);
 		
 		scrollPane.getViewport().setBackground(Color.white);
-		scrollPane.setBorder(boderGreen);
+		//scrollPane.setBorder(boderGreen);
 		scrollPane.getViewport().add(table);
-		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+		//scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		
 		
 		
-		scrollPane.setBorder(BorderFactory.createLoweredBevelBorder());
+		//scrollPane.setBorder(BorderFactory.createLoweredBevelBorder());
 		
-		scrollPane.setBorder(BorderFactory.createLoweredSoftBevelBorder());
+		//scrollPane.setBorder(BorderFactory.createLoweredSoftBevelBorder());
 		
-		scrollPane.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
+		//scrollPane.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
 		
 		
 		//scrollPane.setBorder(BorderFactory.createLineBorder(gridColor, 1));
@@ -195,8 +196,12 @@ public class View extends JPanel {
 			}
 		});
 		
-		//table.setBackground(Color.white);
+		Border rb = BorderFactory.createLineBorder(Color.red);
 		
+		scrollPane.setBorder(trueEmpty);
+		table.setBorder(null);
+		//table.setBackground(Color.white);
+		  
 		
 		//pan.add(table.getTableHeader(), BorderLayout.NORTH);
 		//pan.add(table, BorderLayout.CENTER);
@@ -204,6 +209,19 @@ public class View extends JPanel {
 		//setBorder(BorderFactory.createCompoundBorder(Main.titledB,Main.emptyBorder));
 	}
 	
+	
+	/*
+	@Override
+	public Dimension getPreferredSize(){
+		return new Dimension(table.getWidth(),400);
+	}
+	
+	@Override
+	public Dimension getMinimumSize(){
+		return getPreferredSize();
+	}
+	
+	*/
 	public Pricer pricer(){
 		return pricer;
 	}

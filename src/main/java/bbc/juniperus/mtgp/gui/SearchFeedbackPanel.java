@@ -24,7 +24,7 @@ import bbc.juniperus.mtgp.datastruc.DataModel;
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.domain.CardResult;
 
-public class StatusRow extends JPanel implements ProgressListener{
+public class SearchFeedbackPanel extends JPanel implements ProgressListener{
 
 	
 	private JProgressBar progressBar;
@@ -44,7 +44,7 @@ public class StatusRow extends JPanel implements ProgressListener{
 	
 	private static final long serialVersionUID = 1L;
 
-	public StatusRow(Pricer pricer, Searcher searcher){
+	public SearchFeedbackPanel(Pricer pricer, Searcher searcher){
 		
 
 		setBorder(border);
@@ -52,9 +52,6 @@ public class StatusRow extends JPanel implements ProgressListener{
 		MigLayout m =new MigLayout("ins 0");
 		setLayout(m);
 		m.setColumnConstraints("[]20[]");
-	//	m.setRowConstraints("");
-		
-	   // setLayout(gridBag);
 		pricer.addProgressListener(this, searcher);
 		
 		name = new JLabel(searcher.getName());

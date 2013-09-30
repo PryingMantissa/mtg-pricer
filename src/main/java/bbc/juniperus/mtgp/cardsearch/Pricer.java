@@ -48,7 +48,6 @@ public class Pricer implements ProgressListener{
 	}
 	
 	
-	
 	public void addCard(Card card, int quantity){
 		data.addCard(card, quantity);	
 	}
