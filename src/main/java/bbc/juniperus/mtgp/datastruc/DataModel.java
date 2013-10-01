@@ -173,7 +173,7 @@ public class DataModel extends AbstractTableModel implements Serializable{
 		if (!sources.contains(source)){
 			sources.add(source);
 			shownSources.add(source);
-			columns.add(new ColumnMeta(ColumnMeta.Type.RESULT_NAME,source));
+			//columns.add(new ColumnMeta(ColumnMeta.Type.RESULT_NAME,source));
 			columns.add(new ColumnMeta(ColumnMeta.Type.RESULT_PRICE,source));
 		}
 		

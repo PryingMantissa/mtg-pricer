@@ -41,6 +41,7 @@ import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
 import net.miginfocom.swing.MigLayout;
+import bbc.juniperus.mtgp.cardsearch.Pricer;
 import bbc.juniperus.mtgp.cardsearch.Searcher;
 import bbc.juniperus.mtgp.cardsearch.SearcherFactory;
 
@@ -53,6 +54,7 @@ public class Main {
 	private JPanel resultsPane;
 	private JSplitPane sp;
 	private JPanel leftPane;
+	private Pricer pricer;
 	
 	private Map<Class<? extends AbstractAction>,AbstractAction> actionMap 
 					= new HashMap<Class<? extends AbstractAction>,AbstractAction>();
@@ -93,7 +95,7 @@ public class Main {
 		createActions();
 		setupGui();
 		show();
-		
+		pricer = new Pricer();
 		
 		SwingUtilities.invokeLater(new Runnable(){
 
@@ -107,19 +109,15 @@ public class Main {
 	}
 	
 	private void testView(){
-		CardsView view = new CardsView("Test");
 		try {
-			view.loadCardListFromFile(new File("d:\\deck.txt"));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ParseException e) {
+			pricer.loadCardsFromFile(new File("d:\\deck.txt"));
+		} catch (IOException | ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		//System.out.println(view.pricer().data().stringify());
-		
+		CardsView view = new CardsView(pricer.data());
+
+	
 		addView(view);
 		view.prepare();
 	}
@@ -146,17 +144,24 @@ public class Main {
 		Border b = BorderFactory.createEtchedBorder();
 		//parentPane.setBorder(b);
 		
-		
+		/*
 		sp = new JSplitPane();
 		sp.setBorder(BorderFactory.createCompoundBorder(eb1,b));
-		sp.setResizeWeight(0.5);
+		sp.setResizeWeight(1);
 		sp.setLeftComponent(createLeftPane());
 		sp.setRightComponent(tableView);
-		
+		*/
 		//parentPane.add(tableView, BorderLayout.CENTER);
 		window.add(createToolBar(), BorderLayout.NORTH);
 		//parentPane.add(createLeftPane(),BorderLayout.WEST);
-		window.add(sp, BorderLayout.CENTER);
+		
+		Border br = BorderFactory.createEtchedBorder();
+		
+		tableView.setBorder(br);
+		JPanel cp = createLeftPane();
+		cp.setBorder(br);
+		window.add(cp, BorderLayout.WEST);
+		window.add(tableView, BorderLayout.CENTER);
 		
 	}
 	
@@ -186,11 +191,16 @@ public class Main {
 	
 	private JPanel createLeftPane(){
 		MigLayout ml = new MigLayout();
+		ml.setRowConstraints("[]10[]0[]");
 		leftPane = new JPanel(ml);
-		//pane.setBorder(b2);
+		JLabel lbl = new JLabel("Card pricing sources:");
+		lbl.setFont(lbl.getFont().deriveFont(Font.BOLD));
+		leftPane.add(lbl,"wrap");
+		
 		for (Searcher s: searchers){
-			JLabel lbl = new JLabel(s.getName());
-			lbl.setFont(lbl.getFont().deriveFont(Font.BOLD));
+			lbl = new JLabel(s.getName());
+			//lbl.setFont(lbl.getFont().deriveFont(Font.BOLD));
+			lbl.setToolTipText(s.getURL());
 			leftPane.add(lbl);
 			JCheckBox cb = new JCheckBox();
 			cb.setSelected(true);
@@ -202,7 +212,7 @@ public class Main {
 	private void modifyLeftPanel(Searcher[] ss){
 		leftPane.removeAll();
 		for (Searcher s: ss){
-			SearcherPanel sp = new SearcherPanel(s);
+			StatusRow sp = new StatusRow(pricer,s);
 			leftPane.add(sp,"wrap");
 		}
 		window.revalidate();
@@ -272,7 +282,6 @@ public class Main {
 		window.setVisible(true);
 	}
 	
-
 	public void addView(final CardsView view){
 		this.view = view;
 		tableView.removeAll();
@@ -280,8 +289,7 @@ public class Main {
 		window.revalidate();
 	
 	}
-	
-	
+		
 	private static ImageIcon loadIcon(String path, int width, int height){
 		URL url = Main.class.getResource(path);
 		ImageIcon icon = new ImageIcon(url);
@@ -368,9 +376,9 @@ public class Main {
 			//In response to a button click:
 			fc.showOpenDialog(window);
 			
-			CardsView view = new CardsView("Test");
+			
 			try {
-				view.loadCardListFromFile(fc.getSelectedFile());
+				pricer.loadCardsFromFile(fc.getSelectedFile());
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -379,6 +387,7 @@ public class Main {
 				e.printStackTrace();
 			}
 			
+			CardsView view = new CardsView(pricer.data());
 			//System.out.println(view.pricer().data().stringify());
 			view.prepare();
 			addView(view);
@@ -403,20 +412,23 @@ public class Main {
 			final Searcher mv = SearcherFactory.getModraVeverickaPricer();
 			final Searcher fp = SearcherFactory.getDragonPricer();
 
-			view.pricer().addSearcher(cr);
-			view.pricer().addSearcher(mv);
-			view.pricer().addSearcher(fp);
+			pricer.addSearcher(cr);
+			pricer.addSearcher(mv);
+			pricer.addSearcher(fp);
+			
+			final Searcher[] ss = new Searcher[] {cr,mv,fp};
 			
 			Thread t = new Thread(new Runnable() {
 				
 				@Override
 				public void run() {
-					modifyLeftPanel(SearcherFactory.getAll());
+					
+					modifyLeftPanel(ss);
 					try {
-						view.pricer().runLookUp();
+						pricer.runLookUp();
 						view.prepare();
 						
-						System.out.println(view.pricer().data().stringify());
+						System.out.println(pricer.data().stringify());
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();

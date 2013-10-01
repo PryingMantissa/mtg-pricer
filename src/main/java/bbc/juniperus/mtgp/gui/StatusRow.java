@@ -14,7 +14,9 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.border.Border;
+import javax.swing.plaf.basic.BasicProgressBarUI;
 
 import net.miginfocom.swing.MigLayout;
 import bbc.juniperus.mtgp.cardsearch.Pricer;
@@ -24,7 +26,7 @@ import bbc.juniperus.mtgp.datastruc.DataModel;
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.domain.CardResult;
 
-public class SearchFeedbackPanel extends JPanel implements ProgressListener{
+public class StatusRow extends JPanel implements ProgressListener{
 
 	
 	private JProgressBar progressBar;
@@ -44,41 +46,40 @@ public class SearchFeedbackPanel extends JPanel implements ProgressListener{
 	
 	private static final long serialVersionUID = 1L;
 
-	public SearchFeedbackPanel(Pricer pricer, Searcher searcher){
+	public StatusRow(Pricer pricer, Searcher searcher){
 		
 
 		setBorder(border);
 		this.pricer = pricer;
 		MigLayout m =new MigLayout("ins 0");
 		setLayout(m);
-		m.setColumnConstraints("[]20[]");
 		pricer.addProgressListener(this, searcher);
 		
+		UIManager.put("ProgressBar.selectionForeground", Color.black);
+		UIManager.put("ProgressBar.selectionBackground", Color.black);
+		
+		progressBar = new JProgressBar();
+		progressBar.setString("Search will start shortly");
+		//progressBar.setStringPainted(true);
+		//progressBar.setForeground(Color.red);
+		
+		/*
+		progressBar.setUI(new BasicProgressBarUI() {
+		      protected Color getSelectionBackground() { return Color.black; }
+		      protected Color getSelectionForeground() { return Color.white; }
+		    });
+		*/
+	
+		//progressBar.setFont(progressBar.getFont().deriveFont(Font.BOLD));
+		status = new JLabel("Search will begin shortly");
+		status.setFont(status.getFont().deriveFont((float)11.0));
 		name = new JLabel(searcher.getName());
 		name.setFont(name.getFont().deriveFont(Font.BOLD));
-		status = new JLabel("Starting");
-		progressBar = new JProgressBar();
-		info = new JLabel("Search will start shortly");
-		
-		//name.setBorder(BorderFactory.createLineBorder(Color.red));
-		add(name);
-		add(status);
-		add(progressBar);
-		add(info);
+		add(name,"wrap");
+		add(status,"wrap");
+		add(progressBar,"width 200:200:200, height 17:17:17");
 	}
 
-	public int getNameLabelWidth(){
-		return name.getPreferredSize().width;
-	}
-	
-	public void setNameLabelWidth(int width){
-		
-		Dimension dim = name.getPreferredSize();
-		dim.width = width;
-		name.setPreferredSize(dim);
-		
-	}
-	
 	
 	@Override
 	public void cardSearchStarted(final Card card, Searcher searcher) {
@@ -86,16 +87,13 @@ public class SearchFeedbackPanel extends JPanel implements ProgressListener{
 			started = true;
 			cardsLeft = pricer.getCardListSize();
 			progressBar.setMaximum(cardsLeft);
-			
 		}
 		
 		SwingUtilities.invokeLater(new Runnable() {
 			
 			@Override
 			public void run() {
-				status.setText("Downloading");
-				info.setText(card.getName());
-				
+				status.setText("Looking for " + card.getName());
 			}
 		});
 	
@@ -106,17 +104,14 @@ public class SearchFeedbackPanel extends JPanel implements ProgressListener{
 	public void cardSearchEnded(CardResult result, final Searcher searcher) {
 		progressBar.setValue(progressBar.getValue()+1);
 		cardsLeft--;
-
+		
 		if (cardsLeft < 1){
 			SwingUtilities.invokeLater(new Runnable(){
 
 				@Override
 				public void run() {
-					status.setText("Total price ");
 					remove(progressBar);
-					info.setHorizontalAlignment(SwingConstants.RIGHT);
-					info.setText(DataModel.formatDouble(totalPrice) +
-								" " +searcher.getCurrency());
+					status.setText("Total price 100 EUR");
 					
 				}
 				
@@ -124,7 +119,5 @@ public class SearchFeedbackPanel extends JPanel implements ProgressListener{
 			
 				
 		}
-		System.out.println(name.getPreferredSize());
-		
 	}
 }

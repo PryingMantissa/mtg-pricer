@@ -28,7 +28,10 @@ import javax.swing.UIManager;
 import javax.swing.ViewportLayout;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.TableColumnModelEvent;
+import javax.swing.event.TableColumnModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.JTableHeader;
@@ -44,7 +47,6 @@ import bbc.juniperus.mtgp.utils.Stack;
 public class CardsView extends JPanel {
 
 	private static final long serialVersionUID = 1L;
-	private Pricer pricer;
 	private JTable table;
 	private String name;
 	private JScrollPane scrollPane;
@@ -56,35 +58,18 @@ public class CardsView extends JPanel {
 	private Border emptyBorder = BorderFactory.createEmptyBorder(t,t, t, t);
 	private Border lowB = BorderFactory.createLoweredBevelBorder();
 	private Border trueEmpty = BorderFactory.createEmptyBorder();
-	
 	private Component orig;
+	private DataModel data;
 	
-	
-	public CardsView(String name, DataModel savedSearchData){
-		pricer = new Pricer(savedSearchData);
-		this.name = name;
+	public CardsView(DataModel data){   
+		this.data = data;
 		setUpTable();
 		setUpGui();
-		
-	}
-
-	public CardsView(String name){   
-		pricer = new Pricer();
-		this.name = name;
-		setUpTable();
-		setUpGui();
-	}
-	
-	
-	public void loadCardListFromFile(File file) throws IOException, ParseException{
-		pricer.loadCardsFromFile(file);
 	}
 	
 	public String getName(){
 		return name;
 	}
-	
-
 	
 	public void prepare(){
 		updateTable();
@@ -133,11 +118,11 @@ public class CardsView extends JPanel {
 	private Color gridColor = new Color(225,225,225);
 	
 	private void setUpTable(){
-		table = new JTable(pricer.data());
+		table = new JTable(data);
 		//ColumnModel cm = new ColumnModel(table.getColumnModel());
 		//table.setColumnModel(cm);
 		
-		table.setModel(pricer.data());
+		table.setModel(data);
 		
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		table.getTableHeader().setReorderingAllowed(false);
@@ -155,7 +140,38 @@ public class CardsView extends JPanel {
 		table.setShowHorizontalLines(false);
 		table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		
-		
+		table.getColumnModel().addColumnModelListener(new TableColumnModelListener() {
+			
+			@Override
+			public void columnSelectionChanged(ListSelectionEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void columnRemoved(TableColumnModelEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void columnMoved(TableColumnModelEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void columnMarginChanged(ChangeEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void columnAdded(TableColumnModelEvent e) {
+				updateTable();
+				
+			}
+		});
 		
 	}
 	
@@ -208,25 +224,6 @@ public class CardsView extends JPanel {
 		add(scrollPane);
 		//setBorder(BorderFactory.createCompoundBorder(Main.titledB,Main.emptyBorder));
 	}
-	
-	
-	/*
-	@Override
-	public Dimension getPreferredSize(){
-		return new Dimension(table.getWidth(),400);
-	}
-	
-	@Override
-	public Dimension getMinimumSize(){
-		return getPreferredSize();
-	}
-	
-	*/
-	public Pricer pricer(){
-		return pricer;
-	}
-	
-	
 	
 	Color colorLightGray = new Color(200,200,200);
 	
@@ -327,6 +324,24 @@ public class CardsView extends JPanel {
 		
 	}
 	
+	@Override
+	public Dimension getPreferredSize(){
+		Dimension dim = new Dimension();
+		dim.width = table.getWidth();
+		dim.height = 300;
+		return dim;
+	}
+	
+	
+	@Override
+	public Dimension getMinimumSize(){
+		return getPreferredSize();
+	}
+	
+	@Override
+	public Dimension getMaximumSize(){
+		return getPreferredSize();
+	}
 	/*
 	private class ColumnModel extends DefaultTableColumnModel{
 		
