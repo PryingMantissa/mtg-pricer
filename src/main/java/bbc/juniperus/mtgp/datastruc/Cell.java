@@ -3,9 +3,9 @@ package bbc.juniperus.mtgp.datastruc;
 public class Cell {
 	
 	String text;
-	ColumnMeta colMeta;
+	Column colMeta;
 	
-	public Cell(String text, ColumnMeta colMeta){
+	public Cell(String text, Column colMeta){
 		this.text = text;
 		this.colMeta = colMeta;
 	}
@@ -14,7 +14,7 @@ public class Cell {
 		return text;
 	}
 	
-	public ColumnMeta getColumnMeta(){
+	public Column getColumnMeta(){
 		return colMeta;
 	}
 	

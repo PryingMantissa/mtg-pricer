@@ -4,7 +4,7 @@ import javax.swing.SwingConstants;
 
 import bbc.juniperus.mtgp.domain.Source;
 
-public class ColumnMeta {
+public class Column {
 	
 	public static final int LEFT = SwingConstants.LEFT;
 	public static final int RIGHT = SwingConstants.RIGHT;
@@ -43,7 +43,7 @@ public class ColumnMeta {
 	private int alligment;
 	private String headerName;
 	
-	public ColumnMeta(Type type){
+	public Column(Type type){
 		if (type.sourceColumn)
 			throw new IllegalArgumentException("This is source column type."
 					+ "You need to specify source.");
@@ -54,7 +54,7 @@ public class ColumnMeta {
 	}
 	
 
-	public ColumnMeta(Type type, Source source){
+	public Column(Type type, Source source){
 		
 		if (!type.sourceColumn)
 			throw new IllegalArgumentException("This is not source column type.");

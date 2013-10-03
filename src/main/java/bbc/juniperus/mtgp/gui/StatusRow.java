@@ -55,11 +55,8 @@ public class StatusRow extends JPanel implements ProgressListener{
 		setLayout(m);
 		pricer.addProgressListener(this, searcher);
 		
-		UIManager.put("ProgressBar.selectionForeground", Color.black);
-		UIManager.put("ProgressBar.selectionBackground", Color.black);
-		
+	
 		progressBar = new JProgressBar();
-		progressBar.setString("Search will start shortly");
 		//progressBar.setStringPainted(true);
 		//progressBar.setForeground(Color.red);
 		
