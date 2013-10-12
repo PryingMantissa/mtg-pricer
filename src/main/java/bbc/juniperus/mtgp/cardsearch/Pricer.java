@@ -34,8 +34,11 @@ import bbc.juniperus.mtgp.gui.Main;
 
 public class Pricer implements ProgressListener{
 
+
+	
 	private Map<ProgressListener,Searcher> listeners = new HashMap<ProgressListener,Searcher>();
 	private List<Searcher> searchers = new ArrayList<Searcher>();
+	private List<Card> cards = new ArrayList<Card>();
 	private DataModel data = new DataModel();
 	//Any sequence of letter,',-,/ or white space (includes leading and trailing white spaces).
 	public final static String REG_EXP_NAME = "[a-zA-Z\\s'-/]+";
@@ -49,6 +52,7 @@ public class Pricer implements ProgressListener{
 	
 	
 	public void addCard(Card card, int quantity){
+		cards.add(card);
 		data.addCard(card, quantity);	
 	}
 	
@@ -64,38 +68,12 @@ public class Pricer implements ProgressListener{
 		}
 	}
 	
-	
-	private class Executor implements Runnable{
-		
-		Searcher searcher;
-		
-		Executor(Searcher s){
-			searcher = s;
-		}
-
-		@Override
-		public void run() {
-			Map<Card, CardResult> results = null;
-			try {
-				results = harvestResults(searcher);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			synchronized (this){
-				data.addResults(results, searcher.getName());
-			}
-		}
-		
-	}
-	
-	
 	private Map<Card,CardResult> harvestResults(Searcher searcher) throws IOException {
 		
 		System.out.println("harvesting " + searcher);
 		Map<Card, CardResult> results = new HashMap<Card,CardResult>();
 		//Search for all cards using the Searcher.
-		for (Card card : data.getCards()){
+		for (Card card : cards){
 			CardResult result = null;
 			
 			fireCardSearchStarted(card, searcher);
@@ -198,7 +176,6 @@ public class Pricer implements ProgressListener{
 	}
 	
 	
-	
 	public DataModel data(){
 		return data;
 	}
@@ -240,6 +217,29 @@ public class Pricer implements ProgressListener{
 		
 	}
 	
+	private class Executor implements Runnable{
+		
+		Searcher searcher;
+		
+		Executor(Searcher s){
+			searcher = s;
+		}
+
+		@Override
+		public void run() {
+			Map<Card, CardResult> results = null;
+			try {
+				results = harvestResults(searcher);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			synchronized (this){
+				data.addResults(results, searcher.getName());
+			}
+		}
+		
+	}
 	
 	
 	

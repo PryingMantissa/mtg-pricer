@@ -431,7 +431,7 @@ public class Main {
 						pricer.runLookUp();
 						view.prepare();
 						
-						System.out.println(pricer.data().stringify());
+						//System.out.println(pricer.data().stringify());
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
