@@ -92,6 +92,7 @@ public class Main {
 	
 	
 	public Main(){
+		
 		createActions();
 		setupGui();
 		show();
@@ -105,6 +106,8 @@ public class Main {
 			}
 			
 		});
+		
+		
 		
 	}
 	
