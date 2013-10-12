@@ -1,10 +1,16 @@
-package bbc.juniperus.mtgp.datastruc;
+package bbc.juniperus.mtgp.data.viewmodel;
+
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+
+import bbc.juniperus.mtgp.data.MtgTableModel;
 
 public class ReportCreator {
 	
-	private DataModel data;
+	private MtgTableModel data;
 	
-	public ReportCreator(DataModel data){
+	public ReportCreator(MtgTableModel data){
 		this.data = data;
 	}
 	
@@ -60,5 +66,27 @@ public class ReportCreator {
 		*/
 	}
 	
+	public void createCSVReport(String path) throws FileNotFoundException{
+		
+		String sep = ";";
+		
+		try {
+			PrintWriter writer = new PrintWriter(path, "UTF-8");
+			
+			for (int i = 0; i < data.getRowCount(); i++) {
+				for (int j = 0; j < data.getColumnCount(); j++){
+					writer.print(data.getValueAt(i,j));
+					writer.print(sep);
+				}
+				writer.print("\n");
+			}
+			
+			writer.close();
+				
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	
 }

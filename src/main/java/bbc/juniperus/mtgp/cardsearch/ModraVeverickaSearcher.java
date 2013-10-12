@@ -86,6 +86,5 @@ class ModraVeverickaSearcher extends Searcher{
 	public static void main(String[] args) throws IOException{
 		
 		ModraVeverickaSearcher pc = new ModraVeverickaSearcher();
-		System.out.println(pc.getCardResults("Goblin"));
 	}
 }

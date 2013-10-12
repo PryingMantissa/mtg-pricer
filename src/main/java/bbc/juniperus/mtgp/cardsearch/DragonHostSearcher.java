@@ -28,7 +28,6 @@ class DragonHostSearcher extends Searcher {
 	@Override
 	List<CardResult> getCardResults(String normalizedCardName) throws IOException {
 		
-		System.out.println("Looking for " + normalizedCardName);
 		
 		String html = getHTMLString(getQueryUrl(normalizedCardName,1));
 		
@@ -63,18 +62,12 @@ class DragonHostSearcher extends Searcher {
 		
 		if (els.size() == 0)
 			return 0;
-		
-		
-		System.out.println(els.size());
-		System.out.println(els.html());
-		
 		String content = null;
 		
 		//Get the first one - in case there is top and bottom toolbar
 		//otherwise the combination of text in these elements would be returned.
 		content = els.get(0).text();
 		
-		System.out.println("content is " + content);
 		//Position of the number in the inner text of element which 
 		//describes number of results.
 		int position = 1;
@@ -123,7 +116,6 @@ class DragonHostSearcher extends Searcher {
 				+ "p=" + page + "&" 
 				+ "q=" +cardName.replace(" ", "+");;
 		
-		System.out.println(URL + queryString);
 		return URL + queryString;
 	}
 	
@@ -149,8 +141,6 @@ class DragonHostSearcher extends Searcher {
 		DragonHostSearcher pc = new DragonHostSearcher();
 		
 		List<CardResult> l = pc.getCardResults("Enlarge");
-		System.out.println(l.size());
-		System.out.println(l);
 		
 		/*
 		String text ="78987 ewew 7897  eew 1212";

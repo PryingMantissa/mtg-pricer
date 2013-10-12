@@ -1,4 +1,5 @@
-package bbc.juniperus.mtgp.datastruc;
+package bbc.juniperus.mtgp.data.viewmodel;
+
 
 public class Cell {
 	

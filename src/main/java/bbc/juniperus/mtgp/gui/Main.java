@@ -41,9 +41,12 @@ import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
 import net.miginfocom.swing.MigLayout;
+import bbc.juniperus.mtgp.cardsearch.CardParser;
 import bbc.juniperus.mtgp.cardsearch.Pricer;
 import bbc.juniperus.mtgp.cardsearch.Searcher;
 import bbc.juniperus.mtgp.cardsearch.SearcherFactory;
+import bbc.juniperus.mtgp.data.MtgTableModel;
+import bbc.juniperus.mtgp.domain.Card;
 
 public class Main {
 	
@@ -113,12 +116,16 @@ public class Main {
 	
 	private void testView(){
 		try {
-			pricer.loadCardsFromFile(new File("d:\\deck.txt"));
+			CardParser cp = new CardParser();
+			Map<Card, Integer> m = cp.parseFromFile(new File("d:\\deck.txt"));
+			pricer.addCards(m);
 		} catch (IOException | ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		CardsView view = new CardsView(pricer.data());
+		
+		MtgTableModel tableModel = new MtgTableModel(pricer.data());
+		CardsView view = new CardsView(tableModel);
 
 	
 		addView(view);
@@ -381,7 +388,9 @@ public class Main {
 			
 			
 			try {
-				pricer.loadCardsFromFile(fc.getSelectedFile());
+				CardParser cp = new CardParser();
+				Map<Card, Integer> m = cp.parseFromFile(fc.getSelectedFile());
+				pricer.addCards(m);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -390,7 +399,8 @@ public class Main {
 				e.printStackTrace();
 			}
 			
-			CardsView view = new CardsView(pricer.data());
+			MtgTableModel md = new MtgTableModel(pricer.data());
+			CardsView view = new CardsView(md);
 			//System.out.println(view.pricer().data().stringify());
 			view.prepare();
 			addView(view);

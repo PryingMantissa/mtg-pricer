@@ -40,8 +40,8 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
 import bbc.juniperus.mtgp.cardsearch.Pricer;
-import bbc.juniperus.mtgp.datastruc.Cell;
-import bbc.juniperus.mtgp.datastruc.DataModel;
+import bbc.juniperus.mtgp.data.MtgTableModel;
+import bbc.juniperus.mtgp.data.viewmodel.Cell;
 import bbc.juniperus.mtgp.utils.Stack;
 
 public class CardsView extends JPanel {
@@ -59,9 +59,9 @@ public class CardsView extends JPanel {
 	private Border lowB = BorderFactory.createLoweredBevelBorder();
 	private Border trueEmpty = BorderFactory.createEmptyBorder();
 	private Component orig;
-	private DataModel data;
+	private MtgTableModel data;
 	
-	public CardsView(DataModel data){   
+	public CardsView(MtgTableModel data){   
 		this.data = data;
 		setUpTable();
 		setUpGui();
@@ -99,7 +99,7 @@ public class CardsView extends JPanel {
 	        //System.out.println(comp);
 	        
 	        int width = comp.getPreferredSize().width;
-	        System.out.println("col " + i + " width " + width);
+	      //  System.out.println("col " + i + " width " + width);
 			
 	        
 			for (int row = 0; row < table.getRowCount(); row++) {
@@ -229,10 +229,11 @@ public class CardsView extends JPanel {
 	
 	private class CellRenderer extends JLabel implements TableCellRenderer{
 
+		private static final long serialVersionUID = 1L;
+
 		@Override
 		public Component getTableCellRendererComponent(JTable arg0,
 				Object val, boolean isSelected, boolean hasFocus, int row, int col) {
-			
 			
 			Cell cell = (Cell) val;
 			String text = cell.getText();

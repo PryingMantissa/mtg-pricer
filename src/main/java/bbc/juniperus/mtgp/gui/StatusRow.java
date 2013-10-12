@@ -22,7 +22,7 @@ import net.miginfocom.swing.MigLayout;
 import bbc.juniperus.mtgp.cardsearch.Pricer;
 import bbc.juniperus.mtgp.cardsearch.Searcher;
 import bbc.juniperus.mtgp.cardsearch.ProgressListener;
-import bbc.juniperus.mtgp.datastruc.DataModel;
+import bbc.juniperus.mtgp.data.MtgTableModel;
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.domain.CardResult;
 

@@ -1,4 +1,4 @@
-package bbc.juniperus.mtgp.datastruc;
+package bbc.juniperus.mtgp.data.viewmodel;
 
 import javax.swing.SwingConstants;
 

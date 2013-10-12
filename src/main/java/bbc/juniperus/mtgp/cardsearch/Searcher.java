@@ -114,11 +114,6 @@ public abstract class Searcher {
 		Pattern p = Pattern.compile(regex);
 		Matcher m = p.matcher(text);
 		
-		if (position != 1){
-			System.out.println(position);
-			System.out.println(text);
-		}
-		
 		for (int i =0; i < position;i++)
 			m.find();
 		String no = m.group().replace(",",".");
