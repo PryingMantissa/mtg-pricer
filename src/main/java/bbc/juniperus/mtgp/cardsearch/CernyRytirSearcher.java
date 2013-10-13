@@ -136,8 +136,8 @@ class CernyRytirSearcher extends Searcher{
 	}
 
 	@Override
-	public String getCurrency() {
-		return currency.getSymbol();
+	public Currency getCurrency() {
+		return currency;
 	}
 	
 	

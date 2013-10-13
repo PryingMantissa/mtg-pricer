@@ -1,10 +1,12 @@
 package bbc.juniperus.mtgp.data;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -45,9 +47,7 @@ public class SearchData {
 		fireResultAdded();
 		
 		if (!sources.contains(source)){
-			//System.out.println("adding source");
-			sources.add(source);
-			fireSourceAdded(source);
+			throw new IllegalArgumentException("No such source is registred by this instance: " + source);
 		}
 	}
 	
@@ -61,9 +61,9 @@ public class SearchData {
 			l.resultAdded();
 	}
 	
-	private void fireSourceAdded(Source s){
+	private void fireSourcesAdded(Collection<Source> sources){
 		for (DataChangeListener l :listeners)
-			l.sourceAdded(s);
+			l.sourcesAdded(sources);
 	}
 	
 	private void fireCardAdded(Card c){
@@ -91,7 +91,10 @@ public class SearchData {
 		if (type == Result.CARD_NAME)
 			return result.getName();
 		else if (type == Result.PRICE){
-			return Double.toString(result.getPrice());
+			double d  = result.getPrice();
+			if (d < 0)
+				return "N/A";
+			return Double.toString(d);
 		}
 		else if (type == Result.EDITION)
 			return result.getEdition();
@@ -103,6 +106,15 @@ public class SearchData {
 			return result.getCurrency().getCurrencyCode();
 		
 		throw new RuntimeException("We were not supposed to get here");
+	}
+
+	public void addSources(Collection<Source> sources) {
+		List<Source> list = new ArrayList<Source>();
+		for (Source s : sources)
+			if (this.sources.add(s))
+				list.add(s);
+		System.out.println("Sources added " + sources);
+		fireSourcesAdded(list);
 	}
 }
 

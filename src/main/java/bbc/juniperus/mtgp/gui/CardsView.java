@@ -13,9 +13,12 @@ import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
+import javax.swing.DefaultRowSorter;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -23,7 +26,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JViewport;
 import javax.swing.ListSelectionModel;
+import javax.swing.RowSorter;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.ViewportLayout;
 import javax.swing.border.Border;
@@ -32,16 +37,20 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.TableColumnModelEvent;
 import javax.swing.event.TableColumnModelListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableColumnModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableRowSorter;
 
 import bbc.juniperus.mtgp.cardsearch.Pricer;
 import bbc.juniperus.mtgp.data.MtgTableModel;
 import bbc.juniperus.mtgp.data.viewmodel.Cell;
+import bbc.juniperus.mtgp.data.viewmodel.Cell.Type;
 import bbc.juniperus.mtgp.utils.Stack;
 
 public class CardsView extends JPanel {
@@ -60,7 +69,8 @@ public class CardsView extends JPanel {
 	private Border trueEmpty = BorderFactory.createEmptyBorder();
 	private Component orig;
 	private MtgTableModel data;
-	
+	private Color gridColor = new Color(225,225,225);
+
 	public CardsView(MtgTableModel data){   
 		this.data = data;
 		setUpTable();
@@ -76,7 +86,7 @@ public class CardsView extends JPanel {
 	}
 	
 	public void updateTable(){
-		autoWidthColumns();
+		setColumnsAutoWidth();
 		//System.out.println(table.getTableHeader().getDefaultRenderer());
 		//System.out.println(UIManager.getDefaults().getUIClass("TableHeader"));
 
@@ -85,90 +95,123 @@ public class CardsView extends JPanel {
 		//System.out.println("cc model " + table.getModel().getColumnCount());
 	}
 	
-	private void autoWidthColumns(){
+	private void setColumnsAutoWidth(){
+		final int margin =2;
 		
-		int margin =5;
-		for (int i = 0; i < table.getColumnCount();i++){	
+		System.out.println("auto w called");
+		final TableColumnModel model = table.getColumnModel();
+
+		
+		final int w1 = getMaxColumnWidth(0);
+		int ew2 = -97;
+		if (model.getColumnCount() > 1)
+			ew2 = getMaxColumnWidth(1);
+		
+		final int w2= ew2;
 			
-			TableColumn col = table.getColumnModel().getColumn(i);
-			
-			TableCellRenderer renderer = table.getTableHeader().getDefaultRenderer();
-	
-	        Component comp = renderer.getTableCellRendererComponent(table, col.getHeaderValue(), false, false, 0, 0);
-	        
-	        //System.out.println(comp);
-	        
-	        int width = comp.getPreferredSize().width;
-	      //  System.out.println("col " + i + " width " + width);
-			
-	        
-			for (int row = 0; row < table.getRowCount(); row++) {
-			     renderer = table.getCellRenderer(row, i);
-			     comp = table.prepareRenderer(renderer, row, i);
-			     width = Math.max (comp.getPreferredSize().width, width);
-			     }
-			
-			width+= margin;
-			col.setPreferredWidth(width);
+		
+		//Find out the widest cell among the result rows.
+		int w = 0;
+		for (int col = 2; col < model.getColumnCount(); col++){
+			w =  Math.max(w, getMaxColumnWidth(col));
 		}
+		
+		final int fW = w; 
+		System.out.println("mc1 " + w1);
+		System.out.println("mc2 " + w2);
+		System.out.println("w is " + w);
+		
+		SwingUtilities.invokeLater(new Runnable() {
+			
+			@Override
+			public void run() {
+				System.out.println("updating "   + model.getColumnCount());
+				model.getColumn(0).setPreferredWidth(w1 + margin);
+				
+				if (model.getColumnCount() < 2){
+					table.validate();
+					table.repaint();
+					return;
+				}
+				model.getColumn(1).setPreferredWidth(w2 + margin);
+				for (int col = 2; col < table.getColumnCount(); col++){
+					model.getColumn(col).setPreferredWidth(fW+ margin);
+				}
+				
+	
+				
+			}
+		});
+
 	}
 	
-	
-	
-	private Color gridColor = new Color(225,225,225);
+	private int getMaxColumnWidth(int column){
+		int width = 0;
+		//For header.
+		TableCellRenderer headerRenderer = table.getTableHeader().getDefaultRenderer();
+        Component comp = headerRenderer.getTableCellRendererComponent(
+        		table, table.getColumnName(column), false, false, 0, 0);
+        width = Math.max(width,comp.getPreferredSize().width);
+        //Loop all rows and look for widest cell so far.
+		for (int row = 0; row < table.getRowCount(); row++) {
+			TableCellRenderer  renderer = table.getCellRenderer(row, column);
+			comp = table.prepareRenderer(renderer, row, column);
+		    width = Math.max (comp.getPreferredSize().width, width);
+		}
+		return width;
+	}
 	
 	private void setUpTable(){
 		table = new JTable(data);
-		//ColumnModel cm = new ColumnModel(table.getColumnModel());
-		//table.setColumnModel(cm);
+		table.getModel().addTableModelListener(new TableModelListener() {
+			
+			@Override
+			public void tableChanged(TableModelEvent e) {
+				System.out.println("table changed");
+			//	setColumnsAutoWidth();
+				
+			}
+		});
 		
 		table.setModel(data);
-		
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		table.getTableHeader().setReorderingAllowed(false);
+		//table.setAutoCreateRowSorter(true);
 		
-		/*
-		table.getTableHeader().setDefaultRenderer(
-				new HeaderCellRenderer(table.getTableHeader().getDefaultRenderer()));
-		*/
+		 TableRowSorter sorter = new TableRowSorter(){
+			 
+			 private void ewew(){
 		
-		table.setAutoCreateRowSorter(true);
-		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-		table.setGridColor(gridColor);
-		table.getColumnModel();
+			 }
+		 };
+		 table.setRowSorter(sorter);
+		 sorter.setModel(table.getModel());
+		 sorter.setComparator(0,new CellComparator());
+		 sorter.setComparator(1,new CellComparator());
+		//table.setRowSorter(sorter);
+		
 		table.setDefaultRenderer(Object.class, new CellRenderer());
 		table.setShowHorizontalLines(false);
+		table.setShowVerticalLines(false);
 		table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		
 		table.getColumnModel().addColumnModelListener(new TableColumnModelListener() {
 			
 			@Override
-			public void columnSelectionChanged(ListSelectionEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-			
+			public void columnSelectionChanged(ListSelectionEvent e) {}
 			@Override
-			public void columnRemoved(TableColumnModelEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-			
+			public void columnRemoved(TableColumnModelEvent e) {}
 			@Override
-			public void columnMoved(TableColumnModelEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-			
+			public void columnMoved(TableColumnModelEvent e) {}
 			@Override
-			public void columnMarginChanged(ChangeEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-			
+			public void columnMarginChanged(ChangeEvent e) {}
 			@Override
 			public void columnAdded(TableColumnModelEvent e) {
-				updateTable();
+				TableRowSorter trs = (TableRowSorter) table.getRowSorter();
+				
+				for (int i = e.getFromIndex() ; i <= e.getToIndex() ;i++)
+					trs.setComparator(i, new CellComparator());
+				setColumnsAutoWidth();
 				
 			}
 		});
@@ -225,7 +268,7 @@ public class CardsView extends JPanel {
 		//setBorder(BorderFactory.createCompoundBorder(Main.titledB,Main.emptyBorder));
 	}
 	
-	Color colorLightGray = new Color(200,200,200);
+	
 	
 	private class CellRenderer extends JLabel implements TableCellRenderer{
 
@@ -241,10 +284,11 @@ public class CardsView extends JPanel {
 			JPanel panel = new JPanel(new BorderLayout());
 			JLabel lbl = new JLabel();
 			
-			if (text == null){
-				text = "-not found-";
+			if (cell.getType() == Cell.Type.NA){
+				text = "not found";
 				lbl.setForeground(Color.red);
 			}
+
 			lbl.setText(text);
 			lbl.setHorizontalAlignment(cell.getColumnMeta().getAlligment());
 			
@@ -265,12 +309,7 @@ public class CardsView extends JPanel {
 			
 			if (hasFocus)
 				brd = brdDashed;
-			
-			
-			
-			setText("kokot");
-			//setBorder(brd);
-			
+
 			panel.add(lbl);
 			panel.setBackground(color);
 			panel.setBorder(brd);
@@ -281,92 +320,55 @@ public class CardsView extends JPanel {
 	}
 	
 	
-	
-	
-	
-	
-	
-	
-	private class HeaderCellRenderer extends DefaultTableCellRenderer{
-		
-		private static final long serialVersionUID = 1L;
-		TableCellRenderer  o;
-		
-		public HeaderCellRenderer(TableCellRenderer  original){
-			o = original;
-		}
-		
+	private class CellComparator implements Comparator<Cell>{
+
 		@Override
-	    public Component getTableCellRendererComponent(
-	            JTable table, Object value, boolean isSelected,
-	            boolean hasFocus, int row, int column) {
-
-	        // returns component used for default header rendering
-	        // makes it independent on current L&F
-
-	        Component retr = o.getTableCellRendererComponent(
-	                table, value, isSelected, hasFocus, row, column);
-	        if ( JLabel.class.isAssignableFrom(retr.getClass()) ) {
-
-	            JLabel jl = (JLabel) retr;
-	           // jl.setText("" + jl.getText());
-	            jl.setFont(jl.getFont().deriveFont(Font.BOLD));
-	           // jl.setHorizontalAlignment(SwingConstants.CENTER);
-	            jl.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.gray));
-	            
-	        
-	            //jl.setPreferredSize(null);
-	            
-	            
-	        }
-	        return retr;
-
-	    }
-		
-	}
-	
-	@Override
-	public Dimension getPreferredSize(){
-		Dimension dim = new Dimension();
-		dim.width = table.getWidth();
-		dim.height = 300;
-		return dim;
-	}
-	
-	
-	@Override
-	public Dimension getMinimumSize(){
-		return getPreferredSize();
-	}
-	
-	@Override
-	public Dimension getMaximumSize(){
-		return getPreferredSize();
-	}
-	/*
-	private class ColumnModel extends DefaultTableColumnModel{
-		
-		
-		ColumnModel(TableColumnModel model){
-			for (int i = 0; i < model.getColumnCount() ; i++)
-				addColumn(model.getColumn(i));
-		}
-		
-		
-		@Override
-		public TableColumn getColumn(int colIndex){
-			TableColumn col = super.getColumn(colIndex);
+		public int compare(Cell c1, Cell c2) {
 			
-			//TableColumn col = new TableColumn();
-			col.setHeaderValue("pica");
+			//If the first is not loaded
+			if (c1.getType() == Cell.Type.NOT_LOADED)
+				//..and the second is not.
+				if (c2.getType() != Cell.Type.NOT_LOADED)
+					return -1;
+				//if both are NA.
+				else
+					return 0;
+			//If only second is NA.
+			if (c2.getType() == Cell.Type.NOT_LOADED)
+				return 1;
 			
-			System.out.println(col);
-			return col;
+			//If the first is NA...
+			if (c1.getType() == Cell.Type.NA)
+				//..and the second is not.
+				if (c2.getType() != Cell.Type.NA)
+					return -1;
+				//if both are NA.
+				else
+					return 0;
+			//If only second is NA.
+			if (c2.getType() == Cell.Type.NA)
+				return 1;
+			
+			
+			if (c1.getType() != c2.getType())
+				throw new IllegalArgumentException("Cells are not of the same type!");
+			
+			if (c1.getType() == Cell.Type.TEXT)
+				return c1.getText().compareTo(c2.getText());
+			
+			if (c1.getType() == Cell.Type.PRICE){
+				Double d1 = Double.parseDouble(c1.getText().substring(0,5));
+				Double d2 = Double.parseDouble(c1.getText().substring(0,5));
+				return d1.compareTo(d2); 
+			}
+			if (c1.getType() == Cell.Type.INTEGER){
+				Integer i1 = Integer.parseInt(c1.getText());
+				Integer i2 = Integer.parseInt(c2.getText());
+				return i1.compareTo(i2); 
+			}
+			
+			throw new IllegalArgumentException("We were not supposed to get here");
 		}
 		
 	}
-	
-	*/
-	
-
 }

@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Currency;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,7 +27,7 @@ public abstract class Searcher {
 	
 	public abstract String getURL();
 	public abstract String getName();
-	public abstract String getCurrency();
+	public abstract Currency getCurrency();
 	
 	
 	/**

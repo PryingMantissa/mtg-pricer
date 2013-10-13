@@ -2,6 +2,8 @@ package bbc.juniperus.mtgp.cardsearch;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Currency;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +20,7 @@ public class Pricer{
 	private List<Searcher> searchers = new ArrayList<Searcher>();
 	private SearchData data = new SearchData();
 	private List<Card> cards = new ArrayList<Card>();
+	private Map<Searcher, HarvestData> harvestData = new HashMap<Searcher, HarvestData>();
 
 	
 	public SearchData data(){
@@ -35,32 +38,51 @@ public class Pricer{
 		}
 	}
 	
-	public void addSearcher(Searcher searcher){
-		searchers.add(searcher);
+	public void setSearchers(Collection<Searcher> searchers){
+		List<Source> sources = new ArrayList<Source>();
+		for (Searcher s : searchers){
+			this.searchers.add(s);
+			sources.add(new Source(s.getName()));
+		}
+		data.addSources(sources);
 	}
 	
-	
+
 	public void runLookUp() throws IOException{
 		for (Searcher s : searchers){
 			new Thread(new Executor(s)).start();
 		}
 	}
 	
+	
+	
 	private void harvestResults(Searcher searcher) throws IOException {
 		
 		Source source = new Source(searcher.getName());
+		HarvestData hData = new HarvestData();
+		hData.currency = searcher.getCurrency();
+		//harvestData.put(searcher, hData);
 		//System.out.println("Starting harvesting with " + searcher);
 		//Search for all cards using the Searcher.
+		long timeStart = System.currentTimeMillis();
 		for (Card card : cards){
 			CardResult result = null;
 			
 			fireCardSearchStarted(card, searcher);
 			result = searcher.findCheapestCard(card.getName());
+			if (result == null){
+				result = CardResult.createNotFoundCardResult();
+				hData.addNotFound(card);
+			}
+			else
+				hData.totalPrice += result.getPrice();
 			data.addResult(card, result, source);
-			
 			//System.out.println("For " + card + " found " + result);
 			fireCardSearchEnded(result, searcher);
 		}
+		
+		hData.setHarvestTime(System.currentTimeMillis() - timeStart);
+		fireHarvestingEnded(searcher, hData);
 	}
 	
 	
@@ -78,19 +100,53 @@ public class Pricer{
 	public void fireCardSearchStarted(Card card, Searcher searcher){
 		for (ProgressListener pl : listeners.keySet())
 			if (listeners.get(pl) == null ||  listeners.get(pl).equals(searcher))
-					pl.cardSearchStarted(card,searcher);
+					pl.startedSearchingFor(card,searcher);
 	}
 	
 	public void fireCardSearchEnded(CardResult result, Searcher searcher){
 		for (ProgressListener pl : listeners.keySet())
 			if (listeners.get(pl) == null ||  listeners.get(pl).equals(searcher))
-				pl.cardSearchEnded(result,searcher);
+				pl.finishedSearchingFor(result,searcher);
 	}
+	
+	public void fireHarvestingEnded(Searcher searcher, HarvestData data){
+		for (ProgressListener pl : listeners.keySet())
+			if (listeners.get(pl) == null ||  listeners.get(pl).equals(searcher))
+				pl.finishedSearch(searcher, data);
+	}
+	
 	
 	//======================================================================
 	
 	private void errorOccured(Searcher searcher, Throwable t){
 		System.out.println("Error during search with " + searcher + ": " + t.getMessage());
+	}
+	
+	
+	public static class HarvestData{
+		long harvestTime;
+		final List<Card> notFound = new ArrayList<Card>();
+		private Currency currency;
+		double totalPrice;
+		
+		
+		public String getTotalPriceString(){
+			String price =  String.format("%1$,.2f", totalPrice);
+			price += " " + currency.getCurrencyCode();
+			return price;
+		}
+		public int getNotFoundCount(){
+			return notFound.size();
+		}
+		
+		private void addNotFound(Card card) {
+			notFound.add(card);
+		}
+
+		private void setHarvestTime(long time) {
+			harvestTime = time;
+		}
+		
 	}
 	
 	private class Executor implements Runnable{

@@ -41,17 +41,22 @@ class ModraVeverickaSearcher extends Searcher{
 		Elements resultRows = doc.select("#card_list").select("div.card");
 		
 		String name = null; 
-		String edition = "N/A";
+		String edition = "N/Atyrrtyr";
 		String type = "N/A";
 		String price = null;
 		
+		
+
+		
 		for (int i = 0; i < resultRows.size(); i++){
+			
 			Element card = resultRows.get(i);
 			name = card.select("div.name a").text();
 			price = card.select("div.price").text();
 			foundCards.add(new CardResult(name,type, edition, 
 										getDoubleFromString(price,1),new Source(NAME),new Date(), currency));
 		}
+		
 		
 		return foundCards;
 	}
@@ -78,8 +83,8 @@ class ModraVeverickaSearcher extends Searcher{
 	}
 
 	@Override
-	public String getCurrency() {
-		return currency.getSymbol();
+	public Currency getCurrency() {
+		return currency;
 	}
 	
 	//Testing main

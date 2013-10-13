@@ -1,18 +1,14 @@
 package bbc.juniperus.mtgp.gui;
 
-import java.awt.BorderLayout;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 
 import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
-import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
@@ -31,9 +27,9 @@ public class StatusRow extends JPanel implements ProgressListener{
 	
 	private JProgressBar progressBar;
 	private Pricer pricer;
-	private JLabel info;
-	private JLabel status;
-	private JLabel name;
+	private JLabel lblFoundNumber;
+	private JLabel lblPrice;
+	private JLabel lblName;
 	private boolean started;
 	private int cardsLeft;
 	private double totalPrice;
@@ -48,7 +44,7 @@ public class StatusRow extends JPanel implements ProgressListener{
 
 	public StatusRow(Pricer pricer, Searcher searcher){
 		
-
+		//setBackground(Color.green);
 		setBorder(border);
 		this.pricer = pricer;
 		MigLayout m =new MigLayout("ins 0");
@@ -68,18 +64,25 @@ public class StatusRow extends JPanel implements ProgressListener{
 		*/
 	
 		//progressBar.setFont(progressBar.getFont().deriveFont(Font.BOLD));
-		status = new JLabel("Search will begin shortly");
-		status.setFont(status.getFont().deriveFont((float)11.0));
-		name = new JLabel(searcher.getName());
-		name.setFont(name.getFont().deriveFont(Font.BOLD));
-		add(name,"wrap");
-		add(status,"wrap");
-		add(progressBar,"width 200:200:200, height 17:17:17");
+		lblPrice = new JLabel("Search will begin shortly");
+		lblPrice.setFont(lblPrice.getFont().deriveFont((float)11.0));
+		
+		/*lblPrice.setPreferredSize(
+				new Dimension(100,lblPrice.getHeight()));*/
+		lblName = new JLabel(searcher.getName());
+		lblName.setFont(lblName.getFont().deriveFont(Font.BOLD));
+		lblFoundNumber = new JLabel();
+		lblFoundNumber.setVisible(false);
+		
+		add(lblName,"wrap");
+		add(lblFoundNumber,"wrap");
+		add(lblPrice,"width 150:150:150, wrap");
+		add(progressBar,"width 150:150:150");
 	}
 
 	
 	@Override
-	public void cardSearchStarted(final Card card, Searcher searcher) {
+	public void startedSearchingFor(final Card card, Searcher searcher) {
 		if (!started){
 			started = true;
 			cardsLeft = pricer.getCardListSize();
@@ -90,7 +93,7 @@ public class StatusRow extends JPanel implements ProgressListener{
 			
 			@Override
 			public void run() {
-				status.setText("Looking for " + card.getName());
+				lblPrice.setText(card.getName());
 			}
 		});
 	
@@ -98,23 +101,37 @@ public class StatusRow extends JPanel implements ProgressListener{
 	}
 
 	@Override
-	public void cardSearchEnded(CardResult result, final Searcher searcher) {
+	public void finishedSearchingFor(CardResult result, final Searcher searcher) {
 		progressBar.setValue(progressBar.getValue()+1);
 		cardsLeft--;
-		
-		if (cardsLeft < 1){
-			SwingUtilities.invokeLater(new Runnable(){
+	}
 
-				@Override
-				public void run() {
-					remove(progressBar);
-					status.setText("Total price 100 EUR");
-					
+
+	@Override
+	public void finishedSearch(final Searcher searcher, final Pricer.HarvestData data) {
+		SwingUtilities.invokeLater(new Runnable(){
+
+			@Override
+			public void run() {
+				remove(progressBar);
+				int notFound = data.getNotFoundCount();
+				
+				if (notFound == 0){
+					lblFoundNumber.setForeground(Color.GREEN);
+					lblFoundNumber.setText("Found all cards");
+				}else{
+					lblFoundNumber.setForeground(Color.RED);
+					lblFoundNumber.setText("Not found " +notFound + " card(s)");
 				}
 				
-			});
-			
 				
-		}
+				lblFoundNumber.setVisible(true);
+				lblPrice.setText("Total price: " + data.getTotalPriceString());
+				repaint();
+				//revalidate();
+			}
+			
+		});
+		
 	}
 }

@@ -16,6 +16,9 @@ public class CardResult implements Serializable{
 	private Source source;
 	private Date date;
 	private Currency currency;
+	private boolean found;
+	
+	private CardResult(){}
 	
 	public CardResult(String name, String type, String edition,
 						double price, Source source, Date date, Currency currency){
@@ -27,8 +30,27 @@ public class CardResult implements Serializable{
 		this.source = source;
 		this.date = date;
 		this.currency = currency;
+		this.found = true;
+	}
+	
+	public static CardResult createNotFoundCardResult(){
+		CardResult cr =  new CardResult();
+		cr.found = false;
+		
+		String na = "N/A";
+		
+		cr.name = na;
+		cr.price = -1;
+		cr.edition = na;
+		cr.type = na;
+		return cr;
 	}
 
+	
+	public boolean found(){
+		return found;
+	}
+	
 	public String getName() {
 		return name;
 	}
