@@ -20,7 +20,7 @@ public class MtgTableModel extends AbstractTableModel implements DataChangeListe
 
 	private static final long serialVersionUID = 1L;
 	private SearchData data;
-	private Map<Integer,Card> cards = new HashMap<Integer,Card>();
+	private List<Card> cards = new ArrayList<Card>();
 	private List<Column> columns = new ArrayList<Column>();
 	private Set<Source> sources = new LinkedHashSet<Source>();
 
@@ -36,19 +36,15 @@ public class MtgTableModel extends AbstractTableModel implements DataChangeListe
 			addSource(s);
 		
 		//Add all cards to row-card mapping.
-		int i = 0;
-		
-		for (Card c : data.cards()){
-			cards.put(i,c);
-			i++;
-		}
+		for (Card c : data.cards())
+			cards.add(c);
+
 	}
 	
 	
 	//========== AbstractTableModel implementation ======================
 	@Override
 	public Object getValueAt(int row,int column){
-		
 		Card card = cards.get(row);
 		Column col = columns.get(column);
 		
@@ -136,16 +132,21 @@ public class MtgTableModel extends AbstractTableModel implements DataChangeListe
 	@Override
 	public void resultAdded() {
 		this.fireTableDataChanged();
-		
 	}
 
 
 
 	@Override
 	public void cardAdded(Card card) {
-		cards.put(cards.size(), card);
+		cards.add(card);
 		this.fireTableStructureChanged();
 		
+	}
+	
+	@Override
+	public void cardsRemoved(Collection<Card> cardsList) {
+		this.cards.removeAll(cardsList);
+		this.fireTableDataChanged();
 	}
 
 	//=========================================================
@@ -160,6 +161,10 @@ public class MtgTableModel extends AbstractTableModel implements DataChangeListe
 	
 	public Column getColumnInfo(int column){
 		return columns.get(column);
+	}
+	
+	public Card getCardAt(int row){
+		return cards.get(row);
 	}
 
 

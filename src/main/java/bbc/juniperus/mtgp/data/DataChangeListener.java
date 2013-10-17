@@ -10,4 +10,5 @@ public interface DataChangeListener {
 	void resultAdded();
 	void sourcesAdded(Collection<Source> sources);
 	void cardAdded(Card card);
+	void cardsRemoved(Collection<Card> cards);
 }

@@ -20,17 +20,26 @@ public class Pricer{
 	private List<Searcher> searchers = new ArrayList<Searcher>();
 	private SearchData data = new SearchData();
 	private List<Card> cards = new ArrayList<Card>();
-	private Map<Searcher, HarvestData> harvestData = new HashMap<Searcher, HarvestData>();
-
 	
 	public SearchData data(){
 		return data;
 	}
 	
-	public int getCardListSize() {
+	public int getCardListSize(){
 		return cards.size();
 	}
-
+	
+	public void addCard(Card card, int quantity){
+		cards.add(card);
+		data.addCard(card, quantity);
+	}
+	
+	
+	public void removeCards(Collection<Card> cards){
+		this.cards.remove(cards);
+		data.removeCards(cards);
+	}
+	
 	public void addCards(Map<Card,Integer> map){
 		for (Card c : map.keySet()){
 			cards.add(c); //Save to own List as well.

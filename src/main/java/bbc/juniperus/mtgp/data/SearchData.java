@@ -25,7 +25,7 @@ public class SearchData {
 		return Collections.unmodifiableSet(cardData.keySet());
 	}
 	
-	public void addCard(Card card, int quantity){
+	public void addCard(Card card, int   quantity){
 		if (quantity <1)
 			throw new IllegalArgumentException("Quantity must be at least 1");
 		
@@ -35,6 +35,14 @@ public class SearchData {
 		cardData.put(card,csd);
 		fireCardAdded(card);
 	}
+	
+	public void removeCards(Collection<Card> cards){
+		for (Card c : cards)
+			cardData.remove(c);
+		fireCardsRemoved(cards);
+	}
+	
+	
 	
 	public Set<Source> getSources(){
 		return Collections.unmodifiableSet(sources);
@@ -70,6 +78,12 @@ public class SearchData {
 		for (DataChangeListener l :listeners)
 			l.cardAdded(c);
 	}
+	
+	private void fireCardsRemoved(Collection<Card> cards){
+		for (DataChangeListener l :listeners)
+			l.cardsRemoved(cards);
+	}
+	
 	
 	public int getRowsCount(){
 		return cardData.size();
