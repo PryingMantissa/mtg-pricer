@@ -44,7 +44,7 @@ public class CardParser {
 				reader.close();
 				throw new ParseException("Failed to parse " + file.getAbsolutePath() + 
 									" on the line " + lineCounter +
-									"'. The line has to contain expressions matching '"+
+									"'.\nThe line has to contain expressions matching '"+
 									REG_EXP_NAME + "' (name of the card).",0);
 			}
 			

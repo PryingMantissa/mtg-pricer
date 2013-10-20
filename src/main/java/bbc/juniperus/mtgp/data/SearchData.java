@@ -79,6 +79,12 @@ public class SearchData {
 			l.cardAdded(c);
 	}
 	
+	private void fireRowChanged(Card c){
+		for (DataChangeListener l :listeners)
+			l.rowChanged(c);
+	}
+	
+	
 	private void fireCardsRemoved(Collection<Card> cards){
 		for (DataChangeListener l :listeners)
 			l.cardsRemoved(cards);
@@ -91,7 +97,16 @@ public class SearchData {
 	
 	public int getCardQuantity(Card card){
 		CardSearchData row = cardData.get(card);
+		//No such card presents.
+		if (row == null)
+			return  -1;
 		return row.getQuantity();
+	}
+	
+	public void setCardQuantity(Card card, int quantity){
+		CardSearchData row = cardData.get(card);
+		row.setQuantity(quantity);
+		fireRowChanged(card);
 	}
 	
 	public String getStrResult(Card card, Source source, Result type){

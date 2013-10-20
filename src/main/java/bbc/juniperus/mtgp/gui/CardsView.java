@@ -294,4 +294,9 @@ public class CardsView extends JPanel {
 		}
 		
 	}
+
+
+	public MtgTableModel tableModel() {
+		return model;
+	}
 }

@@ -107,7 +107,7 @@ public class MtgTableModel extends AbstractTableModel implements DataChangeListe
 	
 	@Override
 	public boolean isCellEditable(int rowIndex, int columnIndex) {
-		return false; //Cells are view-only.
+		return true; //Cells are view-only.
 	}
 	
 
@@ -128,9 +128,28 @@ public class MtgTableModel extends AbstractTableModel implements DataChangeListe
 		return "";
 	}
 
+	private  void findMaxColumnsWidth(){
+		
+		int i = 0;
+		for (Column col: columns){
+			int maxW = 0;
+			for (int row = 0; row < cards.size(); row++) {
+				String text = getValueAt(row, i).toString();
+				int curW = Math.max(col.getHeaderName().length() ,text.length());
+				if (curW > maxW)
+					maxW = curW;
+			}
+			col.setWidth(maxW);
+			i++;
+		}
+		
+	}
+	
+	
 	//===== DataChangeListener interface ================================
 	@Override
 	public void resultAdded() {
+		findMaxColumnsWidth();
 		this.fireTableDataChanged();
 	}
 
@@ -139,13 +158,14 @@ public class MtgTableModel extends AbstractTableModel implements DataChangeListe
 	@Override
 	public void cardAdded(Card card) {
 		cards.add(card);
+		findMaxColumnsWidth();
 		this.fireTableStructureChanged();
-		
 	}
 	
 	@Override
 	public void cardsRemoved(Collection<Card> cardsList) {
 		this.cards.removeAll(cardsList);
+		findMaxColumnsWidth();
 		this.fireTableDataChanged();
 	}
 
@@ -154,8 +174,6 @@ public class MtgTableModel extends AbstractTableModel implements DataChangeListe
 	private void addSource(Source s){
 		if (!sources.contains(s))
 			columns.add(new Column(Column.Type.RESULT_PRICE,s));
-		
-	//	System.out.println("columns su " + columns);
 		
 	}
 	
@@ -172,7 +190,15 @@ public class MtgTableModel extends AbstractTableModel implements DataChangeListe
 	public void sourcesAdded(Collection<Source> sources) {
 		for (Source s : sources)
 			addSource(s);
+		findMaxColumnsWidth();
 		this.fireTableStructureChanged();
+	}
+
+
+	@Override
+	public void rowChanged(Card card) {
+		findMaxColumnsWidth();
+		this.fireTableDataChanged();
 	}
 
 

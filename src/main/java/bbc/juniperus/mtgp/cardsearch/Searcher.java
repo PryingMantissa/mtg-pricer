@@ -28,6 +28,7 @@ public abstract class Searcher {
 	public abstract String getURL();
 	public abstract String getName();
 	public abstract Currency getCurrency();
+	public abstract URL getURLForCard(String cardName);
 	
 	
 	/**
@@ -74,7 +75,7 @@ public abstract class Searcher {
 	
 	
 	/**
-	 * Retrieves html document in form of String for given URL.
+	 * Retrieves html document in the form of String for given URL.
 	 * @param address URL in from of String
 	 * @return String of retrieved html document
 	 * @throws IOException

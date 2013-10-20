@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import bbc.juniperus.mtgp.data.SearchData;
+import bbc.juniperus.mtgp.data.viewmodel.ReportCreator;
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.domain.CardResult;
 import bbc.juniperus.mtgp.domain.Source;
@@ -30,21 +31,27 @@ public class Pricer{
 	}
 	
 	public void addCard(Card card, int quantity){
+		int q = data.getCardQuantity(card);
+		
+		//If already present. Increase the quantity.
+		//Remove the card from data-store and add it again with new quantity.
+		//Add it not to the card list of {@link Pricer} as its already there.
+		if (q > 0){
+			quantity += q;
+			data.setCardQuantity(card, quantity);
+			return;
+		}
 		cards.add(card);
 		data.addCard(card, quantity);
 	}
 	
+	public boolean containsCard(Card card){
+		return cards.contains(card);
+	}
 	
 	public void removeCards(Collection<Card> cards){
 		this.cards.remove(cards);
 		data.removeCards(cards);
-	}
-	
-	public void addCards(Map<Card,Integer> map){
-		for (Card c : map.keySet()){
-			cards.add(c); //Save to own List as well.
-			data.addCard(c, map.get(c));
-		}
 	}
 	
 	public void setSearchers(Collection<Searcher> searchers){
@@ -56,8 +63,12 @@ public class Pricer{
 		data.addSources(sources);
 	}
 	
+	public Collection<Searcher> getSearchers(){
+		return searchers;
+	}
+	
 
-	public void runLookUp() throws IOException{
+	public void runLookUp(){
 		for (Searcher s : searchers){
 			new Thread(new Executor(s)).start();
 		}
@@ -94,7 +105,7 @@ public class Pricer{
 		fireHarvestingEnded(searcher, hData);
 	}
 	
-	
+
 	//================ Listeners related methods ========================
 	
 	public void addProgressListener(ProgressListener listener, Searcher searcher){

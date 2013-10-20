@@ -1,6 +1,7 @@
 package bbc.juniperus.mtgp.cardsearch;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Currency;
 import java.util.Date;
@@ -138,6 +139,20 @@ class CernyRytirSearcher extends Searcher{
 	@Override
 	public Currency getCurrency() {
 		return currency;
+	}
+
+	@Override
+	public java.net.URL getURLForCard(String cardName){
+		
+		String normalizedName = normalizeCardName(cardName);
+		java.net.URL url;
+		try {
+			url = new java.net.URL(createURL(normalizedName,1));
+		} catch (MalformedURLException e) {
+			//This should not happen. Re-throw it anyway.
+			throw new RuntimeException(e);
+		}
+		return url;
 	}
 	
 	
