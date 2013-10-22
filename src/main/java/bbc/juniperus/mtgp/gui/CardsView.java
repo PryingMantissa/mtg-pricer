@@ -4,6 +4,10 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -170,10 +174,20 @@ public class CardsView extends JPanel {
 			}
 		});
 		
-		
-		//table.getColumnModel().getColumn(0).setCellEditor(new QuantityEditor());
-		
-		
+		table.addFocusListener(new FocusListener() {
+			
+			@Override
+			public void focusLost(FocusEvent e) {
+				table.getSelectionModel().clearSelection();
+				
+			}
+			
+			@Override
+			public void focusGained(FocusEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
 		
 	}
 	
@@ -210,6 +224,9 @@ public class CardsView extends JPanel {
 	}
 	
 	
+	public JTable getTable(){
+		return table;
+	}
 	
 	private class CellRenderer extends JLabel implements TableCellRenderer{
 

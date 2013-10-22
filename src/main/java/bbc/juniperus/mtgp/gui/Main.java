@@ -32,7 +32,6 @@ import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
-import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -43,10 +42,11 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
-import javax.swing.SpinnerNumberModel;
+import javax.swing.KeyStroke;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.Border;
-import javax.swing.text.NumberFormatter;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import net.miginfocom.swing.MigLayout;
 import bbc.juniperus.mtgp.cardsearch.CardParser;
@@ -120,6 +120,7 @@ public class Main implements PropertyChangeListener {
 		window.add(createSearchersPane(), BorderLayout.WEST);
 		window.add(tablePane, BorderLayout.CENTER);
 		window.setJMenuBar(createMenuBar());
+		
 	}
 	
 	private Component createToolBar(){
@@ -132,7 +133,33 @@ public class Main implements PropertyChangeListener {
 		tb.addSeparator(new Dimension(10,20));
 
 		addTextField = new JTextField(10);
+		addTextField.getInputMap().put(KeyStroke.getKeyStroke("ENTER"), "submit");
+		addTextField.getActionMap().put("submit", actionMap.get(AddCardAction.class));
+		
 		addTextField.setMaximumSize(addTextField.getPreferredSize());
+		addTextField.getDocument().addDocumentListener(new DocumentListener() {
+			
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				actionMap.get(AddCardAction.class).setEnabled(addTextField.getText().length() > 1);
+				
+			}
+			
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+				actionMap.get(AddCardAction.class).setEnabled(addTextField.getText().length() > 1);
+				
+			}
+			
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				actionMap.get(AddCardAction.class).setEnabled(addTextField.getText().length() > 1);
+				
+			}
+		});
+		
+		
+		
 		tb.add(addTextField);
 		
 		addSpinner = new QuantitySpinner();
@@ -207,22 +234,23 @@ public class Main implements PropertyChangeListener {
 		JMenu fileMenu = new JMenu();
 
 		fileMenu = new JMenu("Search");
-		fileMenu.setMnemonic(KeyEvent.VK_F);
-		fileMenu.setDisplayedMnemonicIndex(0);
+		fileMenu.setMnemonic(KeyEvent.VK_S);
+		//fileMenu.setDisplayedMnemonicIndex(0);
 
-		JMenuItem importMI = new JMenuItem(actionMap.get(ImportCardsAction.class));
-		fileMenu.add(importMI);
+		JMenuItem mu = new JMenuItem(actionMap.get(NewSearchAction.class));
+		fileMenu.add(mu);
+		mu = new JMenuItem(actionMap.get(StartSearchAction.class));
+		fileMenu.add(mu);
+		mu = new JMenuItem(actionMap.get(SearchInBrowserAction.class));
+		fileMenu.add(mu);
 		
 		JMenu pricingMenu = new JMenu();
-
 		pricingMenu = new JMenu("Edit");
-		pricingMenu.setMnemonic(KeyEvent.VK_P);
-		pricingMenu.setDisplayedMnemonicIndex(0);
+		pricingMenu.setMnemonic(KeyEvent.VK_E);
+		//pricingMenu.setDisplayedMnemonicIndex(0);
 
-		JMenuItem priceMI = new JMenuItem(actionMap.get(StartSearchAction.class));
-		JMenuItem aa = new JMenuItem(new SearchInBrowserAction());
-		pricingMenu.add(priceMI);
-		pricingMenu.add(aa);
+		JMenuItem mi = new JMenuItem(actionMap.get(RemoveAction.class));
+		pricingMenu.add(mi);
 		
 		menuBar.add(fileMenu);
 		menuBar.add(pricingMenu);
@@ -256,22 +284,21 @@ public class Main implements PropertyChangeListener {
 		action = new ExportTableCsvAction();
 		action.setEnabled(false);
 		actionMap.put(ExportTableCsvAction.class, action);
+		
+		
+		
 	}
 	
 	
-	private void setEditable(boolean editable){
-		actionMap.get(ImportCardsAction.class).setEnabled(editable);
-		actionMap.get(RemoveAction.class).setEnabled(editable);
-		actionMap.get(AddCardAction.class).setEnabled(editable);
+	private void pricingStarted(){
+		actionMap.get(ImportCardsAction.class).setEnabled(false);
+		actionMap.get(RemoveAction.class).setEnabled(false);
+		actionMap.get(AddCardAction.class).setEnabled(false);
+		addTextField.setEnabled(false);
+		addSpinner.setEnabled(false);
 	}
 	
-	
-	//TODO used?
-	private void setPricingActionsEnabled(boolean enabled){
-		actionMap.get(AddCardAction.class).setEnabled(enabled);
-		actionMap.get(ExportTableCsvAction.class).setEnabled(enabled);
-	}
-	
+
 	
 	private void startNewPricing(){
 		pricer = new Pricer();
@@ -279,9 +306,12 @@ public class Main implements PropertyChangeListener {
 		MtgTableModel model = new MtgTableModel(pricer.data());
 		view = new CardsView(model);
 		view.addPropertyChangeListener(this);
+		
+		view.getTable().getInputMap().put(KeyStroke.getKeyStroke("DELETE"), "enter");
+		view.getTable().getActionMap().put("enter",actionMap.get(RemoveAction.class));
+		
 		tablePane.add(view);
 		window.revalidate();
-		setPricingActionsEnabled(true);
 	}
 	
 	
@@ -367,6 +397,7 @@ public class Main implements PropertyChangeListener {
 			String cardName =  addTextField.getText();
 			int quantity = (int) addSpinner.getValue();
 			addCard(new Card(cardName), quantity);
+			addTextField.setText("");
 		}
 		
 	}
@@ -521,6 +552,7 @@ public class Main implements PropertyChangeListener {
 			final Collection<Searcher> searchers = getSelectedSearchers(); 
 			pricer.setSearchers(searchers);
 			updateLeftPanel(searchers);
+			pricingStarted();
 			pricer.runLookUp();
 			window.pack();
 		}
