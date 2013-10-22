@@ -96,6 +96,9 @@ public class SearchData {
 	}
 	
 	public int getCardQuantity(Card card){
+		
+		System.out.println(cardData.keySet().contains(card));
+		
 		CardSearchData row = cardData.get(card);
 		//No such card presents.
 		if (row == null)
@@ -107,6 +110,13 @@ public class SearchData {
 		CardSearchData row = cardData.get(card);
 		row.setQuantity(quantity);
 		fireRowChanged(card);
+	}
+	
+	
+	public void replaceCard(Card oldCard, Card newCard){
+		CardSearchData o = cardData.get(oldCard);
+		cardData.remove(oldCard);
+		cardData.put(newCard, o);
 	}
 	
 	public String getStrResult(Card card, Source source, Result type){

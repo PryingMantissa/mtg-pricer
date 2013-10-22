@@ -10,6 +10,8 @@ import java.util.Comparator;
 import java.util.List;
 
 import javax.swing.BorderFactory;
+import javax.swing.DefaultCellEditor;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -109,6 +111,7 @@ public class CardsView extends JPanel {
 	
 	private void setUpTable(){
 		table = new JTable(model);
+		table.setDefaultEditor(Object.class, new TheCellEditor());
 		table.setModel(model);
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		table.getTableHeader().setReorderingAllowed(false);
@@ -166,8 +169,13 @@ public class CardsView extends JPanel {
 				gridSelectionChanged(row > -1);
 			}
 		});
+		
+		
+		//table.getColumnModel().getColumn(0).setCellEditor(new QuantityEditor());
+		
+		
+		
 	}
-	
 	
 	private void setUpGui(){
 		setLayout(new BorderLayout());
@@ -296,7 +304,13 @@ public class CardsView extends JPanel {
 	}
 
 
+	
+	
 	public MtgTableModel tableModel() {
 		return model;
 	}
+	
+	
+	
+	
 }

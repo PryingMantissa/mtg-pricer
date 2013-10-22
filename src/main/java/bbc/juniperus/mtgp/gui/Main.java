@@ -135,13 +135,8 @@ public class Main implements PropertyChangeListener {
 		addTextField.setMaximumSize(addTextField.getPreferredSize());
 		tb.add(addTextField);
 		
-		addSpinner = new JSpinner();
-		addSpinner.setModel(new SpinnerNumberModel(1,1,99,1));
-		addSpinner.setEditor(new JSpinner.NumberEditor(addSpinner,"##"));
-		JFormattedTextField txt = ((JSpinner.NumberEditor) addSpinner.getEditor()).getTextField();
-		((NumberFormatter) txt.getFormatter()).setAllowsInvalid(false);
-		addSpinner.setPreferredSize(new Dimension(35,addSpinner.getPreferredSize().height));
-		addSpinner.setMaximumSize(addSpinner.getPreferredSize());
+		addSpinner = new QuantitySpinner();
+
 		tb.add(addSpinner);
 		tb.add(actionMap.get(AddCardAction.class));
 		tb.add(actionMap.get(RemoveAction.class));

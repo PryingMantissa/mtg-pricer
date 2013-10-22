@@ -18,6 +18,10 @@ public class Card implements Serializable{
 		return name;
 	}
 	
+	public void setName(String name){
+		this.name = name;
+	}
+	
 	@Override
 	public int hashCode(){
 		return name.hashCode();

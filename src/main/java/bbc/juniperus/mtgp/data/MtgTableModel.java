@@ -125,26 +125,30 @@ public class MtgTableModel extends AbstractTableModel implements DataChangeListe
 		if (source == null || !source.equals(sourceBefore))
 			return col.getHeaderName();
 		
+		
+		
 		return "";
 	}
-
-	private  void findMaxColumnsWidth(){
-		
-		int i = 0;
-		for (Column col: columns){
-			int maxW = 0;
-			for (int row = 0; row < cards.size(); row++) {
-				String text = getValueAt(row, i).toString();
-				int curW = Math.max(col.getHeaderName().length() ,text.length());
-				if (curW > maxW)
-					maxW = curW;
-			}
-			col.setWidth(maxW);
-			i++;
-		}
-		
-	}
 	
+	@Override
+	public void setValueAt(Object value, int rowIndex, int columnIndex){
+		System.out.println("setting value at " + value);
+		Card card = cards.get(rowIndex);
+		
+		if (columnIndex == 0){
+			Card newCard = new Card(value.toString());
+			int index = cards.indexOf(card);
+			cards.remove(card);
+			cards.add(index, newCard);
+			
+			data.replaceCard(card, newCard);
+		}
+		else if (columnIndex == 1)
+			data.setCardQuantity(card, (int) value);
+		else
+			throw new IllegalArgumentException("Cannot edit other column than 0 or 1");
+	}
+
 	
 	//===== DataChangeListener interface ================================
 	@Override
@@ -168,6 +172,21 @@ public class MtgTableModel extends AbstractTableModel implements DataChangeListe
 		findMaxColumnsWidth();
 		this.fireTableDataChanged();
 	}
+	
+	@Override
+	public void sourcesAdded(Collection<Source> sources) {
+		for (Source s : sources)
+			addSource(s);
+		findMaxColumnsWidth();
+		this.fireTableStructureChanged();
+	}
+
+
+	@Override
+	public void rowChanged(Card card) {
+		findMaxColumnsWidth();
+		this.fireTableDataChanged();
+	}
 
 	//=========================================================
 	
@@ -186,22 +205,24 @@ public class MtgTableModel extends AbstractTableModel implements DataChangeListe
 	}
 
 
-	@Override
-	public void sourcesAdded(Collection<Source> sources) {
-		for (Source s : sources)
-			addSource(s);
-		findMaxColumnsWidth();
-		this.fireTableStructureChanged();
+
+	private  void findMaxColumnsWidth(){
+		
+		int i = 0;
+		for (Column col: columns){
+			int maxW = 0;
+			for (int row = 0; row < cards.size(); row++) {
+				String text = getValueAt(row, i).toString();
+				int curW = Math.max(col.getHeaderName().length() ,text.length());
+				if (curW > maxW)
+					maxW = curW;
+			}
+			col.setWidth(maxW);
+			i++;
+		}
+		
 	}
-
-
-	@Override
-	public void rowChanged(Card card) {
-		findMaxColumnsWidth();
-		this.fireTableDataChanged();
-	}
-
-
+	
 
 	
 	

@@ -20,14 +20,14 @@ public class Pricer{
 	private Map<ProgressListener,Searcher> listeners = new HashMap<ProgressListener,Searcher>();
 	private List<Searcher> searchers = new ArrayList<Searcher>();
 	private SearchData data = new SearchData();
-	private List<Card> cards = new ArrayList<Card>();
+	//private List<Card> cards = new ArrayList<Card>();
 	
 	public SearchData data(){
 		return data;
 	}
 	
 	public int getCardListSize(){
-		return cards.size();
+		return data.cards().size();
 	}
 	
 	public void addCard(Card card, int quantity){
@@ -41,16 +41,14 @@ public class Pricer{
 			data.setCardQuantity(card, quantity);
 			return;
 		}
-		cards.add(card);
 		data.addCard(card, quantity);
 	}
 	
 	public boolean containsCard(Card card){
-		return cards.contains(card);
+		return data.cards().contains(card);
 	}
 	
 	public void removeCards(Collection<Card> cards){
-		this.cards.remove(cards);
 		data.removeCards(cards);
 	}
 	
@@ -85,7 +83,7 @@ public class Pricer{
 		//System.out.println("Starting harvesting with " + searcher);
 		//Search for all cards using the Searcher.
 		long timeStart = System.currentTimeMillis();
-		for (Card card : cards){
+		for (Card card : data.cards()){
 			CardResult result = null;
 			
 			fireCardSearchStarted(card, searcher);
