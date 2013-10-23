@@ -270,11 +270,13 @@ public class Main implements PropertyChangeListener {
 	}
 	
 	private void createActions(){
-		actionMap.put(ImportCardsAction.class, new ImportCardsAction());
 		
 		AbstractAction action = new StartSearchAction();
-		//action.setEnabled(false);
+		action.setEnabled(false);
 		actionMap.put(StartSearchAction.class, action);
+		action = new ImportCardsAction();
+		action.setEnabled(false);
+		actionMap.put(ImportCardsAction.class, action);
 		action = new AddCardAction();
 		action.setEnabled(false);
 		actionMap.put(AddCardAction.class, action);
@@ -284,7 +286,14 @@ public class Main implements PropertyChangeListener {
 		action = new ExportTableCsvAction();
 		action.setEnabled(false);
 		actionMap.put(ExportTableCsvAction.class, action);
-		
+		action = new ExportTableTxtAction();
+		action.setEnabled(false);
+		actionMap.put(ExportTableTxtAction.class, action);
+		action = new ExportCardListAction();
+		action.setEnabled(false);
+		actionMap.put(ExportCardListAction.class, action);
+		action = new NewSearchAction();
+		actionMap.put(NewSearchAction.class, action);
 		
 		
 	}
