@@ -20,6 +20,8 @@ public class SearchData {
 	private Map<Card,CardSearchData> cardData = new LinkedHashMap<Card,CardSearchData>();
 	private Set<Source> sources = new LinkedHashSet<Source>();
 	private Set<DataChangeListener> listeners = new HashSet<DataChangeListener>();
+	private boolean mutable = true;
+	
 	
 	public Collection<Card> cards(){
 		return Collections.unmodifiableSet(cardData.keySet());
@@ -59,6 +61,13 @@ public class SearchData {
 		}
 	}
 	
+	public void searchFinished(){
+		mutable = false;
+	}
+	
+	public boolean isMutable(){
+		return mutable;
+	}
 	
 	public void addDataChangeListener(DataChangeListener listener){
 		listeners.add(listener);

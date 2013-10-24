@@ -107,7 +107,7 @@ public class MtgTableModel extends AbstractTableModel implements DataChangeListe
 	
 	@Override
 	public boolean isCellEditable(int rowIndex, int columnIndex) {
-		return true; //Cells are view-only.
+		return data.isMutable();
 	}
 	
 
@@ -124,9 +124,7 @@ public class MtgTableModel extends AbstractTableModel implements DataChangeListe
 		
 		if (source == null || !source.equals(sourceBefore))
 			return col.getHeaderName();
-		
-		
-		
+
 		return "";
 	}
 	

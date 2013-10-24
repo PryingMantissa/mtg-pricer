@@ -21,6 +21,9 @@ public class Pricer{
 	private List<Searcher> searchers = new ArrayList<Searcher>();
 	private SearchData data = new SearchData();
 	//private List<Card> cards = new ArrayList<Card>();
+	private boolean interruped;
+	private boolean searchInProgress;
+	private int harvestsLeft;
 	
 	public SearchData data(){
 		return data;
@@ -67,12 +70,27 @@ public class Pricer{
 	
 
 	public void runLookUp(){
+		searchInProgress = true;
+		harvestsLeft = searchers.size();
 		for (Searcher s : searchers){
 			new Thread(new Executor(s)).start();
 		}
+		data.searchFinished();
+		
 	}
 	
 	
+	public void interrupt(){
+		interruped = true;
+	}
+	
+	public boolean isSearchInProgress(){
+		return searchInProgress;
+	}
+	
+	public boolean hasNoCards(){
+		return data.getRowsCount() == 0;
+	}
 	
 	private void harvestResults(Searcher searcher) throws IOException {
 		
@@ -84,6 +102,8 @@ public class Pricer{
 		//Search for all cards using the Searcher.
 		long timeStart = System.currentTimeMillis();
 		for (Card card : data.cards()){
+			if (interruped)
+				return;
 			CardResult result = null;
 			
 			fireCardSearchStarted(card, searcher);
@@ -95,12 +115,15 @@ public class Pricer{
 			else
 				hData.totalPrice += result.getPrice();
 			data.addResult(card, result, source);
-			//System.out.println("For " + card + " found " + result);
+			System.out.println("For " + card + " found " + result);
 			fireCardSearchEnded(result, searcher);
 		}
 		
 		hData.setHarvestTime(System.currentTimeMillis() - timeStart);
 		fireHarvestingEnded(searcher, hData);
+		if (--harvestsLeft < 1)
+			searchInProgress = false;
+			
 	}
 	
 

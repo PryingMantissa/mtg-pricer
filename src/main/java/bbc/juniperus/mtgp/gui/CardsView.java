@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JCheckBox;
@@ -21,6 +22,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JViewport;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
@@ -42,6 +44,7 @@ import bbc.juniperus.mtgp.domain.Card;
 public class CardsView extends JPanel {
 
 	private static final long serialVersionUID = 1L;
+	public static final String EMPTY_STATE_CHANGED = "empty_state_changed";
 	public static String GRID_SELECTED_PROPERTY = "grid_selected_property";
 	
 	private JTable table;
@@ -50,6 +53,7 @@ public class CardsView extends JPanel {
 	private MtgTableModel model;
 	private Color selectColor = new Color(225,225,225);
 	private boolean isGridSelected;
+	private boolean isGridEmpty = true;
 	
 	public CardsView(MtgTableModel data){   
 		this.model = data;
@@ -160,6 +164,15 @@ public class CardsView extends JPanel {
 				//If we delete row. No row is selected.
 				if (e.getType() == TableModelEvent.DELETE)
 					gridSelectionChanged(false);
+				
+				boolean empty = true;
+				if (table.getRowCount() > 0)
+					empty = false;
+				
+				if (empty != isGridEmpty){
+					CardsView.this.firePropertyChange(EMPTY_STATE_CHANGED, isGridEmpty, empty);
+					isGridEmpty = empty;
+				}
 			}
 		});
 		
@@ -173,22 +186,7 @@ public class CardsView extends JPanel {
 				gridSelectionChanged(row > -1);
 			}
 		});
-		
-		table.addFocusListener(new FocusListener() {
-			
-			@Override
-			public void focusLost(FocusEvent e) {
-				table.getSelectionModel().clearSelection();
-				
-			}
-			
-			@Override
-			public void focusGained(FocusEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-		});
-		
+	
 	}
 	
 	private void setUpGui(){
@@ -218,14 +216,14 @@ public class CardsView extends JPanel {
 	private void gridSelectionChanged(boolean isSelected){
 		if (isSelected == isGridSelected)
 			return;
-		System.out.println("grid secl ch " + isSelected);
 		this.firePropertyChange(GRID_SELECTED_PROPERTY, isGridSelected, isSelected);
 		isGridSelected = isSelected;
 	}
 	
 	
-	public JTable getTable(){
-		return table;
+	public void setActionForKey(Action action, KeyStroke keyStroke){
+		table.getInputMap().put(keyStroke, keyStroke.toString());
+		table.getActionMap().put(keyStroke.toString(),action);
 	}
 	
 	private class CellRenderer extends JLabel implements TableCellRenderer{

@@ -1,12 +1,18 @@
 package bbc.juniperus.mtgp.gui;
 
+import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.SplashScreen;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -30,7 +36,9 @@ import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -47,6 +55,8 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 
 import net.miginfocom.swing.MigLayout;
 import bbc.juniperus.mtgp.cardsearch.CardParser;
@@ -92,18 +102,48 @@ public class Main implements PropertyChangeListener {
 		createActions();
 		setupGui();
 		window.setVisible(true);
-		
 		startNewPricing();
-		/*
-		SwingUtilities.invokeLater(new Runnable(){
-			@Override
-			public void run() {
-				testView();
-			}
-			
-		});
-		*/
+		showAbout();
 	}
+	
+	
+	void showAbout() {
+		final JDialog dialog = new JDialog(window,true);
+		dialog.setUndecorated(true);
+		
+		JPanel contentPanel = new JPanel(new BorderLayout());
+		contentPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY,1));
+		
+		JPanel centerPanel = new JPanel();
+		JButton button = new JButton("Close");
+		button.setFocusable(false);
+		
+		button.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				dialog.dispose();
+			}
+		});
+		
+		MigLayout migLayout = new MigLayout();
+		centerPanel.setLayout(migLayout);
+		
+		centerPanel.add(new JLabel("<html>This is MtgPricer  <br>2013</html>"));
+		
+		dialog.setSize(100,100);
+		dialog.setLocationRelativeTo(dialog.getParent()	);
+		
+		JPanel panelBottom = new JPanel();
+		panelBottom.add(button);
+		
+		contentPanel.add(centerPanel,BorderLayout.CENTER);
+		contentPanel.add(panelBottom, BorderLayout.SOUTH);
+		dialog.add(contentPanel);
+		
+		dialog.setVisible(true);
+    }
+	
+	
 	
 	private void setupGui(){
 		setLookAndFeel();
@@ -231,42 +271,56 @@ public class Main implements PropertyChangeListener {
 	
 	private JMenuBar createMenuBar(){
 		JMenuBar  menuBar = new JMenuBar();
-		JMenu fileMenu = new JMenu();
+		JMenu menu = new JMenu();
 
-		fileMenu = new JMenu("Search");
-		fileMenu.setMnemonic(KeyEvent.VK_S);
+		menu = new JMenu("Search");
+		menu.setMnemonic(KeyEvent.VK_S);
 		//fileMenu.setDisplayedMnemonicIndex(0);
 
-		JMenuItem mu = new JMenuItem(actionMap.get(NewSearchAction.class));
-		fileMenu.add(mu);
-		mu = new JMenuItem(actionMap.get(StartSearchAction.class));
-		fileMenu.add(mu);
-		mu = new JMenuItem(actionMap.get(SearchInBrowserAction.class));
-		fileMenu.add(mu);
+		JMenuItem mi = new JMenuItem(actionMap.get(NewSearchAction.class));
+		menu.add(mi);
+		mi = new JMenuItem(actionMap.get(StartSearchAction.class));
+		menu.add(mi);
+		mi = new JMenuItem(actionMap.get(SearchInBrowserAction.class));
+		menu.add(mi);
+		menuBar.add(menu);
 		
-		JMenu pricingMenu = new JMenu();
-		pricingMenu = new JMenu("Edit");
-		pricingMenu.setMnemonic(KeyEvent.VK_E);
+		
+		menu = new JMenu("Edit");
+		menu.setMnemonic(KeyEvent.VK_E);
 		//pricingMenu.setDisplayedMnemonicIndex(0);
 
-		JMenuItem mi = new JMenuItem(actionMap.get(RemoveAction.class));
-		pricingMenu.add(mi);
+		mi = new JMenuItem(actionMap.get(ImportCardsAction.class));
+		mi.setIcon(null);
+		menu.add(mi);
+		mi = new JMenuItem(actionMap.get(RemoveAction.class));
+		mi.setIcon(null);
+		menu.add(mi);
+		menuBar.add(menu);
 		
-		menuBar.add(fileMenu);
-		menuBar.add(pricingMenu);
+		menu = new JMenu("Export");
+		mi = new JMenuItem(actionMap.get(ExportTableCsvAction.class));
+		menu.add(mi);
+		mi = new JMenuItem(actionMap.get(ExportTableTxtAction.class));
+		menu.add(mi);
+		mi = new JMenuItem(actionMap.get(ExportCardListAction.class));
+		menu.add(mi);
+		menuBar.add(menu);
 		
-		JMenu f2 = new JMenu("Export");
-		JMenu f3= new JMenu("Other");
-		JMenu f4= new JMenu("Help");
-		
-		menuBar.add(f2);
-		//menuBar.add(f3);
-		menuBar.add(f4);
-		
-		
+		menu= new JMenu("Help");
+		mi = new JMenuItem("About");
+		mi.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				showAbout();
+				
+			}
+		});
+		menu.add(mi);
+		menuBar.add(menu);
 		
 		return menuBar;
-
 	}
 	
 	private void createActions(){
@@ -274,35 +328,53 @@ public class Main implements PropertyChangeListener {
 		AbstractAction action = new StartSearchAction();
 		action.setEnabled(false);
 		actionMap.put(StartSearchAction.class, action);
+		
 		action = new ImportCardsAction();
-		action.setEnabled(false);
 		actionMap.put(ImportCardsAction.class, action);
+		
 		action = new AddCardAction();
 		action.setEnabled(false);
 		actionMap.put(AddCardAction.class, action);
+		
 		action = new RemoveAction();
 		action.setEnabled(false);
 		actionMap.put(RemoveAction.class, action);
+		
 		action = new ExportTableCsvAction();
 		action.setEnabled(false);
 		actionMap.put(ExportTableCsvAction.class, action);
+		
 		action = new ExportTableTxtAction();
 		action.setEnabled(false);
 		actionMap.put(ExportTableTxtAction.class, action);
+		
 		action = new ExportCardListAction();
 		action.setEnabled(false);
 		actionMap.put(ExportCardListAction.class, action);
+		
 		action = new NewSearchAction();
 		actionMap.put(NewSearchAction.class, action);
 		
+		action = new SearchInBrowserAction();
+		action.setEnabled(false);
+		actionMap.put(SearchInBrowserAction.class, action);
 		
 	}
 	
+	/** Disable actions which make no sense if table is empty and vice versa*/
+	private void emptyStateChanged(boolean isEmpty){
+		boolean enabled = !isEmpty;
+		actionMap.get(StartSearchAction.class).setEnabled(enabled);
+		actionMap.get(ExportTableCsvAction.class).setEnabled(enabled);
+		actionMap.get(ExportTableTxtAction.class).setEnabled(enabled);
+		actionMap.get(ExportCardListAction.class).setEnabled(enabled);
+	}
 	
 	private void pricingStarted(){
 		actionMap.get(ImportCardsAction.class).setEnabled(false);
 		actionMap.get(RemoveAction.class).setEnabled(false);
 		actionMap.get(AddCardAction.class).setEnabled(false);
+		actionMap.get(StartSearchAction.class).setEnabled(false);
 		addTextField.setEnabled(false);
 		addSpinner.setEnabled(false);
 	}
@@ -315,10 +387,7 @@ public class Main implements PropertyChangeListener {
 		MtgTableModel model = new MtgTableModel(pricer.data());
 		view = new CardsView(model);
 		view.addPropertyChangeListener(this);
-		
-		view.getTable().getInputMap().put(KeyStroke.getKeyStroke("DELETE"), "enter");
-		view.getTable().getActionMap().put("enter",actionMap.get(RemoveAction.class));
-		
+		view.setActionForKey(actionMap.get(RemoveAction.class), KeyStroke.getKeyStroke("DELETE"));
 		tablePane.add(view);
 		window.revalidate();
 	}
@@ -337,7 +406,13 @@ public class Main implements PropertyChangeListener {
 		if (evt.getPropertyName() == CardsView.GRID_SELECTED_PROPERTY){
 			boolean enabled =  (boolean) evt.getNewValue();
 			actionMap.get(RemoveAction.class).setEnabled(enabled);
+			actionMap.get(SearchInBrowserAction.class).setEnabled(enabled);
 		}
+		if (evt.getPropertyName() == CardsView.EMPTY_STATE_CHANGED){
+			boolean empty =  (boolean) evt.getNewValue();
+			emptyStateChanged(empty);
+		}
+
 	}
 
 	private static ImageIcon loadIcon(String path, int width, int height){
@@ -383,11 +458,25 @@ public class Main implements PropertyChangeListener {
 		private static final long serialVersionUID = 1L;
 
 		NewSearchAction(){
-			super("NewSearchAction");
+			super("New Search");
 		}
 		
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			
+			String msg = "This will";
+			if (pricer.isSearchInProgress())
+				msg += " interrupt the current search and";
+			msg += " clear the card list.\n Do you want to continue?";
+			String title = "For sure?";
+			
+			int response = JOptionPane.showConfirmDialog(window, msg,
+					title, JOptionPane.YES_NO_OPTION);
+			if (response == JOptionPane.NO_OPTION)
+				return;
+			
+			//Interrup. Just in case the search is in progress.
+			pricer.interrupt();
 			startNewPricing();
 		}
 		
@@ -541,7 +630,11 @@ public class Main implements PropertyChangeListener {
 	}
 	
 	private class ExportCardListAction extends AbstractAction{
-
+		
+		public ExportCardListAction() {
+			super("Export card list");
+		}
+		
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			// TODO Auto-generated method stub
