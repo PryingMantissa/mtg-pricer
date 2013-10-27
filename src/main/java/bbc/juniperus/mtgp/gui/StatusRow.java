@@ -96,8 +96,6 @@ public class StatusRow extends JPanel implements ProgressListener{
 				lblPrice.setText(card.getName());
 			}
 		});
-	
-		
 	}
 
 	@Override
@@ -117,7 +115,7 @@ public class StatusRow extends JPanel implements ProgressListener{
 				int notFound = data.getNotFoundCount();
 				
 				if (notFound == 0){
-					lblFoundNumber.setForeground(Color.GREEN);
+					lblFoundNumber.setForeground(new Color(0x009933));
 					lblFoundNumber.setText("Found all cards");
 				}else{
 					lblFoundNumber.setForeground(Color.RED);

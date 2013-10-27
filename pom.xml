@@ -10,7 +10,7 @@
     <packaging>jar</packaging>
     <artifactId>mtg-pricer</artifactId>
     <name>MtG Pricer App</name>
-    <version>1.0</version>
+    <version>0.0.1</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -49,7 +49,7 @@
                             </descriptorRefs>
                             <archive>
                                 <manifest>
-                                    <mainClass>bbc.juniperus.mtgp.MtgPricer</mainClass>
+                                    <mainClass>bbc.juniperus.mtgp.gui.Main</mainClass>
                                 </manifest>
                             </archive>
                         </configuration>

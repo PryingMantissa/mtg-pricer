@@ -1,16 +1,12 @@
 package bbc.juniperus.mtgp.gui;
 
-import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.SplashScreen;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -31,9 +27,9 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -55,9 +51,6 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.event.MenuEvent;
-import javax.swing.event.MenuListener;
-
 import net.miginfocom.swing.MigLayout;
 import bbc.juniperus.mtgp.cardsearch.CardParser;
 import bbc.juniperus.mtgp.cardsearch.Pricer;
@@ -95,6 +88,9 @@ public class Main implements PropertyChangeListener {
 	static final ImageIcon iconImport = loadIcon("/icons/083.png",w,h);
 	static final ImageIcon iconExport = loadIcon("/icons/103.png",w,h);
 	static final ImageIcon iconSave = loadIcon("/icons/095.png",w,h);
+	static final ImageIcon iconGo = loadIcon("/icons/113.png",w,h);
+	static final ImageIcon iconInBrowser = loadIcon("/icons/129.png",w,h);
+	static final ImageIcon appIcon = loadIcon("/icons/Red_mana.png",w,h);
 	static Border etchedBorder = BorderFactory.createEtchedBorder();
 	
 	
@@ -103,7 +99,6 @@ public class Main implements PropertyChangeListener {
 		setupGui();
 		window.setVisible(true);
 		startNewPricing();
-		showAbout();
 	}
 	
 	
@@ -128,9 +123,11 @@ public class Main implements PropertyChangeListener {
 		MigLayout migLayout = new MigLayout();
 		centerPanel.setLayout(migLayout);
 		
-		centerPanel.add(new JLabel("<html>This is MtgPricer  <br>2013</html>"));
+		centerPanel.add(new JLabel("<html><b>MtG Pricer<br> 0.0.1 beta </b><br><br> Simple tool for searching for "
+				+ "the Magic the Gathering card prices<br><br>"
+				+ "<i>SRSK 2013</i></html>"));
 		
-		dialog.setSize(100,100);
+		dialog.setSize(220,150);
 		dialog.setLocationRelativeTo(dialog.getParent()	);
 		
 		JPanel panelBottom = new JPanel();
@@ -148,7 +145,8 @@ public class Main implements PropertyChangeListener {
 	private void setupGui(){
 		setLookAndFeel();
 		window = new JFrame();
-		window.setTitle("Mtg pricer");
+		window.setTitle("MtG Pricer");
+		window.setIconImage(appIcon.getImage());
 		window.setSize(700, 400);
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		window.setLocationRelativeTo(null);
@@ -168,8 +166,6 @@ public class Main implements PropertyChangeListener {
 		
 		tb.setFocusable(false);
 		tb.add(actionMap.get(ImportCardsAction.class));
-		tb.addSeparator(new Dimension(10,20));
-		tb.add(actionMap.get(ExportTableCsvAction.class));
 		tb.addSeparator(new Dimension(10,20));
 
 		addTextField = new JTextField(10);
@@ -208,6 +204,9 @@ public class Main implements PropertyChangeListener {
 		tb.add(actionMap.get(AddCardAction.class));
 		tb.add(actionMap.get(RemoveAction.class));
 		
+		tb.addSeparator(new Dimension(10,20));
+		tb.add(actionMap.get(StartSearchAction.class));
+		tb.add(actionMap.get(SearchInBrowserAction.class));
 		
 		for (Component c : tb.getComponents())
 			if (c instanceof AbstractButton)
@@ -222,7 +221,7 @@ public class Main implements PropertyChangeListener {
 		JLabel lbl = new JLabel("Card pricing sources:");
 		lbl.setFont(lbl.getFont().deriveFont(Font.BOLD));
 		leftPane.add(lbl,"wrap");
-		
+		checkBoxes.clear();
 		for (Searcher s: allSearchers){
 			lbl = new JLabel(s.getName());
 			lbl.setToolTipText(s.getURL());
@@ -280,8 +279,10 @@ public class Main implements PropertyChangeListener {
 		JMenuItem mi = new JMenuItem(actionMap.get(NewSearchAction.class));
 		menu.add(mi);
 		mi = new JMenuItem(actionMap.get(StartSearchAction.class));
+		mi.setIcon(null);
 		menu.add(mi);
 		mi = new JMenuItem(actionMap.get(SearchInBrowserAction.class));
+		mi.setIcon(null);
 		menu.add(mi);
 		menuBar.add(menu);
 		
@@ -303,10 +304,11 @@ public class Main implements PropertyChangeListener {
 		menu.add(mi);
 		mi = new JMenuItem(actionMap.get(ExportTableTxtAction.class));
 		menu.add(mi);
+		/*
 		mi = new JMenuItem(actionMap.get(ExportCardListAction.class));
 		menu.add(mi);
+		*/
 		menuBar.add(menu);
-		
 		menu= new JMenu("Help");
 		mi = new JMenuItem("About");
 		mi.addActionListener(new ActionListener() {
@@ -330,6 +332,7 @@ public class Main implements PropertyChangeListener {
 		actionMap.put(StartSearchAction.class, action);
 		
 		action = new ImportCardsAction();
+		action.setEnabled(false);
 		actionMap.put(ImportCardsAction.class, action);
 		
 		action = new AddCardAction();
@@ -353,6 +356,7 @@ public class Main implements PropertyChangeListener {
 		actionMap.put(ExportCardListAction.class, action);
 		
 		action = new NewSearchAction();
+		action.setEnabled(false);
 		actionMap.put(NewSearchAction.class, action);
 		
 		action = new SearchInBrowserAction();
@@ -368,6 +372,7 @@ public class Main implements PropertyChangeListener {
 		actionMap.get(ExportTableCsvAction.class).setEnabled(enabled);
 		actionMap.get(ExportTableTxtAction.class).setEnabled(enabled);
 		actionMap.get(ExportCardListAction.class).setEnabled(enabled);
+		actionMap.get(NewSearchAction.class).setEnabled(enabled);
 	}
 	
 	private void pricingStarted(){
@@ -382,6 +387,11 @@ public class Main implements PropertyChangeListener {
 
 	
 	private void startNewPricing(){
+		actionMap.get(ImportCardsAction.class).setEnabled(true);
+		addTextField.setEnabled(true);
+		addSpinner.setEnabled(true);
+
+		
 		pricer = new Pricer();
 		tablePane.removeAll();
 		MtgTableModel model = new MtgTableModel(pricer.data());
@@ -457,6 +467,7 @@ public class Main implements PropertyChangeListener {
 
 		private static final long serialVersionUID = 1L;
 
+		
 		NewSearchAction(){
 			super("New Search");
 		}
@@ -477,6 +488,17 @@ public class Main implements PropertyChangeListener {
 			
 			//Interrup. Just in case the search is in progress.
 			pricer.interrupt();
+			
+			//Disable them as no notification will be received from the table
+			//that table has no rows.
+			actionMap.get(NewSearchAction.class).setEnabled(false);
+			actionMap.get(StartSearchAction.class).setEnabled(false);
+
+			window.remove(leftPane);
+			window.add(createSearchersPane(), BorderLayout.WEST);
+			window.validate();
+			window.repaint();
+			
 			startNewPricing();
 		}
 		
@@ -488,6 +510,7 @@ public class Main implements PropertyChangeListener {
 
 		AddCardAction(){
 			super("Add",iconAdd);
+			putValue(Action.SHORT_DESCRIPTION, "Add a new card row");
 		}
 		
 		@Override
@@ -506,6 +529,7 @@ public class Main implements PropertyChangeListener {
 
 		RemoveAction(){
 			super("Delete",iconRemove);
+			putValue(Action.SHORT_DESCRIPTION, "Remove selected card row(s)");
 		}
 		
 		@Override
@@ -522,6 +546,7 @@ public class Main implements PropertyChangeListener {
 		
 		ImportCardsAction(){
 			super("Import card list",iconImport);
+			putValue(Action.SHORT_DESCRIPTION, "Append cards from the .txt file");
 		}
 
 		@Override
@@ -616,7 +641,7 @@ public class Main implements PropertyChangeListener {
 			try {
 				FileWriter fw = new FileWriter(f);
 				BufferedWriter  bw = new BufferedWriter(fw);
-				bw.write(report.createCSVReport(","));
+				bw.write(report.generateFormattedReport());
 				bw.close();
 			} catch (IOException ex) {
 				reportError("An I/O exception occurred while writing to file\n" +
@@ -631,6 +656,11 @@ public class Main implements PropertyChangeListener {
 	
 	private class ExportCardListAction extends AbstractAction{
 		
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
 		public ExportCardListAction() {
 			super("Export card list");
 		}
@@ -646,7 +676,8 @@ public class Main implements PropertyChangeListener {
 		private static final long serialVersionUID = 1L;
 		
 		StartSearchAction(){
-			super("Start search");
+			super("Start search",iconGo);
+			putValue(Action.SHORT_DESCRIPTION, "Run card prices search");
 		}
 
 		@Override
@@ -665,7 +696,8 @@ public class Main implements PropertyChangeListener {
 		private static final long serialVersionUID = 1L;
 		
 		SearchInBrowserAction(){
-			super("Find via browser");
+			super("Find via browser",iconInBrowser);
+			putValue(Action.SHORT_DESCRIPTION, "Search via browser");
 		}
 
 		@Override
