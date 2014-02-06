@@ -15,18 +15,19 @@ import javax.swing.border.Border;
 import javax.swing.plaf.basic.BasicProgressBarUI;
 
 import net.miginfocom.swing.MigLayout;
-import bbc.juniperus.mtgp.cardsearch.Pricer;
-import bbc.juniperus.mtgp.cardsearch.Searcher;
-import bbc.juniperus.mtgp.cardsearch.ProgressListener;
-import bbc.juniperus.mtgp.data.MtgTableModel;
+import bbc.juniperus.mtgp.cardsearch.HarvestData;
+import bbc.juniperus.mtgp.cardsearch.PricingWorker;
+import bbc.juniperus.mtgp.cardsearch.SearchListener;
+import bbc.juniperus.mtgp.cardsearch.finder.CardFinder;
+import bbc.juniperus.mtgp.data.ResultsTableModel;
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.domain.CardResult;
 
-public class StatusRow extends JPanel implements ProgressListener{
+public class StatusRow extends JPanel implements SearchListener{
 
 	
 	private JProgressBar progressBar;
-	private Pricer pricer;
+	private PricingWorker pricer;
 	private JLabel lblFoundNumber;
 	private JLabel lblPrice;
 	private JLabel lblName;
@@ -42,7 +43,7 @@ public class StatusRow extends JPanel implements ProgressListener{
 	
 	private static final long serialVersionUID = 1L;
 
-	public StatusRow(Pricer pricer, Searcher searcher){
+	public StatusRow(PricingWorker pricer, CardFinder searcher){
 		
 		//setBackground(Color.green);
 		setBorder(border);
@@ -82,7 +83,7 @@ public class StatusRow extends JPanel implements ProgressListener{
 
 	
 	@Override
-	public void startedSearchingFor(final Card card, Searcher searcher) {
+	public void startedSearchingFor(final Card card, CardFinder searcher) {
 		if (!started){
 			started = true;
 			cardsLeft = pricer.getCardListSize();
@@ -99,14 +100,14 @@ public class StatusRow extends JPanel implements ProgressListener{
 	}
 
 	@Override
-	public void finishedSearchingFor(CardResult result, final Searcher searcher) {
+	public void finishedSearchingFor(CardResult result, final CardFinder searcher) {
 		progressBar.setValue(progressBar.getValue()+1);
 		cardsLeft--;
 	}
 
 
 	@Override
-	public void finishedSearch(final Searcher searcher, final Pricer.HarvestData data) {
+	public void finishedSearch(final CardFinder searcher, final HarvestData data) {
 		SwingUtilities.invokeLater(new Runnable(){
 
 			@Override
@@ -130,6 +131,13 @@ public class StatusRow extends JPanel implements ProgressListener{
 			}
 			
 		});
+		
+	}
+
+
+	@Override
+	public void failedSearch(CardFinder searcher, Throwable t) {
+		// TODO Auto-generated method stub
 		
 	}
 }

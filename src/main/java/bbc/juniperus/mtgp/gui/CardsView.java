@@ -15,8 +15,6 @@ import java.util.List;
 
 import javax.swing.Action;
 import javax.swing.BorderFactory;
-import javax.swing.DefaultCellEditor;
-import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -37,7 +35,7 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
-import bbc.juniperus.mtgp.data.MtgTableModel;
+import bbc.juniperus.mtgp.data.ResultsTableModel;
 import bbc.juniperus.mtgp.data.viewmodel.Cell;
 import bbc.juniperus.mtgp.domain.Card;
 
@@ -50,12 +48,12 @@ public class CardsView extends JPanel {
 	private JTable table;
 	private JScrollPane scrollPane;
 	private Border trueEmpty = BorderFactory.createEmptyBorder();
-	private MtgTableModel model;
+	private ResultsTableModel model;
 	private Color selectColor = new Color(225,225,225);
 	private boolean isGridSelected;
 	private boolean isGridEmpty = true;
 	
-	public CardsView(MtgTableModel data){   
+	public CardsView(ResultsTableModel data){   
 		this.model = data;
 		setUpTable();
 		setUpGui();
@@ -119,6 +117,7 @@ public class CardsView extends JPanel {
 	
 	private void setUpTable(){
 		table = new JTable(model);
+		model.setTable(table);
 		table.setDefaultEditor(Object.class, new TheCellEditor());
 		table.setModel(model);
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
@@ -126,7 +125,7 @@ public class CardsView extends JPanel {
 		
 		TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>();
 		table.setRowSorter(sorter);
-		sorter.setModel((MtgTableModel) table.getModel());
+		sorter.setModel((ResultsTableModel) table.getModel());
 		sorter.setComparator(0,new CellComparator());
 		sorter.setComparator(1,new CellComparator());
 		
@@ -169,6 +168,10 @@ public class CardsView extends JPanel {
 				if (table.getRowCount() > 0)
 					empty = false;
 				
+				System.out.println("Has focus ? " + table.hasFocus());
+				String s = table.getSelectedRow() + "";
+				System.out.println(s);
+				
 				if (empty != isGridEmpty){
 					CardsView.this.firePropertyChange(EMPTY_STATE_CHANGED, isGridEmpty, empty);
 					isGridEmpty = empty;
@@ -182,7 +185,6 @@ public class CardsView extends JPanel {
 			public void valueChanged(ListSelectionEvent e) {
 				System.out.println("selection changed " + e.getFirstIndex() + "  " + table.getSelectedRow());
 				int row = table.getSelectedRow();
-				System.out.println(row > -1);
 				gridSelectionChanged(row > -1);
 			}
 		});
@@ -321,8 +323,17 @@ public class CardsView extends JPanel {
 
 	
 	
-	public MtgTableModel tableModel() {
+	public ResultsTableModel tableModel() {
 		return model;
+	}
+
+
+	public void cardsAdded() {
+		//Repainting table.
+		String  s= "Repainting table";
+		System.out.println(s);
+		table.repaint();
+		
 	}
 	
 	

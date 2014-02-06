@@ -1,7 +1,7 @@
 package bbc.juniperus.mtgp.data.viewmodel;
 
 
-public class Cell implements Comparable{
+public class Cell{
 	
 	public static enum Type {TEXT,PRICE, INTEGER, NOT_LOADED,NA};
 	
@@ -31,11 +31,6 @@ public class Cell implements Comparable{
 		return colMeta;
 	}
 
-	@Override
-	public int compareTo(Object o) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
 	
 	@Override
 	public String toString(){

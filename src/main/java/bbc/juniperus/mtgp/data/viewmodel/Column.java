@@ -66,8 +66,6 @@ public class Column {
 		//headerName = "<html>" + source.getName() + "<br>" + type.header + "</html>";
 		headerName = source.getName();
 	}
-
-	
 	
 	private void detectAndSetAlligment(){
 		if (type == Type.QUANTITY ||
@@ -79,8 +77,6 @@ public class Column {
 			alligment = LEFT;
 			
 	}
-	
-
 
 	public Type getType() {
 		return type;
@@ -97,53 +93,24 @@ public class Column {
 	public void setWidth(int width) {
 		this.width = width;
 	}
-
 	public int getWidth() {
 		return width;
 	}
-
 
 	public int getAlligment() {
 		return alligment;
 	}
 
-
 	public void setAlligment(int alligment) {
 		this.alligment = alligment;
 	}
-
 
 	public String getHeaderName() {
 		return headerName;
 	}
 
-
 	public void setHeaderName(String headerName) {
 		this.headerName = headerName;
 	}
-	
-	
-	/**
-	@Override
-	public int hashCode() {
-		return source.hashCode() + type.hashCode();
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		
-		if (!(obj instanceof ColumnMeta))
-			return false;
-		ColumnMeta col2 = (ColumnMeta) obj;
-		
-		if (source == null)
-			return (type.equals(col2.type));
-		else{
-			return (source.equals(col2.source) &&
-						type.equals(col2.type));
-		}
-
-	}
-	*/
 	
 }

@@ -1,13 +1,13 @@
 package bbc.juniperus.mtgp.data.viewmodel;
 
-import bbc.juniperus.mtgp.data.MtgTableModel;
+import bbc.juniperus.mtgp.data.ResultsTableModel;
 import bbc.juniperus.mtgp.domain.Card;
 
 public class ReportCreator {
 	
-	private MtgTableModel data;
+	private ResultsTableModel data;
 	
-	public ReportCreator(MtgTableModel tableModel){
+	public ReportCreator(ResultsTableModel tableModel){
 		this.data = tableModel;
 	}
 	

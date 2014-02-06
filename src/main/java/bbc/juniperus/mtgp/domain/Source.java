@@ -40,6 +40,6 @@ public class Source implements Serializable{
 		s = new Source("pica");
 		s2 = new Source("pica2");
 		
-		System.out.println(s.equals(s2));
+
 	}
 }

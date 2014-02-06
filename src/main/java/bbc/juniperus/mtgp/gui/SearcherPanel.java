@@ -7,15 +7,15 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import net.miginfocom.swing.MigLayout;
-import bbc.juniperus.mtgp.cardsearch.Pricer;
-import bbc.juniperus.mtgp.cardsearch.Searcher;
+import bbc.juniperus.mtgp.cardsearch.PricingWorker;
+import bbc.juniperus.mtgp.cardsearch.finder.CardFinder;
 
 public class SearcherPanel extends JPanel{
 	
 	private static final long serialVersionUID = 1L;
-	private Searcher searcher;
+	private CardFinder searcher;
 	
-	public SearcherPanel(Pricer pricer, Searcher searcher){
+	public SearcherPanel(PricingWorker pricer, CardFinder searcher){
 		this.searcher = searcher;
 		setLayout(new MigLayout());
 		JLabel lbl = new JLabel(searcher.getName());

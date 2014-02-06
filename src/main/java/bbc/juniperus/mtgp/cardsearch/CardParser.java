@@ -12,14 +12,25 @@ import java.util.regex.Pattern;
 
 import bbc.juniperus.mtgp.domain.Card;
 
+/**
+ * Utility class which provides methods for parsing {@link File} or string into {@link Card}.
+ * @author juniperus
+ *
+ */
 public class CardParser {
 	
 	//Any sequence of letter,',-,/ or white space (includes leading and trailing white spaces).
 	public final static String REG_EXP_NAME = "[a-zA-Z\\s'-/]+";
 	public final static String REG_EXP_NUMBER = "\\d+";
 	
-	
-	public Map<Card,Integer> parseFromFile(File file) throws IOException, ParseException{
+	/**
+	 * Reads the file, parses it and returns {@link Map} with {@link Card} - <i>quantity</i> pairs. 
+	 * @param file file containing the characters which can be parsed into card set
+	 * @return {@link Card} - <i>quantity</i> map
+	 * @throws IOException
+	 * @throws ParseException
+	 */
+	public static Map<Card,Integer> parseFromFile(File file) throws IOException, ParseException{
 		
 		Map<Card,Integer> cards = new LinkedHashMap<Card,Integer>();
 		BufferedReader reader = null;
@@ -56,7 +67,12 @@ public class CardParser {
 		return cards;
 	}
 	
-	private int parseQuantity(String line){
+	/**
+	 * Retrieves quantity information from a string.
+	 * @param line a string which to look in
+	 * @return the quantity parsed from the string
+	 */
+	private static int parseQuantity(String line){
 		Pattern pat = Pattern.compile(REG_EXP_NUMBER);
 		Matcher mat = pat.matcher(line);
 		
@@ -68,7 +84,12 @@ public class CardParser {
 		return q;
 	}
 	
-	private String parseCardName(String line){
+	/**
+	 * Retrieves card name information from a string.
+	 * @param line a string which to look in
+	 * @return the name retrieved from the string
+	 */
+	private static String parseCardName(String line){
 		
 		Pattern pat = Pattern.compile(REG_EXP_NAME);
 		

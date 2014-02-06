@@ -14,6 +14,7 @@ public class CardResult implements Serializable{
 	private double price;
 	private String notFoundMsg;
 	private Source source;
+	@SuppressWarnings("unused")
 	private Date date;
 	private Currency currency;
 	private boolean found;

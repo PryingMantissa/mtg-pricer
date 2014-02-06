@@ -12,13 +12,13 @@ import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 
-import bbc.juniperus.mtgp.data.MtgTableModel;
-import bbc.juniperus.mtgp.data.SearchData;
+import bbc.juniperus.mtgp.data.ResultsTableModel;
+import bbc.juniperus.mtgp.data.DataStorage;
 
 public class Utilz {
 	
 	
-	public static void saveDataToBin(String path, SearchData data) throws IOException{
+	public static void saveDataToBin(String path, DataStorage data) throws IOException{
 		
 		OutputStream fileOs = new FileOutputStream(path);
 		OutputStream bufferOs = new BufferedOutputStream(fileOs);
@@ -28,12 +28,12 @@ public class Utilz {
 				objectOs.close(); 
 	}
 	
-	public static SearchData loadDataFromBin(String path) throws IOException, ClassNotFoundException{
-		SearchData result = null;
+	public static DataStorage loadDataFromBin(String path) throws IOException, ClassNotFoundException{
+		DataStorage result = null;
 		InputStream fileIs = new FileInputStream(path);
 		InputStream bufferIs = new BufferedInputStream(fileIs);
 		ObjectInput objectIs = new ObjectInputStream(bufferIs);
-		result = (SearchData) objectIs.readObject();
+		result = (DataStorage) objectIs.readObject();
 		
 		if (objectIs != null)
 			objectIs.close();
