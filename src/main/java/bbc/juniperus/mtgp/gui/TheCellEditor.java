@@ -2,17 +2,19 @@ package bbc.juniperus.mtgp.gui;
 
 import java.awt.Component;
 
-import javax.swing.AbstractCellEditor;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.TableCellEditor;
 
-import bbc.juniperus.mtgp.data.viewmodel.Cell;
+import bbc.juniperus.mtgp.tablemodel.Cell;
 
 public class TheCellEditor extends DefaultCellEditor
 	implements TableCellEditor {
+	
+
+	private static final long serialVersionUID = 1L;
 	
 	JSpinner spinner = new QuantitySpinner();
 	Component editor;

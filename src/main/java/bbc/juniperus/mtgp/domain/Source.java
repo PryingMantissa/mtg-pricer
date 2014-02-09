@@ -33,13 +33,4 @@ public class Source implements Serializable{
 		return name.hashCode();
 	}
 	
-	public static void main(String[] args){
-		
-		Source s,s2;
-		
-		s = new Source("pica");
-		s2 = new Source("pica2");
-		
-
-	}
 }

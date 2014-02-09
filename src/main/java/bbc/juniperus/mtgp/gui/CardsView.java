@@ -4,10 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -35,9 +31,9 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
-import bbc.juniperus.mtgp.data.ResultsTableModel;
-import bbc.juniperus.mtgp.data.viewmodel.Cell;
 import bbc.juniperus.mtgp.domain.Card;
+import bbc.juniperus.mtgp.tablemodel.Cell;
+import bbc.juniperus.mtgp.tablemodel.MtgPricerTableModel;
 
 public class CardsView extends JPanel {
 
@@ -48,12 +44,12 @@ public class CardsView extends JPanel {
 	private JTable table;
 	private JScrollPane scrollPane;
 	private Border trueEmpty = BorderFactory.createEmptyBorder();
-	private ResultsTableModel model;
+	private MtgPricerTableModel model;
 	private Color selectColor = new Color(225,225,225);
 	private boolean isGridSelected;
 	private boolean isGridEmpty = true;
 	
-	public CardsView(ResultsTableModel data){   
+	public CardsView(MtgPricerTableModel data){   
 		this.model = data;
 		setUpTable();
 		setUpGui();
@@ -125,7 +121,7 @@ public class CardsView extends JPanel {
 		
 		TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>();
 		table.setRowSorter(sorter);
-		sorter.setModel((ResultsTableModel) table.getModel());
+		sorter.setModel((MtgPricerTableModel) table.getModel());
 		sorter.setComparator(0,new CellComparator());
 		sorter.setComparator(1,new CellComparator());
 		
@@ -216,9 +212,8 @@ public class CardsView extends JPanel {
 	 * @param isSelected
 	 */
 	private void gridSelectionChanged(boolean isSelected){
-		if (isSelected == isGridSelected)
-			return;
-		this.firePropertyChange(GRID_SELECTED_PROPERTY, isGridSelected, isSelected);
+		System.out.println("CW: Grid selection changed ");
+		firePropertyChange(GRID_SELECTED_PROPERTY, isGridSelected, isSelected);
 		isGridSelected = isSelected;
 	}
 	
@@ -246,7 +241,7 @@ public class CardsView extends JPanel {
 				lbl.setForeground(Color.red);
 			}
 			lbl.setText(text);
-			lbl.setHorizontalAlignment(cell.getColumnMeta().getAlligment());
+			lbl.setHorizontalAlignment(cell.getColumnMeta().getAlignment());
 			Border brdThinEmpty = BorderFactory.createEmptyBorder(1, 1, 1, 1);
 			Border brdDefEmpty = BorderFactory.createEmptyBorder(2,2,2,2);
 			lbl.setBorder(brdDefEmpty);
@@ -323,7 +318,7 @@ public class CardsView extends JPanel {
 
 	
 	
-	public ResultsTableModel tableModel() {
+	public MtgPricerTableModel tableModel() {
 		return model;
 	}
 

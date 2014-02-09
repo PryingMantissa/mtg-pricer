@@ -11,14 +11,14 @@ import bbc.juniperus.mtgp.domain.CardResult;
 public interface SearchListener {
 	
 	/**
-	 * Inform that the the search with a given card infder  currently started trying to find the result for a given card 
+	 * Informs that the the search with a given card infder  currently started trying to find the result for a given card 
 	 * @param card the card for which the finder has started currently searching
 	 * @param finder card finder involved
 	 */
 	void startedSearchingFor(Card card, CardFinder finder);
 	
 	/**
-	 * Inform that the the search for a card has finished and is about to start searching for another one
+	 * Informs that the the search for a card has finished and is about to start searching for another one
 	 * (if it was not the final card).
 	 * @param result result from the given card search
 	 * @param finder card finder involved
@@ -26,7 +26,7 @@ public interface SearchListener {
 	void finishedSearchingFor(CardResult result, CardFinder finder);
 	
 	/**
-	 * Informs that the search has succesfully ended.
+	 * Informs that the search has successfully ended.
 	 * @param finder card finder involved
 	 * @param data search related data
 	 */
@@ -38,5 +38,11 @@ public interface SearchListener {
 	 * @param t cause
 	 */
 	void failedSearch(CardFinder finder, Throwable t);
+
+	/**
+	 * Invoked when the pricing process has completed.
+	 * @param interrupted <code>true</code> if interrupted by the user
+	 */
+	void pricingEnded(boolean interrupted);
 	
 }

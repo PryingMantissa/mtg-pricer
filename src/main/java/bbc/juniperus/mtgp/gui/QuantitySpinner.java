@@ -9,11 +9,11 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 import javax.swing.text.NumberFormatter;
-import javax.swing.text.DocumentFilter.FilterBypass;
 
 public class QuantitySpinner extends JSpinner {
 	
-	
+	private static final long serialVersionUID = 1L;
+
 	public QuantitySpinner(){
 		setModel(new SpinnerNumberModel(1,1,99,1));
 		setEditor(new JSpinner.NumberEditor(this,"##"));

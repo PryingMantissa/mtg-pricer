@@ -1,8 +1,8 @@
 package bbc.juniperus.mtgp;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -27,12 +27,14 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -47,6 +49,7 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
@@ -54,21 +57,24 @@ import javax.swing.event.DocumentListener;
 
 import net.miginfocom.swing.MigLayout;
 import bbc.juniperus.mtgp.cardsearch.CardParser;
+import bbc.juniperus.mtgp.cardsearch.HarvestData;
 import bbc.juniperus.mtgp.cardsearch.PricingWorker;
+import bbc.juniperus.mtgp.cardsearch.SearchListener;
 import bbc.juniperus.mtgp.cardsearch.finder.CardFinder;
 import bbc.juniperus.mtgp.cardsearch.finder.CardFinderFactory;
-import bbc.juniperus.mtgp.data.ResultsTableModel;
-import bbc.juniperus.mtgp.data.viewmodel.ReportCreator;
 import bbc.juniperus.mtgp.domain.Card;
+import bbc.juniperus.mtgp.domain.CardResult;
 import bbc.juniperus.mtgp.gui.AboutDialog;
 import bbc.juniperus.mtgp.gui.CardsView;
 import bbc.juniperus.mtgp.gui.QuantitySpinner;
 import bbc.juniperus.mtgp.gui.StatusRow;
+import bbc.juniperus.mtgp.tablemodel.MtgPricerTableModel;
+import bbc.juniperus.mtgp.tablemodel.ReportCreator;
 
 /**
  * The main class and the app entry point.
  */
-public class Main implements PropertyChangeListener {
+public class Main implements PropertyChangeListener, SearchListener {
 	
 	private static int ICON_HEIGHT = 20;
 	private static int ICON_WIDTH = 20;
@@ -76,8 +82,10 @@ public class Main implements PropertyChangeListener {
 	private static final ImageIcon ICON_REMOVE = loadIcon("/icons/file_delete2.png",ICON_WIDTH,ICON_HEIGHT);
 	//Slightly thinner as its not symmetric.
 	private static final ImageIcon ICON_IMPORT = loadIcon("/icons/import1.png",ICON_WIDTH-1,ICON_HEIGHT);
+	/*
 	private static final ImageIcon ICON_EXPORT = loadIcon("/icons/103.png",ICON_WIDTH,ICON_HEIGHT);
 	private static final ImageIcon ICON_SAVE = loadIcon("/icons/095.png",ICON_WIDTH,ICON_HEIGHT);
+	*/
 	private static final ImageIcon ICON_GO = loadIcon("/icons/play.png",ICON_WIDTH,ICON_HEIGHT);
 	private static final ImageIcon ICON_STOP = loadIcon("/icons/stop-icon_40.png",ICON_WIDTH,ICON_HEIGHT);
 	private static final ImageIcon ICON_BROWSER = loadIcon("/icons/browser.png",ICON_WIDTH,ICON_HEIGHT);
@@ -85,8 +93,8 @@ public class Main implements PropertyChangeListener {
 	
 	private static final Border ETCHED_BORDER = BorderFactory.createEtchedBorder();
 	private static final String TITLE = "Mtg Pricer";
-	private static final int HEIGHT = 400;
- 	private static final int WIDTH = 700;  
+	private static final int HEIGHT = 500;
+ 	private static final int WIDTH = 850;  
 	
 	private JFrame window;
 	private JPanel tablePane;
@@ -95,9 +103,11 @@ public class Main implements PropertyChangeListener {
 	private CardsView view;
 	private JTextField addTextField;
 	private JSpinner addSpinner;
+	private JToolBar toolBar;
 	private PricingWorker pricer;
 	private Map<JCheckBox,CardFinder> checkBoxes = new LinkedHashMap<JCheckBox,CardFinder>();
 	private boolean afterSearch;
+	private boolean pricingInProgress;
 	private Map<Class<? extends AbstractAction>,AbstractAction> actionMap 
 					= new HashMap<Class<? extends AbstractAction>,AbstractAction>();
 	
@@ -134,7 +144,8 @@ public class Main implements PropertyChangeListener {
 		tablePane = new JPanel(new BorderLayout());
 		tablePane.setBorder(ETCHED_BORDER);
 		
-		window.add(createToolBar(), BorderLayout.NORTH);
+		toolBar = createToolBar();
+		window.add(toolBar, BorderLayout.NORTH);
 		window.add(createCardFindersPane(), BorderLayout.WEST);
 		window.add(tablePane, BorderLayout.CENTER);
 		window.setJMenuBar(createMenuBar());
@@ -145,7 +156,7 @@ public class Main implements PropertyChangeListener {
 	 * Creates the toolbar and sets the buttons to proper state (enabled/disabled).
 	 * @return
 	 */
-	private Component createToolBar(){
+	private JToolBar createToolBar(){
 		JToolBar tb = new JToolBar();
 		
 		tb.setFocusable(false);
@@ -197,10 +208,14 @@ public class Main implements PropertyChangeListener {
 			if (c instanceof AbstractButton)
 				((AbstractButton)c).setFocusable(false);
 		tb.setBorder(ETCHED_BORDER);
+		
 		return tb;
 	}
 	
 	private JPanel createCardFindersPane(){
+		
+		int width = 210; 
+		
 		MigLayout ml = new MigLayout();
 		leftPane = new JPanel(ml);
 		JLabel lbl = new JLabel("Card pricing sources:");
@@ -218,7 +233,7 @@ public class Main implements PropertyChangeListener {
 			checkBoxes.put(cb, s);
 		}
 		
-		leftPane.setPreferredSize(new Dimension(180, leftPane.getPreferredSize().height));
+		leftPane.setPreferredSize(new Dimension(width, leftPane.getPreferredSize().height));
 		leftPane.setBorder(ETCHED_BORDER);
 		return leftPane;
 	}
@@ -360,6 +375,7 @@ public class Main implements PropertyChangeListener {
 	}
 	
 	private void pricingStarted(){
+		pricingInProgress = true;
 		actionMap.get(ImportCardsAction.class).setEnabled(false);
 		actionMap.get(RemoveAction.class).setEnabled(false);
 		actionMap.get(AddCardAction.class).setEnabled(false);
@@ -376,11 +392,15 @@ public class Main implements PropertyChangeListener {
 		actionMap.get(ImportCardsAction.class).setEnabled(true);
 		addTextField.setEnabled(true);
 		addSpinner.setEnabled(true);
-
+		actionMap.get(RemoveAction.class).setEnabled(false);
+		actionMap.get(SearchInBrowserAction.class).setEnabled(false);
 		
 		pricer = new PricingWorker();
+		pricer.addProgressListener(this, null);
+		
+		
 		tablePane.removeAll();
-		ResultsTableModel model = new ResultsTableModel(pricer.data());
+		MtgPricerTableModel model = new MtgPricerTableModel(pricer.data());
 		view = new CardsView(model);
 		view.addPropertyChangeListener(this);
 		view.setActionForKey(actionMap.get(RemoveAction.class), KeyStroke.getKeyStroke("DELETE"));
@@ -401,6 +421,8 @@ public class Main implements PropertyChangeListener {
 	public void propertyChange(PropertyChangeEvent evt) {
 		if (evt.getPropertyName() == CardsView.GRID_SELECTED_PROPERTY){
 			boolean enabled =  (boolean) evt.getNewValue();
+			
+			System.out.print("Grid selected property fired:  " +  enabled );
 			actionMap.get(RemoveAction.class).setEnabled(enabled);
 			actionMap.get(SearchInBrowserAction.class).setEnabled(enabled);
 		}
@@ -519,6 +541,21 @@ public class Main implements PropertyChangeListener {
 		public void actionPerformed(ActionEvent e) {
 			System.out.println("Removing");
 			pricer.removeCards(view.getSelectedCards());
+		}
+		
+		@Override
+		public boolean isEnabled(){
+			
+			boolean b = (super.isEnabled() && !pricingInProgress);
+			System.out.println("is remove enabled? " + b);
+			return b;
+		}
+		@Override
+		public void setEnabled(boolean b){
+			System.out.println("setting enabled " + b);
+			StackTraceElement[] s = Thread.currentThread().getStackTrace();
+			System.out.println(s[2]);
+			super.setEnabled(b);
 		}
 		
 	}
@@ -667,9 +704,10 @@ public class Main implements PropertyChangeListener {
 			final Collection<CardFinder> searchers = getSelectedSearchers(); 
 			pricer.setCardFinders(searchers);
 			updateLeftPanel(searchers);
+			actionMap.get(RemoveAction.class).setEnabled(false);
 			pricingStarted();
 			pricer.startSearch();
-			window.pack();
+			//window.pack();
 		}
 	}
 	
@@ -683,7 +721,10 @@ public class Main implements PropertyChangeListener {
 
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
+			window.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+			setEnabled(false);
 			pricer.interrupt();
+			
 		}
 	}
 	
@@ -699,7 +740,7 @@ public class Main implements PropertyChangeListener {
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
 			
-			//TODO handle this somewhere. Not enable the action.
+			//TODO handle this somewhere. Do not enable the action.
 			assert Desktop.isDesktopSupported();
 			
 			Collection<Card> cards = view.getSelectedCards();
@@ -723,6 +764,43 @@ public class Main implements PropertyChangeListener {
 		}
 	}
 
+	@Override
+	public void startedSearchingFor(Card card, CardFinder finder) {
+		//Empty
+	}
 
-	
+	@Override
+	public void finishedSearchingFor(CardResult result, CardFinder finder) {
+		//Empty
+	}
+
+	@Override
+	public void finishedSearch(CardFinder finder, HarvestData data) {
+		//Empty
+	}
+
+	@Override
+	public void failedSearch(CardFinder finder, Throwable t) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void pricingEnded(boolean interrupted) {
+		System.out.println("Pricing ended");
+		pricingInProgress = false;
+		SwingUtilities.invokeLater(new Runnable() {
+			
+			@Override
+			public void run() {
+				
+				System.out.println("iz enabled ? " +actionMap.get(RemoveAction.class).isEnabled());
+				//Hack as the call to setEnabled(true) does not result in action button in toolbar to be set to enabled when
+				//the user click to the table during process of stopping search.
+				//TODO investigate more.
+				actionMap.get(RemoveAction.class).setEnabled(false); 
+				actionMap.get(RemoveAction.class).setEnabled(true);
+				window.setCursor(Cursor.getDefaultCursor());
+			}
+		});
+	}
 }

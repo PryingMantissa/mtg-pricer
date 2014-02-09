@@ -1,16 +1,23 @@
-package bbc.juniperus.mtgp.data.viewmodel;
+package bbc.juniperus.mtgp.tablemodel;
 
-import bbc.juniperus.mtgp.data.ResultsTableModel;
 import bbc.juniperus.mtgp.domain.Card;
 
+/**
+ * Generator of string reports in various formats. Used for export functionality 
+ * or also for CLI usage.
+ */
 public class ReportCreator {
 	
-	private ResultsTableModel data;
+	private MtgPricerTableModel data;
 	
-	public ReportCreator(ResultsTableModel tableModel){
+	public ReportCreator(MtgPricerTableModel tableModel){
 		this.data = tableModel;
 	}
 	
+	/**
+	 * Creates card pricing table in normal txt format.
+	 * @return txt format card - price table.
+	 */
 	public String generateFormattedReport(){
 		
 		StringBuilder sb = new StringBuilder();
@@ -19,7 +26,7 @@ public class ReportCreator {
 		int colCount = data.getColumnCount();
 
 		for (int i = 0 ; i < colCount;i++){
-			String text = allignLeft(data.getColumnName(i), data.getColumnInfo(i).getWidth());
+			String text = alignLeft(data.getColumnName(i), data.getColumnInfo(i).getWidth());
 			sb.append(text);
 			if (i - 1 <  colCount)
 				sb.append(" | ");
@@ -38,6 +45,11 @@ public class ReportCreator {
 		return sb.toString();
 	}
 	
+	/**
+	 * Creates card pricing report table in CSV format
+	 * @param separator CSV separator character
+	 * @return string representing the CSV report/table of the priced cards
+	 */
 	public String createCSVReport(String separator){
 		
 		StringBuilder sb = new StringBuilder();
@@ -57,6 +69,11 @@ public class ReportCreator {
 		return sb.toString();
 	}
 	
+	/**
+	 * Creates list of the cards and its quantity (basically deck) from the
+	 * actual data in table.
+	 * @return simple card - quantity list based on values in table
+	 */
 	public String createCardList(){
 		
 		StringBuilder sb = new StringBuilder();
@@ -69,7 +86,7 @@ public class ReportCreator {
 			}
 		
 		if (qCol < 0)
-			throw new RuntimeException("There is no quantity columns. Aplication error.");
+			throw new IllegalStateException("There is no quantity columns. Aplication error.");
 		
 		
 		for (int i = 0; i < data.getRowCount(); i++) {
@@ -82,25 +99,36 @@ public class ReportCreator {
 	}
 	
 	
-	
-	
+	/**
+	 * Gets the padding string inserted between columns based on
+	 * column type and alignment.
+	 * @param row
+	 * @param column
+	 * @return
+	 */
 	private String getPaddedValue(int row,int column){
 		Column col = data.getColumnInfo(column);
 		String res = data.getValueAt(row,column).toString();
 		
-		if (col.getAlligment() == Column.RIGHT)
-			res = allignRight(res, col.getWidth());
+		if (col.getAlignment() == Column.RIGHT)
+			res = alignRight(res, col.getWidth());
 		else
-			res = allignLeft(res, col.getWidth());
+			res = alignLeft(res, col.getWidth());
 		
 		return res;
 	}
 	
-	private String allignLeft(String s, int width){
+	/**
+	 * Pads the string based on the alignment in the text table.
+	 * @param s string to be padded
+	 * @param width padding width/quantity
+	 * @return formatted string with padding
+	 */
+	private String alignLeft(String s, int width){
 		return String.format("%-" + width + "s", s);
 	}
 	
-	private String allignRight(String s, int width){
+	private String alignRight(String s, int width){
 		return String.format("%" + width + "s", s);
 	}
 }

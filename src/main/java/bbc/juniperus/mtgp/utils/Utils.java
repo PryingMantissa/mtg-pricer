@@ -12,10 +12,9 @@ import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 
-import bbc.juniperus.mtgp.data.ResultsTableModel;
 import bbc.juniperus.mtgp.data.DataStorage;
 
-public class Utilz {
+public class Utils {
 	
 	
 	public static void saveDataToBin(String path, DataStorage data) throws IOException{

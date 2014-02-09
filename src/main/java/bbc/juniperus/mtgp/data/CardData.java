@@ -2,6 +2,7 @@ package bbc.juniperus.mtgp.data;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import bbc.juniperus.mtgp.domain.CardResult;
 import bbc.juniperus.mtgp.domain.Source;
 

@@ -10,7 +10,6 @@ import java.util.Map;
 import javax.swing.SwingUtilities;
 
 import bbc.juniperus.mtgp.cardsearch.finder.CardFinder;
-import bbc.juniperus.mtgp.data.CardData;
 import bbc.juniperus.mtgp.data.DataStorage;
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.domain.CardResult;
@@ -115,7 +114,7 @@ public class PricingWorker{
 			new Thread(new SearchRunnable(s)).start();
 		}
 		//When the search has started no changes to the table are allowed.
-		data.setMutable(false);
+		data.setReadWrite(false);
 	}
 	
 	/**
@@ -155,8 +154,15 @@ public class PricingWorker{
 		//Search for all cards using the Searcher.
 		long timeStart = System.currentTimeMillis();
 		for (Card card : data.cards()){
-			if (interruped)
+			if (interruped){
+				fireHarvestingEnded(finder, hData);
+				//If this is the last running thread.
+				if (--harvestsLeft < 1){
+					searchInProgress = false;
+					firePricingFinished(true);
+				}
 				return;
+			}
 			CardResult result = null;
 			
 			fireCardSearchStarted(card, finder);
@@ -173,19 +179,20 @@ public class PricingWorker{
 		}
 		
 		hData.setHarvestTime(System.currentTimeMillis() - timeStart);
+		
 		fireHarvestingEnded(finder, hData);
-		if (--harvestsLeft < 1)
+		if (--harvestsLeft < 1){
 			searchInProgress = false;
-			
-			
+			firePricingFinished(false);
+		}
 	}
-	
 
 	//================ Listeners related methods ========================
 	/**
 	 * Registers {@link SearchListener} for a given card finder.
 	 * @param listener listener for the search
-	 * @param searcher type of card finder which the listener is interested in
+	 * @param searcher type of card finder which the listener is interested in, <code>null</code> if it should be notified
+	 * for events realted to all finders
 	 */
 	public void addProgressListener(SearchListener listener, CardFinder finder){
 		
@@ -201,7 +208,7 @@ public class PricingWorker{
 	 * @param card the card for which the searching has begun
 	 * @param finder the finder which is involved
 	 */
-	public void fireCardSearchStarted(Card card, CardFinder finder){
+	private void fireCardSearchStarted(Card card, CardFinder finder){
 		for (SearchListener pl : listeners.keySet())
 			if (listeners.get(pl) == null ||  listeners.get(pl).equals(finder))
 					pl.startedSearchingFor(card,finder);
@@ -212,7 +219,7 @@ public class PricingWorker{
 	 * @param result the result from the finished searching for the card
 	 * @param finder the finder which was involved
 	 */
-	public void fireCardSearchEnded(CardResult result, CardFinder finder){
+	private void fireCardSearchEnded(CardResult result, CardFinder finder){
 		for (SearchListener pl : listeners.keySet())
 			if (listeners.get(pl) == null ||  listeners.get(pl).equals(finder))
 				pl.finishedSearchingFor(result,finder);
@@ -224,7 +231,7 @@ public class PricingWorker{
 	 * @param finder finder involved
 	 * @param data data related to the search
 	 */
-	public void fireHarvestingEnded(CardFinder finder, HarvestData data){
+	private void fireHarvestingEnded(CardFinder finder, HarvestData data){
 		for (SearchListener pl : listeners.keySet())
 			if (listeners.get(pl) == null ||  listeners.get(pl).equals(finder))
 				pl.finishedSearch(finder, data);
@@ -236,11 +243,22 @@ public class PricingWorker{
 	 * @param listener finder involved
 	 * @param t cause
 	 */
-	public void fireHarvestingFailed(CardFinder finder, Throwable t){
+	private void fireHarvestingFailed(CardFinder finder, Throwable t){
 		for (SearchListener pl : listeners.keySet())
 			if (listeners.get(pl) == null ||  listeners.get(pl).equals(finder))
 				pl.failedSearch(finder, t);
 	}
+	
+	/**
+	 * Notifies all {@link SearchListener} that the pricing processes has completely ended 
+	 * (no ongoing search) for any finder. 
+	 * @param interrupted <code>true</code> if it was interrupted by the user
+	 */
+	private void firePricingFinished(boolean interrupted){
+		for (SearchListener pl : listeners.keySet())
+				pl.pricingEnded(interrupted);
+	}
+	
 	
 	/**
 	 * Runnable executed on a search thread. 

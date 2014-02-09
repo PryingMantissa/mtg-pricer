@@ -1,4 +1,4 @@
-package bbc.juniperus.mtgp.data;
+package bbc.juniperus.mtgp.tablemodel;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -9,14 +9,19 @@ import java.util.Set;
 import javax.swing.JTable;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableModel;
 
-import bbc.juniperus.mtgp.data.viewmodel.Cell;
-import bbc.juniperus.mtgp.data.viewmodel.Cell.Type;
-import bbc.juniperus.mtgp.data.viewmodel.Column;
+import bbc.juniperus.mtgp.data.DataChangeListener;
+import bbc.juniperus.mtgp.data.DataStorage;
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.domain.Source;
 
-public class ResultsTableModel extends AbstractTableModel implements DataChangeListener {
+/**
+ * Implementation of {@link TableModel} which serves as a table model for GUI app table.
+ * It is backed by {@link DataStorage}.
+ *
+ */
+public class MtgPricerTableModel extends AbstractTableModel implements DataChangeListener {
 
 	private static final long serialVersionUID = 1L;
 	private DataStorage data;
@@ -26,7 +31,11 @@ public class ResultsTableModel extends AbstractTableModel implements DataChangeL
 	
 	private JTable table;
 
-	public ResultsTableModel(DataStorage data){
+	/**
+	 * Constructs table model around {@link DataStorage}.
+	 * @param data central data storage.
+	 */
+	public MtgPricerTableModel(DataStorage data){
 		this.data = data;
 		data.addDataChangeListener(this);
 		//Default columns.
@@ -42,7 +51,14 @@ public class ResultsTableModel extends AbstractTableModel implements DataChangeL
 			cards.add(c);
 	}
 	
+	
+	
 	//========== AbstractTableModel implementation ======================
+	
+	/**
+	 * Refer to {@link TableModel}. This implementation returns
+	 * {@link Cell} object.
+	 */
 	@Override
 	public Object getValueAt(int row,int column){
 		Card card = cards.get(row);
@@ -56,7 +72,7 @@ public class ResultsTableModel extends AbstractTableModel implements DataChangeL
 		
 		Column.Type colType = col.getType();
 		DataStorage.Result resType;
-		
+
 		if (colType == Column.Type.RESULT_PRICE)
 			resType = DataStorage.Result.PRICE;
 		else if (colType == Column.Type.RESULT_EDITION)
@@ -71,7 +87,7 @@ public class ResultsTableModel extends AbstractTableModel implements DataChangeL
 		String result = data.getStrResult(card, col.getSource(), resType);
 		
 		if (result == "")
-			return new Cell("",col, Type.NOT_LOADED);
+			return new Cell("",col, Cell.Type.NOT_LOADED);
 		
 		//If its price. Convert it to double decimal place value + currency.
 		if (resType == DataStorage.Result.PRICE){
@@ -89,28 +105,41 @@ public class ResultsTableModel extends AbstractTableModel implements DataChangeL
 		return new Cell(result,col,Cell.Type.TEXT);
 	}
 	
+	/**
+	 * Refer to {@link TableModel}.
+	 */
 	@Override
 	public int getRowCount(){
 		return data.getRowsCount();
 	}
 	
+	/**
+	 * Refer to {@link TableModel}.
+	 */
 	@Override
 	public int getColumnCount(){
-		//System.out.println("Column ocunt je " +  columns.size());
 		return columns.size();
 	}
 	
+	/**
+	 * Refer to {@link TableModel}.
+	 */
 	@Override
 	public Class<?> getColumnClass(int columnIndex) {
 		return String.class;
 	}
 	
+	/**
+	 * Refer to {@link TableModel}.
+	 */
 	@Override
 	public boolean isCellEditable(int rowIndex, int columnIndex) {
-		return data.isMutable();
+		return data.isReadWrite();
 	}
 	
-
+	/**
+	 * Refer to {@link TableModel}.
+	 */
 	@Override
 	public String getColumnName(int columnIndex) {
 		
@@ -128,9 +157,12 @@ public class ResultsTableModel extends AbstractTableModel implements DataChangeL
 		return "";
 	}
 	
+	/**
+	 * Refer to {@link TableModel}. The value taken into consideration
+	 * is the result of {@link Object#toString()} invoked on <b>value</b> object.
+	 */
 	@Override
 	public void setValueAt(Object value, int rowIndex, int columnIndex){
-		System.out.println("setting value at " + value);
 		Card card = cards.get(rowIndex);
 		
 		if (columnIndex == 0){
@@ -163,6 +195,10 @@ public class ResultsTableModel extends AbstractTableModel implements DataChangeL
 	}
 	
 	//===== DataChangeListener interface ================================
+	
+	/**
+	 * Refer to {@link DataChangeListener}.
+	 */
 	@Override
 	public void resultAdded() {
 		findMaxColumnsWidth();
@@ -170,6 +206,9 @@ public class ResultsTableModel extends AbstractTableModel implements DataChangeL
 		table.repaint();
 	}
 	
+	/**
+	 * Refer to {@link DataChangeListener}.
+	 */
 	@Override
 	public void cardAdded(Card card) {
 		cards.add(card);
@@ -177,6 +216,9 @@ public class ResultsTableModel extends AbstractTableModel implements DataChangeL
 		fireTableStructureChanged();
 	}
 	
+	/**
+	 * Refer to {@link DataChangeListener}.
+	 */
 	@Override
 	public void cardsRemoved(Collection<Card> cardsList) {
 		this.cards.removeAll(cardsList);
@@ -184,6 +226,9 @@ public class ResultsTableModel extends AbstractTableModel implements DataChangeL
 		fireTableDataChanged();
 	}
 	
+	/**
+	 * Refer to {@link DataChangeListener}.
+	 */
 	@Override
 	public void sourcesAdded(Collection<Source> sources) {
 		for (Source s : sources)
@@ -192,31 +237,50 @@ public class ResultsTableModel extends AbstractTableModel implements DataChangeL
 		fireTableStructureChanged();
 	}
 
-
+	/**
+	 * Refer to {@link DataChangeListener}.
+	 */
 	@Override
 	public void rowChanged(Card card) {
 		findMaxColumnsWidth();
 		fireTableDataChanged();
 	}
 
-	//=========================================================
 	
+	
+	/**
+	 * Adds a new source to this table model. If its duplicate it is ignored.
+	 * @param s new source
+	 */
 	private void addSource(Source s){
 		if (!sources.contains(s))
 			columns.add(new Column(Column.Type.RESULT_PRICE,s));
 		
 	}
 	
+	/**
+	 * Returns column info object for a given index.
+	 * @param column index of the column
+	 * @return column meta info object
+	 */
 	public Column getColumnInfo(int column){
 		return columns.get(column);
 	}
 	
+	/**
+	 * Returns a card for a given row.
+	 * @param row row 
+	 * @return card 
+	 */
 	public Card getCardAt(int row){
 		return cards.get(row);
 	}
 
-
-
+	/**
+	 * Determines all columns width based on the width of the widest cell in each column.
+	 * This way the width of the column is automatically adjusted when
+	 * a cell with a wider test is inserted.
+	 */
 	private  void findMaxColumnsWidth(){
 		
 		int i = 0;
@@ -233,9 +297,5 @@ public class ResultsTableModel extends AbstractTableModel implements DataChangeL
 		}
 		
 	}
-	
-
-	
-	
 
 }
