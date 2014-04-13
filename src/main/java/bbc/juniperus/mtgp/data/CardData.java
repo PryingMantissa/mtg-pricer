@@ -7,8 +7,7 @@ import bbc.juniperus.mtgp.domain.CardResult;
 import bbc.juniperus.mtgp.domain.Source;
 
 /**
- * Data related to card which is part of the search. Containing 
- * the quantity of the card and found results.
+ * Contains all the data related to {@link Card}:  
  */
 public class CardData {
 	

@@ -56,12 +56,12 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import net.miginfocom.swing.MigLayout;
+import bbc.juniperus.mtgp.cardsearch.CardFinder;
+import bbc.juniperus.mtgp.cardsearch.CardFinderFactory;
 import bbc.juniperus.mtgp.cardsearch.CardParser;
-import bbc.juniperus.mtgp.cardsearch.HarvestData;
-import bbc.juniperus.mtgp.cardsearch.PricingWorker;
-import bbc.juniperus.mtgp.cardsearch.SearchListener;
-import bbc.juniperus.mtgp.cardsearch.finder.CardFinder;
-import bbc.juniperus.mtgp.cardsearch.finder.CardFinderFactory;
+import bbc.juniperus.mtgp.cardsearch.SearchResults;
+import bbc.juniperus.mtgp.cardsearch.SearchExecutor;
+import bbc.juniperus.mtgp.cardsearch.SearchObserver;
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.domain.CardResult;
 import bbc.juniperus.mtgp.gui.AboutDialog;
@@ -74,7 +74,7 @@ import bbc.juniperus.mtgp.tablemodel.ReportCreator;
 /**
  * The main class and the app entry point.
  */
-public class Main implements PropertyChangeListener, SearchListener {
+public class Main implements PropertyChangeListener, SearchObserver {
 	
 	private static int ICON_HEIGHT = 20;
 	private static int ICON_WIDTH = 20;
@@ -104,7 +104,7 @@ public class Main implements PropertyChangeListener, SearchListener {
 	private JTextField addTextField;
 	private JSpinner addSpinner;
 	private JToolBar toolBar;
-	private PricingWorker pricer;
+	private SearchExecutor pricer;
 	private Map<JCheckBox,CardFinder> checkBoxes = new LinkedHashMap<JCheckBox,CardFinder>();
 	private boolean afterSearch;
 	private boolean pricingInProgress;
@@ -395,8 +395,8 @@ public class Main implements PropertyChangeListener, SearchListener {
 		actionMap.get(RemoveAction.class).setEnabled(false);
 		actionMap.get(SearchInBrowserAction.class).setEnabled(false);
 		
-		pricer = new PricingWorker();
-		pricer.addProgressListener(this, null);
+		pricer = new SearchExecutor();
+		pricer.addSearchObserver(this, null);
 		
 		
 		tablePane.removeAll();
@@ -765,7 +765,7 @@ public class Main implements PropertyChangeListener, SearchListener {
 	}
 
 	@Override
-	public void startedSearchingFor(Card card, CardFinder finder) {
+	public void startedSearchingForCard(Card card, CardFinder finder) {
 		//Empty
 	}
 
@@ -775,17 +775,17 @@ public class Main implements PropertyChangeListener, SearchListener {
 	}
 
 	@Override
-	public void finishedSearch(CardFinder finder, HarvestData data) {
+	public void searchingFinished(CardFinder finder, SearchResults data) {
 		//Empty
 	}
 
 	@Override
-	public void failedSearch(CardFinder finder, Throwable t) {
+	public void searchingFailed(CardFinder finder, Throwable t) {
 		// TODO Auto-generated method stub
 	}
 
 	@Override
-	public void pricingEnded(boolean interrupted) {
+	public void searchingFinished(boolean interrupted) {
 		System.out.println("Pricing ended");
 		pricingInProgress = false;
 		SwingUtilities.invokeLater(new Runnable() {

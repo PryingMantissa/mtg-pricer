@@ -1,12 +1,6 @@
 package bbc.juniperus.mtgp.domain;
 
-import java.io.Serializable;
-
-public class Card implements Serializable{
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+public class Card{
 	
 	private String name;
 	
