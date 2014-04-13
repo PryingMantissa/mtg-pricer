@@ -2,19 +2,17 @@ package bbc.juniperus.mtgp.tablemodel;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.swing.JTable;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
+import javax.xml.transform.Source;
 
 import bbc.juniperus.mtgp.data.DataChangeListener;
 import bbc.juniperus.mtgp.data.DataStorage;
 import bbc.juniperus.mtgp.domain.Card;
-import bbc.juniperus.mtgp.domain.Source;
 
 /**
  * Implementation of {@link TableModel} which serves as a table model for GUI app table.
@@ -27,7 +25,6 @@ public class MtgPricerTableModel extends AbstractTableModel implements DataChang
 	private DataStorage data;
 	private List<Card> cards = new ArrayList<Card>();
 	private List<Column> columns = new ArrayList<Column>();
-	private Set<Source> sources = new LinkedHashSet<Source>();
 	
 	private JTable table;
 
@@ -42,9 +39,6 @@ public class MtgPricerTableModel extends AbstractTableModel implements DataChang
 		columns.add(new Column(Column.Type.NAME));
 		columns.add(new Column(Column.Type.QUANTITY));
 		
-		//Add price column for each source.
-		for (Source s : data.getSources())
-			addSource(s);
 		
 		//Add all cards to row-card mapping.
 		for (Card c : data.cards())
@@ -61,48 +55,52 @@ public class MtgPricerTableModel extends AbstractTableModel implements DataChang
 	 */
 	@Override
 	public Object getValueAt(int row,int column){
-		Card card = cards.get(row);
-		Column col = columns.get(column);
+//		
+//		
+//		Card card = cards.get(row);
+//		Column col = columns.get(column);
+//		
+//		if (column == 0)
+//			return new Cell(card.getName(),col, Cell.Type.TEXT);
+//		
+//		if (column == 1)
+//			return new Cell("" +data.getCardQuantity(card),col,Cell.Type.INTEGER);
+//		
+//		Column.Type colType = col.getType();
+//		DataStorage.Result resType;
+//
+//		if (colType == Column.Type.RESULT_PRICE)
+//			resType = DataStorage.Result.PRICE;
+//		else if (colType == Column.Type.RESULT_EDITION)
+//			resType = DataStorage.Result.EDITION;
+//		else if (colType == Column.Type.RESULT_NAME)
+//			resType = DataStorage.Result.CARD_NAME;
+//		else if (colType == Column.Type.RESULT_TYPE)
+//			resType = DataStorage.Result.TYPE;
+//		else
+//			throw new RuntimeException("The type is wrong!");
+//		
+//		String result = data.getStrResult(card, col.getSource(), resType);
+//		
+//		if (result == "")
+//			return new Cell("",col, Cell.Type.NOT_LOADED);
+//		
+//		//If its price. Convert it to double decimal place value + currency.
+//		if (resType == DataStorage.Result.PRICE){
+//			try{
+//				Double d = new Double(result);
+//				result = String.format("%1$,.2f", d) + 
+//					 " " + data.getStrResult(card, col.getSource(), DataStorage.Result.CURRENCY);
+//				return new Cell(result,col,Cell.Type.PRICE);
+//			}
+//			 catch(NumberFormatException e){
+//				 //Nothing to do here. Result will stay as it is.
+//			 }
+//		}
+//		
+		//return new Cell(result,col,Cell.Type.TEXT);
 		
-		if (column == 0)
-			return new Cell(card.getName(),col, Cell.Type.TEXT);
-		
-		if (column == 1)
-			return new Cell("" +data.getCardQuantity(card),col,Cell.Type.INTEGER);
-		
-		Column.Type colType = col.getType();
-		DataStorage.Result resType;
-
-		if (colType == Column.Type.RESULT_PRICE)
-			resType = DataStorage.Result.PRICE;
-		else if (colType == Column.Type.RESULT_EDITION)
-			resType = DataStorage.Result.EDITION;
-		else if (colType == Column.Type.RESULT_NAME)
-			resType = DataStorage.Result.CARD_NAME;
-		else if (colType == Column.Type.RESULT_TYPE)
-			resType = DataStorage.Result.TYPE;
-		else
-			throw new RuntimeException("The type is wrong!");
-		
-		String result = data.getStrResult(card, col.getSource(), resType);
-		
-		if (result == "")
-			return new Cell("",col, Cell.Type.NOT_LOADED);
-		
-		//If its price. Convert it to double decimal place value + currency.
-		if (resType == DataStorage.Result.PRICE){
-			try{
-				Double d = new Double(result);
-				result = String.format("%1$,.2f", d) + 
-					 " " + data.getStrResult(card, col.getSource(), DataStorage.Result.CURRENCY);
-				return new Cell(result,col,Cell.Type.PRICE);
-			}
-			 catch(NumberFormatException e){
-				 //Nothing to do here. Result will stay as it is.
-			 }
-		}
-		
-		return new Cell(result,col,Cell.Type.TEXT);
+		return "val";
 	}
 	
 	/**
@@ -281,7 +279,7 @@ public class MtgPricerTableModel extends AbstractTableModel implements DataChang
 	 * This way the width of the column is automatically adjusted when
 	 * a cell with a wider test is inserted.
 	 */
-	private  void findMaxColumnsWidth(){
+	private void findMaxColumnsWidth(){
 		
 		int i = 0;
 		for (Column col: columns){
