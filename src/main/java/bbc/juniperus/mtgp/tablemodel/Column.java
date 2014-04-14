@@ -1,8 +1,7 @@
 package bbc.juniperus.mtgp.tablemodel;
 
 import javax.swing.SwingConstants;
-
-import bbc.juniperus.mtgp.domain.Source;
+import javax.xml.transform.Source;
 
 /**
  * Class containing the meta information regarding the type of the column in a table.

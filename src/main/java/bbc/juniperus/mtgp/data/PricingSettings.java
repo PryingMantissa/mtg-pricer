@@ -12,32 +12,42 @@ import bbc.juniperus.mtgp.domain.Card;
 
 public class PricingSettings {
 	
-	private final Map<Card,Integer>  cards = new HashMap<>();
+	private final Map<Card,Integer>  cardQuantityMap = new HashMap<>();
+	private final List<Card> cardList = new ArrayList<>(); //For keeping track of insertion orde
+	private final List<Card> roCardList = Collections.unmodifiableList(cardList);
 	private final List<CardFinder> finders = new ArrayList<>();
 	
 	
 	public void addCard(Card card, int quantity){
-		if (cards.get(card) != null)
+		if (cardQuantityMap.get(card) != null)
 			throw new IllegalArgumentException("The card " + card + "is already in the collection");
 		if (card == null)
 			throw new NullPointerException();
 		if (quantity < 1)
 			throw new IllegalArgumentException("The quantity needs to be at least 1");
 			
-		cards.put(card, quantity);
-		
+		cardQuantityMap.put(card, quantity);
+		cardList.add(card);
+	}
+	
+	/**
+	 * Returns unmodifiable <code>List</code> with cards which are part of these settings.
+	 * @return <code>List</code> with set cards
+	 */
+	public List<Card> getCards(){
+		return roCardList;
 	}
 	
 	public int getQuantity(Card card){
-		return cards.get(card);
+		return cardQuantityMap.get(card);
 	}
 	
 	public void setNewQuantity(Card card, int newQuantity){
-		if (!cards.keySet().contains(card))
+		if (!cardQuantityMap.keySet().contains(card))
 			throw new IllegalArgumentException("No such card in collection");
 		if (newQuantity < 1)
 			throw new IllegalArgumentException("The quantity needs to be at least 1");
-		cards.put(card, newQuantity);
+		cardQuantityMap.put(card, newQuantity);
 	}
 	
 	public void addFinder(CardFinder finder){

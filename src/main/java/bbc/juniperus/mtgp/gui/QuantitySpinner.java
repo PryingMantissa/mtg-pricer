@@ -1,7 +1,5 @@
 package bbc.juniperus.mtgp.gui;
 
-import java.awt.Dimension;
-
 import javax.swing.JFormattedTextField;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
@@ -19,9 +17,16 @@ public class QuantitySpinner extends JSpinner {
 		setEditor(new JSpinner.NumberEditor(this,"##"));
 		JFormattedTextField txt = ((JSpinner.NumberEditor) getEditor()).getTextField();
 		((NumberFormatter) txt.getFormatter()).setAllowsInvalid(false);
-		setPreferredSize(new Dimension(35,getPreferredSize().height));
 		setMaximumSize(getPreferredSize());
 	}
+	
+	/*
+	@Override
+	public Dimension getPreferredSize(){
+		return new Dimension(50,super.getPreferredSize().height);
+	}
+	*/
+	
 }
 
 class SpinnerFilter extends DocumentFilter {

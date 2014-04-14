@@ -10,8 +10,9 @@ public class Main {
 	public Main() {
 		setLookAndFeel();
 		Controller controller = new Controller();
+		controller.newPricing();
 		MainView view = new MainView(controller);
-		
+		view.show();
 	}
 	
 	
@@ -21,7 +22,15 @@ public class Main {
 	
 	private void setLookAndFeel(){
 		try {
-			javax.swing.UIManager.setLookAndFeel(javax.swing.UIManager.getSystemLookAndFeelClassName());
+			
+			String lookAndFeel= javax.swing.UIManager.getSystemLookAndFeelClassName(); 
+			
+			System.out.println(lookAndFeel);
+			if (lookAndFeel.endsWith("MetalLookAndFeel")); //This might be Linux so let's try GTK look and feel.
+				lookAndFeel = "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
+			
+			javax.swing.UIManager.setLookAndFeel(lookAndFeel); 
+			
 			javax.swing.UIManager.getDefaults().put("Button.showMnemonics", Boolean.TRUE);
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block

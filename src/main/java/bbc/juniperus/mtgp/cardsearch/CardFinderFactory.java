@@ -1,5 +1,8 @@
 package bbc.juniperus.mtgp.cardsearch;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 /**
  * Factory which provides static methods to retrieve varius {@link CardFinder} implementations.
@@ -10,18 +13,19 @@ public class CardFinderFactory {
 	private static ModraVeverickaCardFinder modraVevericka;
 	private static DragonHostCardFinder dragon;
 	
-	private static CardFinder[] allFinders;
 	
 	/**
-	 * Returns all {@link CardFinders} which can be provided by this factory.
+	 * Returns new <code>List</code> with all the card finders be provided by this factory.
 	 * @return
 	 */
-	public static CardFinder[] allCardFinders(){
-		if (allFinders == null)
-			allFinders = new CardFinder[]{
-				getCernyRytirPricer(),getModraVeverickaPricer(),getDragonPricer()};
+	public static List<CardFinder> allCardFinders(){
+
+		List<CardFinder> finders = new ArrayList<>();
+		finders.add(getCernyRytirPricer());
+		finders.add(getDragonPricer());
+		finders.add(getModraVeverickaPricer());
 		
-		return allFinders;
+		return finders;
 	}
 	
 	

@@ -1,32 +1,73 @@
 package bbc.juniperus.mtgp.gui;
 
 import java.awt.event.ActionEvent;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 
 import bbc.juniperus.mtgp.cardsearch.CardFinder;
+import bbc.juniperus.mtgp.cardsearch.CardFinderFactory;
 import bbc.juniperus.mtgp.cardsearch.SearchExecutor;
 import bbc.juniperus.mtgp.cardsearch.SearchObserver;
+import bbc.juniperus.mtgp.data.PricingSettings;
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.domain.CardResult;
+import bbc.juniperus.mtgp.tablemodel.PricerTableModel;
 
 public class Controller implements SearchObserver {
 	
 	public enum UserAction { NEW_SEARCH, ADD_CARD, REMOVE_CARD, 
 		IMPORT_CARDS, EXPORT_TO_CSV, EXPORT_TO_TXT, OPEN_IN_BROWSER, START_SEARCH, STOP_SEARCH}
 	
+	public enum Phase {SETTING, SEARCHING, PRICING_FINISHED}
+	
 	
 	private Map<UserAction,AbstractAction> actionMap = new HashMap<>();
 	private SearchExecutor searchExecutor;
 	private MainView main;
+	private PricingSettings pricingSettings;
+	private List<CardFinder> finders;
+	private PricerTableModel tableModel;
 	
 	
 	public Controller(){
-		
+		createActions();
+		finders = CardFinderFactory.allCardFinders();
 	}
+	
+	public void newPricing(){
+		pricingSettings = new PricingSettings();
+		
+		//TODO testing code
+		pricingSettings.addCard(new Card("Card A"),3);
+		pricingSettings.addCard(new Card("Card B"),3);
+		pricingSettings.addCard(new Card("Card C"),2);
+		pricingSettings.addCard(new Card("Card D"),1);
+		pricingSettings.addCard(new Card("Card E"),5);
+		
+		tableModel = new PricerTableModel(pricingSettings);
+	}
+	
+	public PricingSettings getPricingSettings(){
+		return pricingSettings;
+	}
+	
+	public PricerTableModel getTableModel(){
+		return tableModel;
+	}
+	
+	/**
+	 * Returns all possible card finders regardless whether they are selected for the search or not.
+	 */
+	public Collection<CardFinder> getCardFinders(){
+		return Collections.unmodifiableList(finders);
+	}
+	
 	
 	@Override
 	public void startedSearchingForCard(Card card, CardFinder finder) {
@@ -456,3 +497,4 @@ public class Controller implements SearchObserver {
 	}
 	
 }
+

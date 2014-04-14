@@ -47,23 +47,17 @@ public class MainView {
  	private static final int WIDTH = 850;
 
 	private JPanel tablePane;
-	private JPanel leftPane;
-
-	private CardsView view;
+	private CardGrid cardGrid;
+	private CardFindersPane findersPane;
+	
 	private JTextField addTextField;
 	private JSpinner addSpinner;
 	private JToolBar toolBar;
-	private SearchExecutor pricer;
-	private Map<JCheckBox,CardFinder> checkBoxes = new LinkedHashMap<JCheckBox,CardFinder>();
-	private boolean afterSearch;
-	private boolean pricingInProgress;
 	private final JFrame window;
 	private static final String TITLE = "Mtg Pricer";
 	private JDialog aboutDialog;
 	private Controller controller;
 	
-	
-	private static CardFinder[] allSearchers = CardFinderFactory.allCardFinders();
 	
 	public MainView(Controller controller){
 		window = new JFrame();
@@ -75,7 +69,11 @@ public class MainView {
 		setupGui();
 	}
 	
-
+	public void show(){
+		window.pack();
+		window.setVisible(true);
+	}
+	
 	/**
 	 * Shows modal 'About' dialog.
 	 */
@@ -84,6 +82,9 @@ public class MainView {
 			aboutDialog = new AboutDialog(window);
 		aboutDialog.setVisible(true);
     }
+	
+	
+	
 	
 	public void reportError(String text){
 		JOptionPane.showMessageDialog(window,
@@ -98,12 +99,17 @@ public class MainView {
 		
 		tablePane = new JPanel(new BorderLayout());
 		tablePane.setBorder(ETCHED_BORDER);
+		cardGrid = new CardGrid(controller.getTableModel());
+		tablePane.add(cardGrid);
 		
 		toolBar = createToolBar();
 		window.add(toolBar, BorderLayout.NORTH);
-		window.add(createCardFindersPane(), BorderLayout.WEST);
+		findersPane = new CardFindersPane();
+		window.add(findersPane, BorderLayout.WEST);
 		window.add(tablePane, BorderLayout.CENTER);
 		window.setJMenuBar(createMenuBar());
+		findersPane.setPreSearchOptions(controller.getCardFinders(), controller.getPricingSettings());
+		
 		
 	}
 	
@@ -166,44 +172,6 @@ public class MainView {
 		return tb;
 	}
 	
-	
-	
-	private JPanel createCardFindersPane(){
-		
-		int width = 210; 
-		
-		MigLayout ml = new MigLayout();
-		leftPane = new JPanel(ml);
-		JLabel lbl = new JLabel("Card pricing sources:");
-		lbl.setFont(lbl.getFont().deriveFont(Font.BOLD));
-		leftPane.add(lbl,"wrap");
-		checkBoxes.clear();
-		for (CardFinder s: allSearchers){
-			lbl = new JLabel(s.getName());
-			lbl.setToolTipText(s.getURL());
-			leftPane.add(lbl);
-			JCheckBox cb = new JCheckBox();
-			cb.setSelected(true);
-			leftPane.add(cb,"wrap");
-			//Add ti to map
-			checkBoxes.put(cb, s);
-		}
-		
-		leftPane.setPreferredSize(new Dimension(width, leftPane.getPreferredSize().height));
-		leftPane.setBorder(ETCHED_BORDER);
-		return leftPane;
-	}
-	
-	private void updateLeftPanel(final Collection<CardFinder> ss){
-		//Should run on  dispatch thread.
-		leftPane.removeAll();
-		for (CardFinder s: ss){
-			SearchThreadView sp = new SearchThreadView(pricer,s);
-			leftPane.add(sp,"wrap");
-		}
-		window.revalidate();
-		window.repaint();
-	}
 
 	private JMenuBar createMenuBar(){
 		JMenuBar  menuBar = new JMenuBar();
