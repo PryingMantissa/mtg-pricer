@@ -49,7 +49,6 @@ public class TheCellEditor extends AbstractCellEditor
 		String val = cell.getText();
 		originalValue = val;
 		
-		System.out.println("gettting editor " + cell);
 		
 		if (cell.getType() == Cell.Type.INTEGER){
 			spinner.setValue(Integer.parseInt(val));
@@ -77,8 +76,6 @@ public class TheCellEditor extends AbstractCellEditor
 
 	@Override
 	public boolean stopCellEditing() {
-		System.out.println("Stopping cell editing");
-		
 		if (getCellEditorValue().equals(originalValue))
 			cancelCellEditing();
 		

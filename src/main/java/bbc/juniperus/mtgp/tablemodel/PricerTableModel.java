@@ -165,14 +165,19 @@ public class PricerTableModel extends AbstractTableModel {
 	 */
 	@Override
 	public void setValueAt(Object value, int rowIndex, int columnIndex){
-		
-		//System.out.println("Setting value " + value);
+
 		
 		Card card = getCardAt(rowIndex);
 		
 		if (columnIndex == Column.NAME.ordinal()){
 			String str = (String) value;
 			Card newCard = new Card(str.trim());
+			
+			if (pricingSettings.getCards().contains(newCard)){
+				controller.displayErroMessage("The card witht he same name is already in the list");
+				return;
+			}
+			
 			pricingSettings.replaceCard(card, newCard);
 		}
 		else if (columnIndex == 1)

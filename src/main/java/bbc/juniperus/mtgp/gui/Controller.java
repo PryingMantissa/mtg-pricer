@@ -1,6 +1,9 @@
 package bbc.juniperus.mtgp.gui;
 
 import java.awt.event.ActionEvent;
+import java.io.File;
+import java.io.IOException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -11,11 +14,14 @@ import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import bbc.juniperus.mtgp.cardsearch.CardFinder;
 import bbc.juniperus.mtgp.cardsearch.CardFinderFactory;
+import bbc.juniperus.mtgp.cardsearch.CardParser;
 import bbc.juniperus.mtgp.cardsearch.SearchExecutor;
 import bbc.juniperus.mtgp.cardsearch.SearchObserver;
 import bbc.juniperus.mtgp.data.PricingSettings;
@@ -111,7 +117,9 @@ public class Controller implements SearchObserver, GridListener {
 		addCardSpinnerValue = newValue;
 	}
 	
-	
+	public void displayErroMessage(String txt){
+		mainView.reportError(txt);
+	}
 	
 	
 	@Override
@@ -336,34 +344,34 @@ public class Controller implements SearchObserver, GridListener {
 			
 			System.out.println("Importing cards");
 			
-			/*
-			final JFileChooser fc = new JFileChooser();
-			fc.showOpenDialog(window);
-			File f = fc.getSelectedFile();
+			JFileChooser fileChooser = new JFileChooser();
+			fileChooser.showOpenDialog(null);
+			File f = fileChooser.getSelectedFile();
 			
 			if (f == null)
 				return;
 			
-			Map<Card, Integer> m = null;
+			Map<Card, Integer> result = null;
 			try{ 
-				m = CardParser.parseFromFile(f);
+				result = CardParser.parseFromFile(f);
 			} catch (IOException e) {
-				reportError("An expception ocurred while "
+				mainView.reportError("An expception ocurred while "
 						+ "attempting to read from the file\n " + f.getAbsolutePath()
 						+ "\n\n"
 						+ e.getMessage());
 				e.printStackTrace();
 			} catch (ParseException e) {
-				reportError(e.getMessage());
+				mainView.reportError(e.getMessage());
 				e.printStackTrace();
 			}
 			
-			if (m == null)
+			if (result == null)
 				return;
 			
-			for (Card c : m.keySet()){
-				addCard(c, m.get(c));
-			}*/
+			for (Card c : result.keySet())
+				pricingSettings.addCard(c, result.get(c));
+			tableModel.fireTableStructureChanged();
+			
 		}	
 	}
 	
