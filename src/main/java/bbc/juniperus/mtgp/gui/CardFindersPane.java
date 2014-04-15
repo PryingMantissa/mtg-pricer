@@ -2,7 +2,6 @@ package bbc.juniperus.mtgp.gui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,31 +11,30 @@ import javax.swing.JPanel;
 
 import net.miginfocom.swing.MigLayout;
 import bbc.juniperus.mtgp.cardsearch.CardFinder;
-import bbc.juniperus.mtgp.data.PricingSettings;
 
 @SuppressWarnings("serial")
 public class CardFindersPane extends JPanel{
 	
 	private Map<JCheckBox, CardFinder> checkBoxMap = new HashMap<>();
+	private Controller controller;
 	
-	public CardFindersPane(){
+	public CardFindersPane(Controller controller){
 		setLayout(new MigLayout());
+		this.controller = controller;
 		//JLabel lbl = new JLabel(searcher.getName());
 		//add(lbl, BorderLayout.NORTH);
 		//add(new SearchThreadView(pricer,searcher), BorderLayout.CENTER);
 	}
 	
 	
-	public void setPreSearchOptions(Collection<CardFinder> finders, 
-			PricingSettings settings){
-		
+	public void showFinderSettings(){
 		removeAll();
-		add(new JLabel("<html><b>Card pricin sources:</b></html>"), "wrap");
+		add(new JLabel("<html><b>Card pricing sources:</b></html>"), "wrap");
 		
 		CheckBoxListener listener = new CheckBoxListener();
 		checkBoxMap.clear();
 		
-		for (CardFinder finder : finders){
+		for (CardFinder finder : controller.getCardFinders()){
 			JCheckBox checkBox = new JCheckBox(finder.getName());
 			checkBox.addActionListener(listener);
 			checkBoxMap.put(checkBox, finder);
@@ -50,7 +48,10 @@ public class CardFindersPane extends JPanel{
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			// TODO Auto-generated method stub
+			JCheckBox checkBox = (JCheckBox) e.getSource();
+			
+			System.out.println(checkBox.isSelected());
+			controller.setFinderEnabled(checkBoxMap.get(checkBox), checkBox.isSelected());
 		}
 		
 	}

@@ -27,6 +27,8 @@ import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.border.Border;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -74,6 +76,11 @@ public class MainView {
 		window.setVisible(true);
 	}
 	
+	
+	public void clearAddCardTextField(){
+		addTextField.setText("");
+	}
+	
 	/**
 	 * Shows modal 'About' dialog.
 	 */
@@ -100,15 +107,16 @@ public class MainView {
 		tablePane = new JPanel(new BorderLayout());
 		tablePane.setBorder(ETCHED_BORDER);
 		cardGrid = new CardGrid(controller.getTableModel());
+		cardGrid.addGridListener(controller);
 		tablePane.add(cardGrid);
 		
 		toolBar = createToolBar();
 		window.add(toolBar, BorderLayout.NORTH);
-		findersPane = new CardFindersPane();
+		findersPane = new CardFindersPane(controller);
 		window.add(findersPane, BorderLayout.WEST);
 		window.add(tablePane, BorderLayout.CENTER);
 		window.setJMenuBar(createMenuBar());
-		findersPane.setPreSearchOptions(controller.getCardFinders(), controller.getPricingSettings());
+		findersPane.showFinderSettings();
 		
 		
 	}
@@ -129,7 +137,7 @@ public class MainView {
 		addTextField.getDocument().addDocumentListener(new DocumentListener() {
 			
 			private void informController(){
-				controller.addCardTextFieldChanged(addTextField.getText().length());
+				controller.addCardTextFieldValueChanged(addTextField.getText());
 			}
 			
 			@Override
@@ -152,6 +160,14 @@ public class MainView {
 		tb.add(addTextField);
 		
 		addSpinner = new QuantitySpinner();
+		addSpinner.addChangeListener(new ChangeListener() {
+			
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				Integer value = (Integer) addSpinner.getValue();
+				controller.addCardSpinnerValueChanged(value);
+			}
+		});
 
 		tb.add(addSpinner);
 		tb.add(controller.getAction(UserAction.ADD_CARD));

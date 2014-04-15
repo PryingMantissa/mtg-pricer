@@ -34,15 +34,17 @@ public class PricerTableModel extends AbstractTableModel {
 	 * Constructs table model around {@link DataStorage}.
 	 * @param data central data storage.
 	 */
-	public PricerTableModel(PricingSettings pricingSettings){
+	public PricerTableModel(){
 		//data.addDataChangeListener(this);
 		//Default columns.
-		this.pricingSettings = pricingSettings;
 		phase = Phase.SETTING;
 		columns.add(new Column(Column.Type.NAME));
 		columns.add(new Column(Column.Type.QUANTITY));
 	}
 	
+	public void setPricingSettings(PricingSettings settings){
+		pricingSettings = settings;
+	}
 	
 	
 	//========== AbstractTableModel implementation ======================
@@ -53,6 +55,7 @@ public class PricerTableModel extends AbstractTableModel {
 	 */
 	@Override
 	public Object getValueAt(int row,int column){
+	//	System.out.println("Getting value at " + row + " " + column); 
 //		
 //		
 //		Card card = cards.get(row);
@@ -113,6 +116,9 @@ public class PricerTableModel extends AbstractTableModel {
 
 	@Override
 	public int getRowCount(){
+		
+	//	System.out.println("getting row count");
+		
 		return pricingSettings.getCards().size();
 	}
 	

@@ -10,9 +10,7 @@ public class Main {
 	public Main() {
 		setLookAndFeel();
 		Controller controller = new Controller();
-		controller.newPricing();
-		MainView view = new MainView(controller);
-		view.show();
+		//controller.newPricing();
 	}
 	
 	

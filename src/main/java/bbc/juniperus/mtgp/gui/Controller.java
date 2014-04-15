@@ -1,6 +1,7 @@
 package bbc.juniperus.mtgp.gui;
 
 import java.awt.event.ActionEvent;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -9,6 +10,8 @@ import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import bbc.juniperus.mtgp.cardsearch.CardFinder;
 import bbc.juniperus.mtgp.cardsearch.CardFinderFactory;
@@ -19,7 +22,7 @@ import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.domain.CardResult;
 import bbc.juniperus.mtgp.tablemodel.PricerTableModel;
 
-public class Controller implements SearchObserver {
+public class Controller implements SearchObserver, GridListener {
 	
 	public enum UserAction { NEW_SEARCH, ADD_CARD, REMOVE_CARD, 
 		IMPORT_CARDS, EXPORT_TO_CSV, EXPORT_TO_TXT, OPEN_IN_BROWSER, START_SEARCH, STOP_SEARCH}
@@ -29,20 +32,28 @@ public class Controller implements SearchObserver {
 	
 	private Map<UserAction,AbstractAction> actionMap = new HashMap<>();
 	private SearchExecutor searchExecutor;
-	private MainView main;
 	private PricingSettings pricingSettings;
 	private List<CardFinder> finders;
 	private PricerTableModel tableModel;
+	private Phase currentPhase;
+	private MainView mainView;
+	private String addCardFieldText;
+	private int addCardSpinnerValue = 1;
 	
 	
 	public Controller(){
 		createActions();
 		finders = CardFinderFactory.allCardFinders();
+		tableModel = new PricerTableModel();
+		newPricing();
+		mainView = new MainView(this); //TODO maybe we dont need it here
+		mainView.show();
 	}
 	
 	public void newPricing(){
+		currentPhase = Phase.SETTING;
 		pricingSettings = new PricingSettings();
-		
+		tableModel.setPricingSettings(pricingSettings);
 		//TODO testing code
 		pricingSettings.addCard(new Card("Card A"),3);
 		pricingSettings.addCard(new Card("Card B"),3);
@@ -50,7 +61,7 @@ public class Controller implements SearchObserver {
 		pricingSettings.addCard(new Card("Card D"),1);
 		pricingSettings.addCard(new Card("Card E"),5);
 		
-		tableModel = new PricerTableModel(pricingSettings);
+		
 	}
 	
 	public PricingSettings getPricingSettings(){
@@ -58,8 +69,27 @@ public class Controller implements SearchObserver {
 	}
 	
 	public PricerTableModel getTableModel(){
+		System.out.println("returnin Tm: " + tableModel);
 		return tableModel;
 	}
+	
+	/**
+	 * Enables/disable given {@link CardFinder} for pricing. Possible only during {@link Phase#SETTING} phase. 
+	 * @param finder the finder to be enabled/disabled
+	 * @param enabled <code>true</code> if 
+	 */
+	public void setFinderEnabled(CardFinder finder, boolean enabled){
+		if(currentPhase != Phase.SETTING)
+			throw new IllegalStateException("Changing pricing settings "
+					+ "is only possible during the " + Phase.SETTING + " phase.");
+		
+		if (enabled && !pricingSettings.getFinders().contains(finder))
+				pricingSettings.addFinder(finder);
+		
+		if (!enabled && pricingSettings.getFinders().contains(finder))
+			pricingSettings.removeFinder(finder);
+	}
+	
 	
 	/**
 	 * Returns all possible card finders regardless whether they are selected for the search or not.
@@ -67,6 +97,19 @@ public class Controller implements SearchObserver {
 	public Collection<CardFinder> getCardFinders(){
 		return Collections.unmodifiableList(finders);
 	}
+	
+	
+	public void addCardTextFieldValueChanged(String newText){
+		System.out.println("field val changed " + newText);
+		addCardFieldText = newText;
+	}
+	
+	public void addCardSpinnerValueChanged(int newValue){
+		System.out.println("spinner val changed" + newValue);
+		addCardSpinnerValue = newValue;
+	}
+	
+	
 	
 	
 	@Override
@@ -93,6 +136,8 @@ public class Controller implements SearchObserver {
 		
 	}
 	
+	
+
 	@Override
 	public void searchingFinished(boolean interrupted) {
 		System.out.println("Pricing ended");
@@ -115,43 +160,38 @@ public class Controller implements SearchObserver {
 		*/
 	}
 	
-	
-	public void addCardTextFieldChanged(int newSize){
-		
-	}
-	
-	
+
 	/**
 	 * Creates all actions.
 	 */
 	private void createActions(){
 		
 		AbstractAction action = new StartSearchAction();
-		action.setEnabled(false);
+		//action.setEnabled(false);
 		actionMap.put(UserAction.START_SEARCH, action);
 		
 		action = new StopSearchAction();
-		action.setEnabled(false);
+		//action.setEnabled(false);
 		actionMap.put(UserAction.STOP_SEARCH, action);
 		
 		action = new ImportCardsAction();
-		action.setEnabled(false);
+		//action.setEnabled(false);
 		actionMap.put(UserAction.IMPORT_CARDS, action);
 		
 		action = new AddCardAction();
-		action.setEnabled(false);
+		//action.setEnabled(false);
 		actionMap.put(UserAction.ADD_CARD, action);
 		
-		action = new RemoveAction();
-		action.setEnabled(false);
+		action = new RemoveCardAction();
+		//action.setEnabled(false);
 		actionMap.put(UserAction.REMOVE_CARD, action);
 		
 		action = new ExportTableCsvAction();
-		action.setEnabled(false);
+		//action.setEnabled(false);
 		actionMap.put(UserAction.EXPORT_TO_CSV, action);
 		
 		action = new ExportTableTxtAction();
-		action.setEnabled(false);
+		//action.setEnabled(false);
 		actionMap.put(UserAction.EXPORT_TO_TXT, action);
 		
 		/*
@@ -161,11 +201,11 @@ public class Controller implements SearchObserver {
 		*/
 		
 		action = new NewSearchAction();
-		action.setEnabled(false);
+		//action.setEnabled(false);
 		actionMap.put(UserAction.NEW_SEARCH, action);
 		
 		action = new SearchInBrowserAction();
-		action.setEnabled(false);
+		//action.setEnabled(false);
 		actionMap.put(UserAction.OPEN_IN_BROWSER, action);
 		
 	}
@@ -217,9 +257,8 @@ public class Controller implements SearchObserver {
 		
 	}
 	
+	@SuppressWarnings("serial")
 	private class AddCardAction extends AbstractAction{
-
-		private static final long serialVersionUID = 1L;
 
 		AddCardAction(){
 			super("Add",ResourceLoader.ICON_ADD);
@@ -228,33 +267,41 @@ public class Controller implements SearchObserver {
 		
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			System.out.println("adding card");
 			/*
-			String cardName =  addTextField.getText();
-			int quantity = (int) addSpinner.getValue();
-			addCard(new Card(cardName), quantity);
-			addTextField.setText("");
-			*/
+			if (addCardFieldText == null)
+				throw new AssertionError();*/
+			System.out.println("adding card " + addCardFieldText + " " + addCardSpinnerValue);
+			Card card = new Card(addCardFieldText);
+			pricingSettings.addCard(card, addCardSpinnerValue);
+			tableModel.fireTableDataChanged();
+			//tableModel.fireTableStructureChanged();
+			mainView.clearAddCardTextField();
+			addCardFieldText = null;
+			
+//			for (Card c : pricingSettings.getCards())
+//				System.out.println(c);
+			
 		}
 		
 	}
 	
-	private class RemoveAction extends AbstractAction{
+	private class RemoveCardAction extends AbstractAction{
 		
 		private static final long serialVersionUID = 1L;
 
-		RemoveAction(){
+		RemoveCardAction(){
 			super("Delete",ResourceLoader.ICON_REMOVE);
 			putValue(Action.SHORT_DESCRIPTION, "Remove selected card row(s)");
 		}
 		
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			
 //			System.out.println("Removing");
 //			pricer.removeCards(view.getSelectedCards());
 		}
 		
-		@Override
+		@Override //TODO remove
 		public boolean isEnabled(){
 			return true;
 //			boolean b = (super.isEnabled() && !pricingInProgress);
@@ -262,11 +309,9 @@ public class Controller implements SearchObserver {
 //			return b;
 		}
 		
-		@Override
+		@Override //TODO remove
 		public void setEnabled(boolean b){
-			System.out.println("setting enabled " + b);
-			StackTraceElement[] s = Thread.currentThread().getStackTrace();
-			System.out.println(s[2]);
+			
 			super.setEnabled(b);
 		}
 		
@@ -400,11 +445,6 @@ public class Controller implements SearchObserver {
 	
 	private class ExportCardListAction extends AbstractAction{
 		
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-
 		public ExportCardListAction() {
 			super("Export card list");
 		}
@@ -416,8 +456,8 @@ public class Controller implements SearchObserver {
 		
 	}
 	
+	@SuppressWarnings("serial")
 	private class StartSearchAction extends AbstractAction{
-		private static final long serialVersionUID = 1L;
 		
 		StartSearchAction(){
 			super("Start search",ResourceLoader.ICON_GO);
@@ -438,8 +478,8 @@ public class Controller implements SearchObserver {
 		}
 	}
 	
+	@SuppressWarnings("serial")
 	private class StopSearchAction extends AbstractAction{
-		private static final long serialVersionUID = 1L;
 		
 		StopSearchAction(){
 			super("Stop search",ResourceLoader.ICON_STOP);
@@ -495,6 +535,22 @@ public class Controller implements SearchObserver {
 				*/
 		}
 	}
-	
+
+	@Override
+	public void gridFocusLost() {
+		System.out.println("Grid focus lost");
+	}
+
+	@Override
+	public void gridFocusGained() {
+		System.out.println("Grid focus gained");
+	}
+
+	@Override
+	public void gridSelectionChanged(int[] selectedRows) {
+		System.out.println("Grid selection changed " + Arrays.toString(selectedRows));
+	}
+
+
 }
 

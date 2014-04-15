@@ -30,6 +30,18 @@ public class PricingSettings {
 		cardList.add(card);
 	}
 	
+	public void removeCard(Card card){
+		if (cardQuantityMap.get(card) == null)
+			throw new IllegalArgumentException("The card " + card + "is not in the collection");
+		if (card == null)
+			throw new NullPointerException();
+		
+		cardList.remove(card);
+		cardQuantityMap.remove(card);
+		
+	}
+	
+	
 	/**
 	 * Returns unmodifiable <code>List</code> with cards which are part of these settings.
 	 * @return <code>List</code> with set cards
@@ -55,6 +67,13 @@ public class PricingSettings {
 			throw new IllegalArgumentException("The finder has been already added");
 		finders.add(finder);
 	}
+	
+	public void removeFinder(CardFinder finder){
+		if (!finders.contains(finder))
+			throw new IllegalArgumentException("No such finder in the settings");
+		finders.remove(finder);
+	}
+	
 	
 	public Collection<CardFinder> getFinders(){
 		return Collections.unmodifiableCollection(finders);

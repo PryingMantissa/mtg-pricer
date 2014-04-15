@@ -4,10 +4,14 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -19,17 +23,12 @@ import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
-import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.event.TableColumnModelEvent;
-import javax.swing.event.TableColumnModelListener;
 import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
 
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.tablemodel.Cell;
@@ -48,13 +47,19 @@ public class CardGrid extends JPanel {
 	private Color selectColor = new Color(225,225,225);
 	private boolean isGridSelected;
 	private boolean isGridEmpty = true;
+	private Set<GridListener> listeners = new HashSet<>();
+	private InternalTableListener internalTableListener;
 	
 	public CardGrid(PricerTableModel tableModel){   
 		this.tableModel = tableModel;
+		internalTableListener = new InternalTableListener();
 		setUpTable();
 		setUpGui();
 	}
 	
+	public void addGridListener(GridListener listener){
+		listeners.add(listener);
+	}
 	
 	public Collection<Card> getSelectedCards(){
 		int[] rows= table.getSelectedRows();
@@ -111,9 +116,28 @@ public class CardGrid extends JPanel {
 		return width;
 	}
 	
+	
+	//Remove later
+	private class MyTable extends JTable{
+		
+		MyTable(TableModel model){
+			super(model);
+		}
+		
+		@Override
+		public void tableChanged(TableModelEvent e){
+			System.out.println("---------------------------    model changed");
+			super.tableChanged(e);
+		}
+	}
+	
+	
 	private void setUpTable(){
 		
 		table = new JTable(tableModel);
+		table.addFocusListener(internalTableListener);
+		table.getSelectionModel().addListSelectionListener(internalTableListener);
+		
 		table.setDefaultEditor(Object.class, new TheCellEditor());
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		table.getTableHeader().setReorderingAllowed(false);
@@ -316,23 +340,37 @@ public class CardGrid extends JPanel {
 		
 	}
 
+	private class InternalTableListener implements ListSelectionListener, FocusListener{
 
-	
-	
-	public PricerTableModel tableModel() {
-		return tableModel;
-	}
+		
+		@Override
+		public void valueChanged(ListSelectionEvent e) {
+			if (e.getSource() != table.getSelectionModel())
+				throw new AssertionError();
+			
+			if (e.getValueIsAdjusting())
+				return; //We are interested in finished selection.
+			
+			for (GridListener listener : listeners)
+				listener.gridSelectionChanged(table.getSelectedRows());
+		}
 
+		@Override
+		public void focusGained(FocusEvent e) {
+			if (e.getSource() != table)
+				throw new AssertionError();
+			for (GridListener listener : listeners)
+				listener.gridFocusGained();
+		}
 
-	public void cardsAdded() {
-		//Repainting table.
-		String  s= "Repainting table";
-		System.out.println(s);
-		table.repaint();
+		@Override
+		public void focusLost(FocusEvent e) {
+			if (e.getSource() != table)
+				throw new AssertionError();
+			for (GridListener listener : listeners)
+				listener.gridFocusLost();
+		}
 		
 	}
-	
-	
-	
 	
 }

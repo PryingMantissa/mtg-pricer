@@ -29,5 +29,8 @@ public class Card{
 		return c.name.equals(name);
 	}
 	
-	
+	@Override
+	public String toString(){
+		return getClass().getSimpleName() + "[ name: " + name +  "]";
+	}
 }
