@@ -3,16 +3,13 @@ package bbc.juniperus.mtgp.tablemodel;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.sound.sampled.UnsupportedAudioFileException;
-import javax.swing.JTable;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
-import javax.xml.transform.Source;
 
 import bbc.juniperus.mtgp.data.DataStorage;
 import bbc.juniperus.mtgp.data.PricingSettings;
 import bbc.juniperus.mtgp.domain.Card;
+import bbc.juniperus.mtgp.gui.Controller;
 import bbc.juniperus.mtgp.gui.Controller.Phase;
 
 /**
@@ -28,18 +25,19 @@ public class PricerTableModel extends AbstractTableModel {
 	private PricingSettings pricingSettings;
 	private Phase phase;
 	
+	private enum Column {NAME, QUANTITY}
+	private Controller controller;
 	
 	
 	/**
 	 * Constructs table model around {@link DataStorage}.
 	 * @param data central data storage.
 	 */
-	public PricerTableModel(){
+	public PricerTableModel(Controller controller){
 		//data.addDataChangeListener(this);
 		//Default columns.
+		this.controller = controller;
 		phase = Phase.SETTING;
-		columns.add(new Column(Column.Type.NAME));
-		columns.add(new Column(Column.Type.QUANTITY));
 	}
 	
 	public void setPricingSettings(PricingSettings settings){
@@ -102,23 +100,38 @@ public class PricerTableModel extends AbstractTableModel {
 		//return new Cell(result,col,Cell.Type.TEXT);
 		
 		
-		Card card  = pricingSettings.getCards().get(row);
+		Card card  = getCardAt(row);
 		
-		if (column == 0)
-			return card.getName(); 
-		else if (column == 1)
-			return pricingSettings.getQuantity(card);
+		if (column == Column.NAME.ordinal())
+			return new Cell(card.getName(), Cell.Type.STRING); 
+		else if (column == Column.QUANTITY.ordinal())
+			return new Cell(pricingSettings.getQuantity(card) + "", Cell.Type.INTEGER);
 		else
 			throw new AssertionError();
 
+	}
+
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Override
+	public Class getColumnClass(int index){
+		/*
+		if (index == Column.NAME.ordinal())
+			return String.class;
+		else if (index == Column.QUANTITY.ordinal())
+			return Integer.class;
+		else
+			throw new AssertionError();
+			*/
+		
+		return Cell.class;
+					
 	}
 	
 
 	@Override
 	public int getRowCount(){
-		
 	//	System.out.println("getting row count");
-		
 		return pricingSettings.getCards().size();
 	}
 	
@@ -153,25 +166,19 @@ public class PricerTableModel extends AbstractTableModel {
 	@Override
 	public void setValueAt(Object value, int rowIndex, int columnIndex){
 		
+		//System.out.println("Setting value " + value);
 		
-		System.out.println("Setting value");
+		Card card = getCardAt(rowIndex);
 		
-		/*
-		Card card = cards.get(rowIndex);
-		
-		if (columnIndex == 0){
-			Card newCard = new Card(value.toString());
-			int index = cards.indexOf(card);
-			cards.remove(card);
-			cards.add(index, newCard);
-			
-			data.replaceCard(card, newCard);
+		if (columnIndex == Column.NAME.ordinal()){
+			String str = (String) value;
+			Card newCard = new Card(str.trim());
+			pricingSettings.replaceCard(card, newCard);
 		}
 		else if (columnIndex == 1)
-			data.setCardQuantity(card, (int) value);
+			pricingSettings.setNewQuantity(card, (int) value);
 		else
-			throw new IllegalArgumentException("Cannot edit other column than 0 or 1");
-			*/
+			throw new AssertionError();
 	}
 
 	
@@ -269,7 +276,7 @@ public class PricerTableModel extends AbstractTableModel {
 	 * @return card 
 	 */
 	public Card getCardAt(int row){
-		return cards.get(row);
+		return pricingSettings.getCards().get(row);
 	}
 
 	/**
@@ -277,6 +284,8 @@ public class PricerTableModel extends AbstractTableModel {
 	 * This way the width of the column is automatically adjusted when
 	 * a cell with a wider test is inserted.
 	 */
+	
+	/*
 	private void findMaxColumnsWidth(){
 		
 		int i = 0;
@@ -293,5 +302,5 @@ public class PricerTableModel extends AbstractTableModel {
 		}
 		
 	}
-
+	*/
 }

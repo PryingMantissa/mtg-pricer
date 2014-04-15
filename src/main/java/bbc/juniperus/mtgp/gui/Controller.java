@@ -1,6 +1,7 @@
 package bbc.juniperus.mtgp.gui;
 
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -39,12 +40,13 @@ public class Controller implements SearchObserver, GridListener {
 	private MainView mainView;
 	private String addCardFieldText;
 	private int addCardSpinnerValue = 1;
+	private List<Card> selectedCards = new ArrayList<>();
 	
 	
 	public Controller(){
 		createActions();
 		finders = CardFinderFactory.allCardFinders();
-		tableModel = new PricerTableModel();
+		tableModel = new PricerTableModel(this);
 		newPricing();
 		mainView = new MainView(this); //TODO maybe we dont need it here
 		mainView.show();
@@ -296,9 +298,12 @@ public class Controller implements SearchObserver, GridListener {
 		
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			if (selectedCards.size() < 1)
+				throw new AssertionError();
+			for (Card card : selectedCards)
+				pricingSettings.removeCard(card);
 			
-//			System.out.println("Removing");
-//			pricer.removeCards(view.getSelectedCards());
+			tableModel.fireTableStructureChanged();
 		}
 		
 		@Override //TODO remove
@@ -538,17 +543,21 @@ public class Controller implements SearchObserver, GridListener {
 
 	@Override
 	public void gridFocusLost() {
-		System.out.println("Grid focus lost");
+		//System.out.println("Grid focus lost");
 	}
 
 	@Override
 	public void gridFocusGained() {
-		System.out.println("Grid focus gained");
+		//System.out.println("Grid focus gained");
 	}
 
 	@Override
 	public void gridSelectionChanged(int[] selectedRows) {
-		System.out.println("Grid selection changed " + Arrays.toString(selectedRows));
+		//System.out.println("Grid selection changed " + Arrays.toString(selectedRows));
+		selectedCards.clear();
+		for (int rowIndex : selectedRows)
+			selectedCards.add(tableModel.getCardAt(rowIndex));
+		
 	}
 
 

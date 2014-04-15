@@ -21,6 +21,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JViewport;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
@@ -29,6 +30,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.tablemodel.Cell;
@@ -137,23 +139,24 @@ public class CardGrid extends JPanel {
 		table = new JTable(tableModel);
 		table.addFocusListener(internalTableListener);
 		table.getSelectionModel().addListSelectionListener(internalTableListener);
-		
-		table.setDefaultEditor(Object.class, new TheCellEditor());
+		table.setDefaultEditor(Cell.class, new TheCellEditor());
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		table.getTableHeader().setReorderingAllowed(false);
 		
-		/*
 		TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>();
 		table.setRowSorter(sorter);
-		sorter.setModel((PricerTableModel) table.getModel());
+		sorter.setModel(tableModel);
 		sorter.setComparator(0,new CellComparator());
 		sorter.setComparator(1,new CellComparator());
 		
 		table.setDefaultRenderer(Object.class, new CellRenderer());
+		
+		
 		table.setShowHorizontalLines(false);
 		table.setShowVerticalLines(false);
 		//table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		
+		/*
 		table.getColumnModel().addColumnModelListener(new TableColumnModelListener() {
 			
 			@Override
@@ -248,10 +251,22 @@ public class CardGrid extends JPanel {
 		table.getActionMap().put(keyStroke.toString(),action);
 	}
 	
+	
+	
 	private class CellRenderer extends JLabel implements TableCellRenderer{
 
 		private static final long serialVersionUID = 1L;
 
+		
+		private int getAllignment(Cell.Type type){
+			if (type == Cell.Type.INTEGER
+					|| type == Cell.Type.PRICE)
+				return SwingConstants.RIGHT;
+			else
+				return SwingConstants.LEFT;
+		}
+		
+		
 		@Override
 		public Component getTableCellRendererComponent(JTable arg0,
 				Object val, boolean isSelected, boolean hasFocus, int row, int col) {
@@ -266,7 +281,8 @@ public class CardGrid extends JPanel {
 				lbl.setForeground(Color.red);
 			}
 			lbl.setText(text);
-			lbl.setHorizontalAlignment(cell.getColumnMeta().getAlignment());
+			
+			lbl.setHorizontalAlignment(getAllignment(cell.getType()));
 			Border brdThinEmpty = BorderFactory.createEmptyBorder(1, 1, 1, 1);
 			Border brdDefEmpty = BorderFactory.createEmptyBorder(2,2,2,2);
 			lbl.setBorder(brdDefEmpty);
@@ -321,7 +337,7 @@ public class CardGrid extends JPanel {
 			if (c1.getType() != c2.getType())
 				throw new IllegalArgumentException("Cells are not of the same type!");
 			
-			if (c1.getType() == Cell.Type.TEXT)
+			if (c1.getType() == Cell.Type.STRING)
 				return c1.getText().compareTo(c2.getText());
 			
 			if (c1.getType() == Cell.Type.PRICE){

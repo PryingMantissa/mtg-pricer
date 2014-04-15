@@ -1,7 +1,12 @@
 package bbc.juniperus.mtgp.gui;
 
 import java.awt.Component;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.MouseEvent;
+import java.util.EventObject;
 
+import javax.swing.AbstractCellEditor;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JSpinner;
 import javax.swing.JTable;
@@ -10,22 +15,24 @@ import javax.swing.table.TableCellEditor;
 
 import bbc.juniperus.mtgp.tablemodel.Cell;
 
-public class TheCellEditor extends DefaultCellEditor
+public class TheCellEditor extends AbstractCellEditor
 	implements TableCellEditor {
 	
 
 	private static final long serialVersionUID = 1L;
 	
-	JSpinner spinner = new QuantitySpinner();
-	Component editor;
+	private final JSpinner spinner = new QuantitySpinner();
+	private final JTextField textField = new JTextField();
+	private Component editor; 
+	private String originalValue;
 	
 	public TheCellEditor() {
-		super(new JTextField());
+	
 	}
 
 	//Implement the one CellEditor method that AbstractCellEditor doesn't.
 	public Object getCellEditorValue() {
-		
+		System.out.println("getting edti value");
 		if (editor instanceof JSpinner)
 			return ((JSpinner) editor).getValue();
 		
@@ -39,17 +46,46 @@ public class TheCellEditor extends DefaultCellEditor
 	public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected,
 	                        int row, int column) {
 		Cell cell = (Cell) value;
-		String val = cell.toString();
-
+		String val = cell.getText();
+		originalValue = val;
 		
-		if (cell.getType() != Cell.Type.INTEGER){
-			editor = super.getTableCellEditorComponent(table, value, isSelected, row, column);
-			return editor;
+		System.out.println("gettting editor " + cell);
+		
+		if (cell.getType() == Cell.Type.INTEGER){
+			spinner.setValue(Integer.parseInt(val));
+			editor = spinner;
+		}else{
+			textField.setText(val);
+			editor = textField;
 		}
 		
-		spinner.setValue(Integer.parseInt(val));
-			
-		editor = spinner;
-		return spinner;
+		
+		return editor;
 	}
+	
+	
+	
+	
+	@Override
+	public boolean isCellEditable(EventObject e) {
+	    if (e instanceof MouseEvent) {
+            return ((MouseEvent)e).getClickCount() >= 2;
+        }
+		return true;
+	}
+
+
+	@Override
+	public boolean stopCellEditing() {
+		System.out.println("Stopping cell editing");
+		
+		if (getCellEditorValue().equals(originalValue))
+			cancelCellEditing();
+		
+		
+		return super.stopCellEditing();
+	}
+	
+	
+	
 }

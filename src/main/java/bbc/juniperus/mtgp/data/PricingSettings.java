@@ -19,10 +19,7 @@ public class PricingSettings {
 	
 	
 	public void addCard(Card card, int quantity){
-		if (cardQuantityMap.get(card) != null)
-			throw new IllegalArgumentException("The card " + card + "is already in the collection");
-		if (card == null)
-			throw new NullPointerException();
+		checkIfCardIsInCollection(card, false);
 		if (quantity < 1)
 			throw new IllegalArgumentException("The quantity needs to be at least 1");
 			
@@ -31,13 +28,21 @@ public class PricingSettings {
 	}
 	
 	public void removeCard(Card card){
-		if (cardQuantityMap.get(card) == null)
-			throw new IllegalArgumentException("The card " + card + "is not in the collection");
-		if (card == null)
-			throw new NullPointerException();
+		checkIfCardIsInCollection(card, true);
 		
 		cardList.remove(card);
 		cardQuantityMap.remove(card);
+	}
+	
+	public void replaceCard(Card oldCard, Card newCard){
+		checkIfCardIsInCollection(oldCard, true);
+		checkIfCardIsInCollection(newCard, false);
+		int index = cardList.indexOf(oldCard);
+		int quantity = cardQuantityMap.get(oldCard);
+		
+		removeCard(oldCard);
+		cardQuantityMap.put(newCard, quantity);
+		cardList.add(index, newCard);
 		
 	}
 	
@@ -55,8 +60,7 @@ public class PricingSettings {
 	}
 	
 	public void setNewQuantity(Card card, int newQuantity){
-		if (!cardQuantityMap.keySet().contains(card))
-			throw new IllegalArgumentException("No such card in collection");
+		checkIfCardIsInCollection(card, true);
 		if (newQuantity < 1)
 			throw new IllegalArgumentException("The quantity needs to be at least 1");
 		cardQuantityMap.put(card, newQuantity);
@@ -78,4 +82,17 @@ public class PricingSettings {
 	public Collection<CardFinder> getFinders(){
 		return Collections.unmodifiableCollection(finders);
 	}
+	
+	private void checkIfCardIsInCollection(Card card, boolean shouldBePresent){
+		if (card == null)
+			throw new NullPointerException();
+		
+		boolean isPresent = cardQuantityMap.get(card) != null;
+		
+		if (shouldBePresent && !isPresent)
+			throw new IllegalArgumentException("No such card ( " + card + ") in collection");
+		else if (!shouldBePresent && isPresent)
+			throw new IllegalArgumentException("The card " + card + ") is already in collection");
+	}
+	
 }
