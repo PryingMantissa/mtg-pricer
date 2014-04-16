@@ -297,7 +297,7 @@ public class CardGrid extends JPanel {
 				color = selectColor;
 			else
 				color = Color.WHITE;
-			*/
+			
 			/*
 			if (hasFocus)
 				lbl.setBorder(focusBoder);

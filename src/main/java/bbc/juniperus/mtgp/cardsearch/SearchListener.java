@@ -1,6 +1,5 @@
 package bbc.juniperus.mtgp.cardsearch;
 
-import bbc.juniperus.mtgp.cardsearch.finder.CardFinder;
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.domain.CardResult;
 

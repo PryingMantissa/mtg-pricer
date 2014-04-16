@@ -24,7 +24,7 @@ public class Main {
 			String lookAndFeel= javax.swing.UIManager.getSystemLookAndFeelClassName(); 
 			
 			System.out.println(lookAndFeel);
-			if (lookAndFeel.endsWith("MetalLookAndFeel")); //This might be Linux so let's try GTK look and feel.
+			if (lookAndFeel.endsWith("MetalLookAndFeel")) //This might be Linux so let's try GTK look and feel.
 				lookAndFeel = "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
 			
 			javax.swing.UIManager.setLookAndFeel(lookAndFeel); 
