@@ -98,6 +98,11 @@ public class MainView {
 				text ,"Sorry...",JOptionPane.ERROR_MESSAGE);
 	}
 	
+	public boolean askForConfirmation(String title, String text){
+		int response = JOptionPane.showConfirmDialog(window, text, title, JOptionPane.YES_NO_OPTION);
+		return (response == JOptionPane.YES_OPTION);
+	}
+	
 
 	/**
 	 * Setups all GUI elements.
@@ -137,7 +142,7 @@ public class MainView {
 		addTextField.getDocument().addDocumentListener(new DocumentListener() {
 			
 			private void informController(){
-				controller.addCardTextFieldValueChanged(addTextField.getText());
+				controller.cardTextFieldValueChanged(addTextField.getText());
 			}
 			
 			@Override
@@ -165,7 +170,7 @@ public class MainView {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				Integer value = (Integer) addSpinner.getValue();
-				controller.addCardSpinnerValueChanged(value);
+				controller.quantitySpinnerValueChanged(value);
 			}
 		});
 

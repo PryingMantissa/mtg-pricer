@@ -1,11 +1,13 @@
 package bbc.juniperus.mtgp.gui;
 
+import java.awt.Desktop;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -15,9 +17,6 @@ import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 
 import bbc.juniperus.mtgp.cardsearch.CardFinder;
 import bbc.juniperus.mtgp.cardsearch.CardFinderFactory;
@@ -44,8 +43,8 @@ public class Controller implements SearchObserver, GridListener {
 	private PricerTableModel tableModel;
 	private Phase currentPhase;
 	private MainView mainView;
-	private String addCardFieldText;
-	private int addCardSpinnerValue = 1;
+	private String cardNameTextFieldValue;
+	private int quantitySpinnerValue = 1;
 	private List<Card> selectedCards = new ArrayList<>();
 	
 	
@@ -94,6 +93,10 @@ public class Controller implements SearchObserver, GridListener {
 		if (enabled && !pricingSettings.getFinders().contains(finder))
 				pricingSettings.addFinder(finder);
 		
+		System.out.println(finder + " " + enabled);
+		Collection<CardFinder> finders = pricingSettings.getFinders();
+		System.out.println(pricingSettings.getFinders().contains(finder));
+		
 		if (!enabled && pricingSettings.getFinders().contains(finder))
 			pricingSettings.removeFinder(finder);
 	}
@@ -107,14 +110,19 @@ public class Controller implements SearchObserver, GridListener {
 	}
 	
 	
-	public void addCardTextFieldValueChanged(String newText){
-		System.out.println("field val changed " + newText);
-		addCardFieldText = newText;
+	public void cardTextFieldValueChanged(String newText){
+		if (newText.isEmpty()){
+			cardNameTextFieldValue = null;
+			disableAction(UserAction.ADD_CARD);
+		}else{
+			cardNameTextFieldValue = newText;
+			enableAction(UserAction.ADD_CARD);
+		}
 	}
 	
-	public void addCardSpinnerValueChanged(int newValue){
+	public void quantitySpinnerValueChanged(int newValue){
 		System.out.println("spinner val changed" + newValue);
-		addCardSpinnerValue = newValue;
+		quantitySpinnerValue = newValue;
 	}
 	
 	public void displayErroMessage(String txt){
@@ -171,6 +179,52 @@ public class Controller implements SearchObserver, GridListener {
 	}
 	
 
+	private void addCardTolerateDuplicate(Card card, int quantity){
+		
+		if (pricingSettings.getCards().contains(card)){
+			int oldQ = pricingSettings.getQuantity(card);
+			String msg = "<html>Card <b><i> " + card.getName() + "</i></b> is already" + 
+					" present in the deck (quantity: " +  oldQ  + ")."
+							+ " Do you really want to add " + quantity  + " pieces of this card to the deck?";
+			
+			String title = "Duplicate detected";
+			if (mainView.askForConfirmation(title, msg)){
+				pricingSettings.setNewQuantity(card, oldQ + quantity);
+			}
+				
+		}else
+			pricingSettings.addCard(card, quantity);
+	}
+	
+	@Override
+	public void gridFocusLost() {
+		//System.out.println("losing focus");
+		//actionMap.get(UserAction.REMOVE_CARD).setEnabled(false);
+		//System.out.println(actionMap.get(UserAction.REMOVE_CARD).isEnabled());
+	}
+
+	@Override
+	public void gridFocusGained() {
+		//System.out.println("Grid focus gained");
+	}
+
+	@Override
+	public void gridSelectionChanged(int[] selectedRows) {
+		
+		selectedCards.clear();
+		for (int rowIndex : selectedRows)
+			selectedCards.add(tableModel.getCardAt(rowIndex));
+		
+		if (selectedRows.length == 0){
+			disableAction(UserAction.REMOVE_CARD);
+			disableAction(UserAction.OPEN_IN_BROWSER);
+		}else{
+			enableAction(UserAction.REMOVE_CARD);
+			enableAction(UserAction.OPEN_IN_BROWSER);
+		}
+	}
+
+	
 	/**
 	 * Creates all actions.
 	 */
@@ -218,11 +272,35 @@ public class Controller implements SearchObserver, GridListener {
 		//action.setEnabled(false);
 		actionMap.put(UserAction.OPEN_IN_BROWSER, action);
 		
+		setDefaultActionAvailability();
 	}
+	
+	
+	/**
+	 * Primitive implementation. For better code readability & maybe debugging. 
+	 */
+	private void enableAction(UserAction action){
+		actionMap.get(action).setEnabled(true);
+	}
+	
+	/**
+	 * Primitive implementation. For better code readability & maybe debugging. 
+	 */
+	private  void disableAction(UserAction action){
+		actionMap.get(action).setEnabled(false);
+	}
+	
+	private void setDefaultActionAvailability(){
+		actionMap.get(UserAction.REMOVE_CARD).setEnabled(false);
+		actionMap.get(UserAction.ADD_CARD).setEnabled(false);
+		actionMap.get(UserAction.OPEN_IN_BROWSER).setEnabled(false);
+	}
+	
 	
 	public Action getAction(UserAction action){
 		return actionMap.get(action);
 	}
+	
 	
 	
 	@SuppressWarnings("serial")
@@ -277,19 +355,13 @@ public class Controller implements SearchObserver, GridListener {
 		
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			/*
-			if (addCardFieldText == null)
-				throw new AssertionError();*/
-			System.out.println("adding card " + addCardFieldText + " " + addCardSpinnerValue);
-			Card card = new Card(addCardFieldText);
-			pricingSettings.addCard(card, addCardSpinnerValue);
+			if (cardNameTextFieldValue == null)
+				throw new AssertionError();
+			Card card = new Card(cardNameTextFieldValue);
+			addCardTolerateDuplicate(card, quantitySpinnerValue);
 			tableModel.fireTableDataChanged();
-			//tableModel.fireTableStructureChanged();
 			mainView.clearAddCardTextField();
-			addCardFieldText = null;
-			
-//			for (Card c : pricingSettings.getCards())
-//				System.out.println(c);
+			cardNameTextFieldValue = null;
 			
 		}
 		
@@ -312,20 +384,6 @@ public class Controller implements SearchObserver, GridListener {
 				pricingSettings.removeCard(card);
 			
 			tableModel.fireTableStructureChanged();
-		}
-		
-		@Override //TODO remove
-		public boolean isEnabled(){
-			return true;
-//			boolean b = (super.isEnabled() && !pricingInProgress);
-//			System.out.println("is remove enabled? " + b);
-//			return b;
-		}
-		
-		@Override //TODO remove
-		public void setEnabled(boolean b){
-			
-			super.setEnabled(b);
 		}
 		
 	}
@@ -369,7 +427,7 @@ public class Controller implements SearchObserver, GridListener {
 				return;
 			
 			for (Card c : result.keySet())
-				pricingSettings.addCard(c, result.get(c));
+				addCardTolerateDuplicate(c, result.get(c));
 			tableModel.fireTableStructureChanged();
 			
 		}	
@@ -510,34 +568,30 @@ public class Controller implements SearchObserver, GridListener {
 		}
 	}
 	
-	private class SearchInBrowserAction extends AbstractAction{
-		
-		private static final long serialVersionUID = 1L;
-		
-		SearchInBrowserAction(){
-			super("Find via browser",ResourceLoader.ICON_BROWSER);
-			putValue(Action.SHORT_DESCRIPTION, "Open web pages with search result");
+	@SuppressWarnings("serial")
+	private class SearchInBrowserAction extends AbstractAction {
+
+		SearchInBrowserAction() {
+			super("Find via browser", ResourceLoader.ICON_BROWSER);
+			putValue(Action.SHORT_DESCRIPTION,
+					"Open web pages with search result");
 		}
 
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
 			System.out.println("Searching in browser");
+
+			// TODO handle this somewhere. Do not enable the action.
+			// assert Desktop.isDesktopSupported();
+
+			Collection<CardFinder> finders = pricingSettings.getFinders();
 			
-			/*
-			//TODO handle this somewhere. Do not enable the action.
-			assert Desktop.isDesktopSupported();
+			System.out.println(finders);
 			
-			Collection<Card> cards = view.getSelectedCards();
-			Collection<CardFinder> searchers = null;
-			
-			if (afterSearch)
-				pricer.getCardFinders();
-			else
-				searchers = getSelectedSearchers();
-			
-			for (Card c : cards)
-				for (CardFinder s : searchers){
-					URL url = s.getURLForCard(c.getName());
+
+			for (Card c : selectedCards)
+				for (CardFinder f : finders) {
+					URL url = f.getURLForCard(c.getName());
 					try {
 						Desktop.getDesktop().browse(url.toURI());
 					} catch (IOException | URISyntaxException e) {
@@ -545,28 +599,11 @@ public class Controller implements SearchObserver, GridListener {
 						e.printStackTrace();
 					}
 				}
-				*/
+
 		}
 	}
 
-	@Override
-	public void gridFocusLost() {
-		//System.out.println("Grid focus lost");
-	}
-
-	@Override
-	public void gridFocusGained() {
-		//System.out.println("Grid focus gained");
-	}
-
-	@Override
-	public void gridSelectionChanged(int[] selectedRows) {
-		//System.out.println("Grid selection changed " + Arrays.toString(selectedRows));
-		selectedCards.clear();
-		for (int rowIndex : selectedRows)
-			selectedCards.add(tableModel.getCardAt(rowIndex));
-		
-	}
+	
 
 
 }

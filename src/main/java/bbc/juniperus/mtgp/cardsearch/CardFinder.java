@@ -83,12 +83,12 @@ public abstract class CardFinder {
 	@Override
 	public boolean equals(Object o){
 		if (o == this)
-			return false;
-		if (o instanceof CardFinder == false)
+			return true;
+		if (o.getClass() != getClass()) 
 			return false;
 		CardFinder cf = (CardFinder) o;
 		
-		return getURL().equals(cf.getName()) && 
+		return getURL().equals(cf.getURL()) && 
 				getName().equals(cf.getName());
 	}
 	

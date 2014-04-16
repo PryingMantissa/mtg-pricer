@@ -23,10 +23,12 @@ import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
@@ -253,10 +255,12 @@ public class CardGrid extends JPanel {
 	
 	
 	
-	private class CellRenderer extends JLabel implements TableCellRenderer{
+	@SuppressWarnings("serial")
+	private class CellRenderer extends DefaultTableCellRenderer{
 
-		private static final long serialVersionUID = 1L;
-
+		Border brdThinEmpty = BorderFactory.createEmptyBorder(1, 1, 1, 1);
+		Border brdDefEmpty = BorderFactory.createEmptyBorder(2,2,2,2);
+//		Border focusBoder = UIManager.getDefaults().getBorder("Table.focusCellHighlightBorder");
 		
 		private int getAllignment(Cell.Type type){
 			if (type == Cell.Type.INTEGER
@@ -271,34 +275,35 @@ public class CardGrid extends JPanel {
 		public Component getTableCellRendererComponent(JTable arg0,
 				Object val, boolean isSelected, boolean hasFocus, int row, int col) {
 			
+			
 			Cell cell = (Cell) val;
 			String text = cell.getText();
-			JPanel panel = new JPanel(new BorderLayout());
-			JLabel lbl = new JLabel();
+			JLabel lbl = (JLabel) super.getTableCellRendererComponent(arg0, val, isSelected, hasFocus, row, col);
+			
 			
 			if (cell.getType() == Cell.Type.NA){
 				text = "not found";
 				lbl.setForeground(Color.red);
 			}
+			
 			lbl.setText(text);
-			
 			lbl.setHorizontalAlignment(getAllignment(cell.getType()));
-			Border brdThinEmpty = BorderFactory.createEmptyBorder(1, 1, 1, 1);
-			Border brdDefEmpty = BorderFactory.createEmptyBorder(2,2,2,2);
-			lbl.setBorder(brdDefEmpty);
+			//lbl.setBorder(brdDefEmpty);
+			/*
 			Color color;
-			
 			Border brd = brdThinEmpty;
 
 			if (isSelected)
 				color = selectColor;
 			else
 				color = Color.WHITE;
+			*/
+			/*
+			if (hasFocus)
+				lbl.setBorder(focusBoder);
 			
-			panel.add(lbl);
-			panel.setBackground(color);
-			panel.setBorder(brd);
-			return panel;
+*/
+			return lbl;
 		}
 		
 	}

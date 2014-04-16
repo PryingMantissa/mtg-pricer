@@ -174,7 +174,8 @@ public class PricerTableModel extends AbstractTableModel {
 			Card newCard = new Card(str.trim());
 			
 			if (pricingSettings.getCards().contains(newCard)){
-				controller.displayErroMessage("The card witht he same name is already in the list");
+				controller.displayErroMessage("<html>The name could not be changed."
+						+ " Card <b><i>"  +  newCard.getName()  + "</i></b> is already in the deck </html>");
 				return;
 			}
 			
