@@ -2,21 +2,16 @@ package bbc.juniperus.mtgp.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
-import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -32,9 +27,6 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import net.miginfocom.swing.MigLayout;
-import bbc.juniperus.mtgp.cardsearch.CardFinder;
-import bbc.juniperus.mtgp.cardsearch.CardFinderFactory;
 import bbc.juniperus.mtgp.cardsearch.SearchExecutor;
 import bbc.juniperus.mtgp.gui.Controller.UserAction;
 
@@ -76,22 +68,31 @@ public class MainView {
 		window.setVisible(true);
 	}
 	
+	public void showSearchProgress(SearchExecutor executor){
+		findersPane.showSearchProgress(executor);
+	}
 	
 	public void clearAddCardTextField(){
 		addTextField.setText("");
 	}
+	public void setBusyState(){
+		window.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));	
+	}
+	
+	public void setActiveState(){
+		window.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+	}
+	
+	
 	
 	/**
 	 * Shows modal 'About' dialog.
 	 */
-	void showAbout() {
+	public void showAbout() {
 		if (aboutDialog == null)
 			aboutDialog = new AboutDialog(window);
 		aboutDialog.setVisible(true);
     }
-	
-	
-	
 	
 	public void reportError(String text){
 		JOptionPane.showMessageDialog(window,
@@ -103,7 +104,6 @@ public class MainView {
 		return (response == JOptionPane.YES_OPTION);
 	}
 	
-
 	/**
 	 * Setups all GUI elements.
 	 */

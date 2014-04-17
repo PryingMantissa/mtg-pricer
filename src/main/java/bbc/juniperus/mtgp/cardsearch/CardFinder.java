@@ -178,6 +178,11 @@ public abstract class CardFinder {
 		
 		return newCardName;
 	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + " [name: " + getName() + "]";
+	}
 	
 	
 	

@@ -3,6 +3,7 @@ package bbc.juniperus.mtgp.cardsearch;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -46,13 +47,14 @@ public class SearchExecutor{
 	 * @throws IllegalStateException if the current phase is not {@link Phase#SETTING}
 	 */
 	public void startSearch(){
-		if (currentPhase == Phase.SETTING)
+		if (currentPhase != Phase.SETTING)
 			throw new IllegalStateException("The search cannot be started"
 					+ " because the current phase is not " + Phase.SETTING);
 
 		results = new HashMap<>();
 		currentPhase = Phase.SEARCHING;
 		findersLeft = finders.size();
+		fireSearchStarted(cards.size());
 		for (CardFinder f : finders){
 			results.put(f, new SearchResults(f));
 			new Thread(new SearchRunnable(f)).start();
@@ -65,6 +67,8 @@ public class SearchExecutor{
 	 * web servers need to return before the search as a whole is stopped.
 	 */
 	public void stopSearch(){
+		if (currentPhase != Phase.SEARCHING)
+			throw new IllegalStateException("The current phase is not " + Phase.SEARCHING);
 		interruped = true;
 	}
 	
@@ -74,6 +78,14 @@ public class SearchExecutor{
 	 */
 	public Phase getCurrentPhase(){
 		return currentPhase;
+	}
+	
+	/**
+	 * Returns a collection of card finders assigned to this search executor.
+	 * @return assigned card finders  
+	 */
+	public Collection<CardFinder> getCardFinders(){
+		return Collections.unmodifiableCollection(finders);
 	}
 	
 	/**
@@ -111,20 +123,20 @@ public class SearchExecutor{
 	 * @throws IOException
 	 */
 	private void startSearching(CardFinder finder) throws IOException {
-		
 		long timeStart = System.currentTimeMillis();
 		SearchResults theResults = this.results.get(finder);
 		
 		for (Card card : cards){
-			
 			//Test if stopped.
 			if (interruped){
+				System.out.println("interrupted " + finder);
 				fireSearchThreadFinished(finder); //Finishing just this finder's worker thread.
 				
 				//If this is the last running thread consider the search to be finished.
-				if (--findersLeft < 1){
+				if (--findersLeft < 1){ //TODO put in one method with the other part
 					assert currentPhase == Phase.SEARCHING;
 					currentPhase = Phase.PRICING_FINISHED;
+					System.out.println("interrupted " + finder);
 					fireSearchFinished(true);
 				}
 				return;
@@ -153,69 +165,59 @@ public class SearchExecutor{
 		}
 	}
 
-	//================ Listeners related methods ========================
 	/**
-	 * Registers {@link SearchObserver} to receive the notifications from the ongoing search.
-	 * For each {@link CardFinder} the notifying is executed on <b> separate worker thread which is not event dispatch thread.</b>
-	 * @param observer observer object
+	 *	Listener methods 
+	 *================================================================================ 
+	 */
+	
+	/**
+	 * Registers an observer to receive the notifications from the ongoing search. <p>
+	 * For each card finder, the observer's methods (with the exception of {@link SearchObserver#searchStarted(int)})
+	 * are invoked on a  separate worker thread <b>which is not the event dispatch thread.</b> 
+	 * @param observer the observer object
+	 * @see {@link CardFinder}
 	 */
 	public void addSearchObserver(SearchObserver observer){
 		boolean isNew = observers.add(observer);
 		assert isNew;
 	}
 	
-	/**
-	 * See {@link SearchObserver#startedSearchingForCard(Card, CardFinder)}
-	 * @param card the card for which the searching has begun
-	 * @param finder the involved finder
-	 */
+
+	private void fireSearchStarted(int numberOfCards){
+		for (SearchObserver o : observers)
+			o.searchStarted(numberOfCards);
+	}
+	
+
 	private void fireCardSearchStarted(Card card, CardFinder finder){
 		for (SearchObserver o : observers)
 			o.startedSearchingForCard(card, finder);
-	
 	}
 	
-	/**
-	 * See {@link SearchObserver#finishedSearchingFor(CardResult, CardFinder)}
-	 * @param result the result from the finished searching for the card
-	 * @param finder the finder which was involved
-	 */
 	private void fireCardSearchEnded(Card card, CardResult result, CardFinder finder){
 		for (SearchObserver o : observers)
 			o.finishedSearchingForCard(card, result, finder);
 	}
 	
-	/**
-	 * Informs all {@link SearchObserver} that the search with a given card finder
-	 * has successfully ended.
-	 * @param finder finder involved
-	 * @param data data related to the search
-	 */
+
 	private void fireSearchThreadFinished(CardFinder finder){
 		for (SearchObserver o : observers)
-				o.searchingFinished(finder);
+				o.searchThreadFinished(finder);
 	}
-	
-	/**
-	 * Informs all registered {@link SearchObserver}s that the search with a given card finder
-	 *  has encountered an (IO) error and ended. Is invoked on AWT dispatch thread.
-	 * @param listener finder involved
-	 * @param t cause
-	 */
+
 	private void fireSearchThreadFailed(CardFinder finder, Throwable t){
 		for (SearchObserver o : observers)
-				o.searchingFailed(finder, t);
+				o.searchThreadFailed(finder, t);
 	}
 	
-	/**
-	 * Notifies all {@link SearchObserver} that the pricing processes has completely ended 
-	 * (no ongoing search) for any finder. 
-	 * @param interrupted <code>true</code> if it was interrupted by the user
-	 */
 	private void fireSearchFinished(boolean interrupted){
 		for (SearchObserver o : observers)
 				o.searchingFinished(interrupted);
 	}
+	
+	/**
+	 *================================================================================ 
+	 */
 	
 	
 	/**

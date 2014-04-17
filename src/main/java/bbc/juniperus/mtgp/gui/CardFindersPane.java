@@ -11,6 +11,7 @@ import javax.swing.JPanel;
 
 import net.miginfocom.swing.MigLayout;
 import bbc.juniperus.mtgp.cardsearch.CardFinder;
+import bbc.juniperus.mtgp.cardsearch.SearchExecutor;
 
 @SuppressWarnings("serial")
 public class CardFindersPane extends JPanel{
@@ -41,6 +42,19 @@ public class CardFindersPane extends JPanel{
 			add(checkBox, "wrap");
 		}
 		
+	}
+	
+	public void showSearchProgress(SearchExecutor searchExecutor){
+		removeAll();
+		repaint();
+		add(new JLabel("<html><b>Search progress:</b></html>"), "wrap");
+		
+		for (CardFinder finder : searchExecutor.getCardFinders()){
+			ThreadSearchProgressView view = new ThreadSearchProgressView(finder);
+			searchExecutor.addSearchObserver(view);
+			add(view, "wrap");
+		}
+		revalidate();
 	}
 	
 	

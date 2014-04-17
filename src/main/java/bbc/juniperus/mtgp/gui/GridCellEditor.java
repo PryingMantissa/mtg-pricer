@@ -1,13 +1,10 @@
 package bbc.juniperus.mtgp.gui;
 
 import java.awt.Component;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.util.EventObject;
 
 import javax.swing.AbstractCellEditor;
-import javax.swing.DefaultCellEditor;
 import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -15,11 +12,8 @@ import javax.swing.table.TableCellEditor;
 
 import bbc.juniperus.mtgp.tablemodel.Cell;
 
-public class GridCellEditor extends AbstractCellEditor
-	implements TableCellEditor {
-	
-
-	private static final long serialVersionUID = 1L;
+@SuppressWarnings("serial")
+public class GridCellEditor extends AbstractCellEditor implements TableCellEditor{
 	
 	private final JSpinner spinner = new QuantitySpinner();
 	private final JTextField textField = new JTextField();

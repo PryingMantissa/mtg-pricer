@@ -3,44 +3,54 @@ package bbc.juniperus.mtgp.cardsearch;
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.domain.CardResult;
 
-
 /**
- *	Listener for events related to card search.
+ * An observer for events related to card search. <p>
+ * 
+ * <b>NOTE:</b> If used with {@link SearchExecutor}, the methods are <b>WILL NOT</b> invoked on the event dispatch thread!.
+ *
+ *@see {@link SearchExecutor}
+ *@see {@link CardFinder}
  */
 public interface SearchObserver {
 	
+	
 	/**
-	 * Informs that the the search with a given card infder  currently started trying to find the result for a given card 
-	 * @param card the card for which the finder has started currently searching
-	 * @param finder card finder involved
+	 * Invoked when the search has started. 
+	 * @param numberOfCards number of cards in the search
+	 */
+	void searchStarted(int numberOfCards);
+	
+	/**
+	 * Invoked when the card finder thread started searching for a card.
+	 * @param card the card for which the finder has started searching
+	 * @param finder the card finder involved
 	 */
 	void startedSearchingForCard(Card card, CardFinder finder);
 	
 	/**
-	 * Informs that the the search for a card has finished and is about to start searching for another one
-	 * (if it was not the final card).
-	 * @param result result from the given card search
+	 * Invoked when card finder thread has finished searched for a card.
+	 * @param card car for which the finder finished searching
+	 * @param result result of the card search
 	 * @param finder card finder involved
 	 */
 	void finishedSearchingForCard(Card card, CardResult result, CardFinder finder);
 	
 	/**
-	 * Informs that the search has successfully ended.
+	 * Invoked when a card finder search thread successfully ended.
 	 * @param finder card finder involved
-	 * @param data search related data
 	 */
-	void searchingFinished(CardFinder finder);
+	void searchThreadFinished(CardFinder finder);
 	
 	/**
-	 * Informs that the search encountered an error and has been forced to stop.
+	 * Invoked when a card finder search thread encountered an error and has been forced to stop.
 	 * @param finder card finder involved
 	 * @param t cause
 	 */
-	void searchingFailed(CardFinder finder, Throwable t);
+	void searchThreadFailed(CardFinder finder, Throwable t);
 
 	/**
-	 * Invoked when the pricing process has completed.
-	 * @param interrupted <code>true</code> if interrupted by the user
+	 * Invoked when the whole search has completed.
+	 * @param interrupted <code>true</code> if the search was interrupted by the user
 	 */
 	void searchingFinished(boolean interrupted);
 	

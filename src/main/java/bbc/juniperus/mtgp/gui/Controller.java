@@ -1,5 +1,6 @@
 package bbc.juniperus.mtgp.gui;
 
+import java.awt.Cursor;
 import java.awt.Desktop;
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -128,12 +129,18 @@ public class Controller implements SearchObserver, GridListener {
 	
 	
 	@Override
+	public void searchStarted(int numberOfCards) {
+		
+		
+	}
+	
+	@Override
 	public void startedSearchingForCard(Card card, CardFinder finder) {
 		//Empty
 	}
 
 	@Override
-	public void searchingFailed(CardFinder finder, Throwable t) {
+	public void searchThreadFailed(CardFinder finder, Throwable t) {
 		// TODO Auto-generated method stub
 	}
 
@@ -146,7 +153,7 @@ public class Controller implements SearchObserver, GridListener {
 	}
 
 	@Override
-	public void searchingFinished(CardFinder finder) {
+	public void searchThreadFinished(CardFinder finder) {
 		// TODO Auto-generated method stub
 		
 	}
@@ -155,28 +162,12 @@ public class Controller implements SearchObserver, GridListener {
 
 	@Override
 	public void searchingFinished(boolean interrupted) {
-		System.out.println("Pricing ended");
-		/*
-		pricingInProgress = false;
-		SwingUtilities.invokeLater(new Runnable() {
-			
-			@Override
-			public void run() {
-				
-				System.out.println("iz enabled ? " +actionMap.get(RemoveAction.class).isEnabled());
-				//Hack as the call to setEnabled(true) does not result in action button in toolbar to be set to enabled when
-				//the user click to the table during process of stopping search.
-				//TODO investigate more.
-				actionMap.get(RemoveAction.class).setEnabled(false); 
-				actionMap.get(RemoveAction.class).setEnabled(true);
-				window.setCursor(Cursor.getDefaultCursor());
-			}
-		});
-		*/
+		System.out.println("Searching finished");
+		mainView.setActiveState(); //In case the search was stopped by user and the view was set to busy state
 	}
 	
 
-	private void addCardTolerateDuplicate(Card card, int quantity){
+	private void addCardLeniently(Card card, int quantity){
 		
 		if (pricingSettings.getCards().contains(card)){
 			int oldQ = pricingSettings.getQuantity(card);
@@ -220,7 +211,6 @@ public class Controller implements SearchObserver, GridListener {
 			enableAction(UserAction.OPEN_IN_BROWSER);
 		}
 	}
-
 	
 	/**
 	 * Creates all actions.
@@ -228,47 +218,28 @@ public class Controller implements SearchObserver, GridListener {
 	private void createActions(){
 		
 		AbstractAction action = new StartSearchAction();
-		//action.setEnabled(false);
 		actionMap.put(UserAction.START_SEARCH, action);
-		
 		action = new StopSearchAction();
-		//action.setEnabled(false);
 		actionMap.put(UserAction.STOP_SEARCH, action);
-		
 		action = new ImportCardsAction();
-		//action.setEnabled(false);
 		actionMap.put(UserAction.IMPORT_CARDS, action);
-		
 		action = new AddCardAction();
-		//action.setEnabled(false);
 		actionMap.put(UserAction.ADD_CARD, action);
-		
 		action = new RemoveCardAction();
-		//action.setEnabled(false);
 		actionMap.put(UserAction.REMOVE_CARD, action);
-		
 		action = new ExportTableCsvAction();
-		//action.setEnabled(false);
 		actionMap.put(UserAction.EXPORT_TO_CSV, action);
-		
 		action = new ExportTableTxtAction();
-		//action.setEnabled(false);
 		actionMap.put(UserAction.EXPORT_TO_TXT, action);
-		
+		action = new NewSearchAction();
+		actionMap.put(UserAction.NEW_SEARCH, action);
+		action = new SearchInBrowserAction();
+		actionMap.put(UserAction.OPEN_IN_BROWSER, action);
 		/*
 		action = new ExportCardListAction();
 		action.setEnabled(false);
 		actionMap.put(ExportCardListAction.class, action);
 		*/
-		
-		action = new NewSearchAction();
-		//action.setEnabled(false);
-		actionMap.put(UserAction.NEW_SEARCH, action);
-		
-		action = new SearchInBrowserAction();
-		//action.setEnabled(false);
-		actionMap.put(UserAction.OPEN_IN_BROWSER, action);
-		
 		setDefaultActionAvailability();
 	}
 	
@@ -355,7 +326,7 @@ public class Controller implements SearchObserver, GridListener {
 			if (cardNameTextFieldValue == null)
 				throw new AssertionError();
 			Card card = new Card(cardNameTextFieldValue);
-			addCardTolerateDuplicate(card, quantitySpinnerValue);
+			addCardLeniently(card, quantitySpinnerValue);
 			tableModel.fireTableDataChanged();
 			mainView.clearAddCardTextField();
 			cardNameTextFieldValue = null;
@@ -424,7 +395,7 @@ public class Controller implements SearchObserver, GridListener {
 				return;
 			
 			for (Card c : result.keySet())
-				addCardTolerateDuplicate(c, result.get(c));
+				addCardLeniently(c, result.get(c));
 			tableModel.fireTableStructureChanged();
 			
 		}	
@@ -535,14 +506,12 @@ public class Controller implements SearchObserver, GridListener {
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
 			System.out.println("Starting search");
-			/*
-			final Collection<CardFinder> searchers = getSelectedSearchers(); 
-			pricer.setCardFinders(searchers);
-			updateLeftPanel(searchers);
-			actionMap.get(RemoveAction.class).setEnabled(false);
-			pricingStarted();
-			pricer.startSearch();
-			//window.pack();*/
+			searchExecutor = new SearchExecutor(pricingSettings.getCards(), 
+					pricingSettings.getFinders());
+			
+			mainView.showSearchProgress(searchExecutor);
+			searchExecutor.startSearch();
+			
 		}
 	}
 	
@@ -556,12 +525,9 @@ public class Controller implements SearchObserver, GridListener {
 
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
-			System.out.println("Stopping search");
-			/*
-			window.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+			searchExecutor.stopSearch();
+			mainView.setBusyState(); //Active state will be set in observer method when the search has been reported to finish
 			setEnabled(false);
-			pricer.interrupt();*/
-			
 		}
 	}
 	
@@ -599,6 +565,7 @@ public class Controller implements SearchObserver, GridListener {
 
 		}
 	}
+
 
 	
 
