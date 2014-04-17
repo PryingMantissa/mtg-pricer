@@ -20,7 +20,6 @@ import bbc.juniperus.mtgp.gui.Controller.Phase;
 @SuppressWarnings("serial")
 public class PricerTableModel extends AbstractTableModel {
 
-	private List<Card> cards = new ArrayList<Card>();
 	private List<Column> columns = new ArrayList<Column>();
 	private PricingSettings pricingSettings;
 	private Phase phase;

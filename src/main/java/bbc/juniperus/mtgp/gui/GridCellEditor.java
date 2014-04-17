@@ -15,7 +15,7 @@ import javax.swing.table.TableCellEditor;
 
 import bbc.juniperus.mtgp.tablemodel.Cell;
 
-public class TheCellEditor extends AbstractCellEditor
+public class GridCellEditor extends AbstractCellEditor
 	implements TableCellEditor {
 	
 
@@ -26,7 +26,7 @@ public class TheCellEditor extends AbstractCellEditor
 	private Component editor; 
 	private String originalValue;
 	
-	public TheCellEditor() {
+	public GridCellEditor() {
 	
 	}
 

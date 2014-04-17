@@ -17,6 +17,7 @@ import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JFileChooser;
+import javax.swing.KeyStroke;
 
 import bbc.juniperus.mtgp.cardsearch.CardFinder;
 import bbc.juniperus.mtgp.cardsearch.CardFinderFactory;
@@ -92,10 +93,6 @@ public class Controller implements SearchObserver, GridListener {
 		
 		if (enabled && !pricingSettings.getFinders().contains(finder))
 				pricingSettings.addFinder(finder);
-		
-		System.out.println(finder + " " + enabled);
-		Collection<CardFinder> finders = pricingSettings.getFinders();
-		System.out.println(pricingSettings.getFinders().contains(finder));
 		
 		if (!enabled && pricingSettings.getFinders().contains(finder))
 			pricingSettings.removeFinder(finder);
@@ -367,13 +364,13 @@ public class Controller implements SearchObserver, GridListener {
 		
 	}
 	
+	@SuppressWarnings("serial")
 	private class RemoveCardAction extends AbstractAction{
 		
-		private static final long serialVersionUID = 1L;
-
 		RemoveCardAction(){
 			super("Delete",ResourceLoader.ICON_REMOVE);
 			putValue(Action.SHORT_DESCRIPTION, "Remove selected card row(s)");
+			putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke("DELETE"));
 		}
 		
 		@Override

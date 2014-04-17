@@ -113,6 +113,7 @@ public class MainView {
 		tablePane.setBorder(ETCHED_BORDER);
 		cardGrid = new CardGrid(controller.getTableModel());
 		cardGrid.addGridListener(controller);
+		cardGrid.registerAction(controller.getAction(UserAction.REMOVE_CARD));
 		tablePane.add(cardGrid);
 		
 		toolBar = createToolBar();

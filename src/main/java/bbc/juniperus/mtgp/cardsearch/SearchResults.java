@@ -14,13 +14,24 @@ import bbc.juniperus.mtgp.domain.CardResult;
 public class SearchResults {
 	
 	private long searchTime;
-	private final List<Card> notFound = new ArrayList<Card>();
+	private final List<Card> notFound;
 	private final CardFinder finder;
-	private final Map<Card, CardResult> results = new HashMap<>();
+	private final Map<Card, CardResult> results;
 	
 	public SearchResults(CardFinder finder){
 		this.finder = finder;  
+		notFound = new ArrayList<Card>();
+		results = new HashMap<>();
 	}
+	
+	/** Copy constructor*/
+	private SearchResults(SearchResults oldInstance){
+		finder = oldInstance.finder;  
+		searchTime = oldInstance.searchTime;
+		notFound = new ArrayList<>(oldInstance.notFound);
+		results = new HashMap<>(oldInstance.results);
+	}
+	
 	
 	public CardFinder getFinder(){
 		return finder;
@@ -68,4 +79,15 @@ public class SearchResults {
 	public long getSearchTime(){
 		return searchTime;
 	}
+	
+	/**
+	 * Alternative method to {@link #clone()} with the same functionality.
+	 * @return
+	 */
+	public SearchResults makeClone(){
+		return new SearchResults(this);
+	}
+	
+	
+	
 }
