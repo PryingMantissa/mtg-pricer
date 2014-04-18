@@ -7,10 +7,12 @@ import java.awt.Dimension;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 import javax.swing.Action;
@@ -30,9 +32,9 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
 
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.tablemodel.Cell;
@@ -48,12 +50,14 @@ public class CardGrid extends JPanel implements TableModelListener {
 //	private Color selectColor = new Color(225,225,225);
 	private Set<GridListener> listeners = new HashSet<>();
 	private InternalTableListener internalTableListener;
+	private CellRenderer copyOfRenderer = new CellRenderer();
+	
 	
 	public CardGrid(PricerTableModel tableModel){   
 		this.tableModel = tableModel;
 		tableModel.addTableModelListener(this);
 		internalTableListener = new InternalTableListener();
-		setUpTable();
+		setupTable();
 		setUpGui();
 	}
 	
@@ -89,7 +93,7 @@ public class CardGrid extends JPanel implements TableModelListener {
 	
 	private int getMaxColumnWidth(int column){
 		int width = 0;
-		//For header.
+		
 		TableCellRenderer headerRenderer = table.getTableHeader().getDefaultRenderer();
         Component comp = headerRenderer.getTableCellRendererComponent(
         		table, table.getColumnName(column), false, false, 0, 0);
@@ -98,42 +102,41 @@ public class CardGrid extends JPanel implements TableModelListener {
 
 		for (int row = 0; row < table.getRowCount(); row++) {
 			TableCellRenderer  renderer = table.getCellRenderer(row, column);
+			
+			table.prepareRenderer(renderer, row, column);
 			comp = table.prepareRenderer(renderer, row, column);
-		    width = Math.max (comp.getPreferredSize().width, width);
+			
+			System.out.println("getMax() Thread " + SwingUtilities.isEventDispatchThread() + " ID: " + Thread.currentThread().getId());
+			width = Math.max (comp.getPreferredSize().width, width);
+		    System.out.println("\tRow " + row + " width "+ width + " val " 
+		    +  ((Cell)table.getValueAt(row, column)).getText());
+		    
 		}
 		return width;
 	}
 	
 	
 	private void setColumnsAutoWidth() {
-
+		assert SwingUtilities.isEventDispatchThread();
+		
 		final int margin = 2;
 		final TableColumnModel model = table.getColumnModel();
 
-		final int w1 = getMaxColumnWidth(0);
-		int w2 = -97;
-		if (model.getColumnCount() > 1)
-			w2 = getMaxColumnWidth(1);
-
-		// Find out the widest cell among the result rows.
-		int w = 0;
-		for (int col = 2; col < model.getColumnCount(); col++) {
-			w = Math.max(w, getMaxColumnWidth(col));
+		final int[] widths = new int[model.getColumnCount()];
+		
+		for (int i = 0; i < widths.length; i++){
+			int w = getMaxColumnWidth(i);
+			widths[i] = w + margin;
 		}
 
-		final int fW2 = w2;
-		final int fW = w;
-		SwingUtilities.invokeLater(new Runnable() {
-
-			@Override
-			public void run() {
-				model.getColumn(0).setPreferredWidth(w1 + margin);
-				model.getColumn(1).setPreferredWidth(fW2 + margin);
-				for (int col = 2; col < table.getColumnCount(); col++)
-					model.getColumn(col).setPreferredWidth(fW + margin);
-			}
-		});
+		for ( int i = 0; i < widths.length; i++){ //In case the number of columns has changed
+			TableColumn col = model.getColumn(i);
+			if (col.getPreferredWidth() != widths[i])
+				col.setPreferredWidth(widths[i]);
+		}						
 	}
+		
+	
 	
 	private void setUpGui(){
 		setLayout(new BorderLayout());
@@ -154,7 +157,7 @@ public class CardGrid extends JPanel implements TableModelListener {
 		add(scrollPane);
 	}
 	
-	private void setUpTable(){
+	private void setupTable(){
 		
 		table = new JTable(tableModel);
 		table.addFocusListener(internalTableListener);
@@ -163,12 +166,13 @@ public class CardGrid extends JPanel implements TableModelListener {
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		table.getTableHeader().setReorderingAllowed(false);
 		
+		/*
 		TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>();
 		table.setRowSorter(sorter);
 		sorter.setModel(tableModel);
 		sorter.setComparator(0,new CellComparator());
 		sorter.setComparator(1,new CellComparator());
-		
+		*/
 		table.setDefaultRenderer(Object.class, new CellRenderer());
 		
 		
@@ -325,7 +329,9 @@ public class CardGrid extends JPanel implements TableModelListener {
 			if (hasFocus)
 				lbl.setBorder(focusBoder);
 			
-*/
+*/		
+			System.out.println("Renderer: Size of cell " + text + " " + 
+					lbl.getPreferredSize().getWidth() + " " + SwingUtilities.isEventDispatchThread() + " id " + Thread.currentThread().getId());
 			return lbl;
 		}
 		
@@ -391,6 +397,8 @@ public class CardGrid extends JPanel implements TableModelListener {
 
 	@Override
 	public void tableChanged(TableModelEvent e) {
+		System.out.println("table changed event " + SwingUtilities.isEventDispatchThread());
+		
 		setColumnsAutoWidth();
 	}
 	

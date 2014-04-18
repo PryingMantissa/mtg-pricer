@@ -1,5 +1,6 @@
 package bbc.juniperus.mtgp;
 
+import javax.swing.SwingUtilities;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import bbc.juniperus.mtgp.gui.Controller;
@@ -10,12 +11,17 @@ public class Main {
 	public Main() {
 		setLookAndFeel();
 		Controller controller = new Controller();
-		//controller.newPricing();
+		controller.newPricing();
 	}
 	
 	
 	public static void main(String[] args){
-		new Main();
+		SwingUtilities.invokeLater(new Runnable(){
+			@Override
+			public void run() {
+				new Main();
+			}
+		});
 	}
 	
 	private void setLookAndFeel(){

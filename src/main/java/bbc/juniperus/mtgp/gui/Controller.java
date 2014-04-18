@@ -19,6 +19,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JFileChooser;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 
 import bbc.juniperus.mtgp.cardsearch.CardFinder;
 import bbc.juniperus.mtgp.cardsearch.CardFinderFactory;
@@ -46,7 +47,7 @@ public class Controller implements SearchObserver, GridListener {
 	private Phase currentPhase;
 	private MainView mainView;
 	private String cardNameTextFieldValue;
-	private int quantitySpinnerValue = 1;
+	private int quantitySpinnerValue = 1; //Default (and also minimal)spinner value
 	private List<Card> selectedCards = new ArrayList<>();
 	
 	
@@ -54,7 +55,6 @@ public class Controller implements SearchObserver, GridListener {
 		createActions();
 		finders = CardFinderFactory.allCardFinders();
 		tableModel = new PricerTableModel(this);
-		newPricing();
 		mainView = new MainView(this); //TODO maybe we dont need it here
 		mainView.show();
 	}
@@ -62,15 +62,11 @@ public class Controller implements SearchObserver, GridListener {
 	public void newPricing(){
 		currentPhase = Phase.SETTING;
 		pricingSettings = new PricingSettings();
-		tableModel.setPricingSettings(pricingSettings);
-		//TODO testing code
-		pricingSettings.addCard(new Card("Card A"),3);
-		pricingSettings.addCard(new Card("Card B"),3);
-		pricingSettings.addCard(new Card("Card C"),2);
-		pricingSettings.addCard(new Card("Card D"),1);
-		pricingSettings.addCard(new Card("Card E"),5);
-		
-		
+		for (CardFinder finder : finders) //Add all card finders as default
+			pricingSettings.addFinder(finder);
+		tableModel.newPricing(pricingSettings);
+		mainView.newPricing();
+		tableModel.fireTableStructureChanged();
 	}
 	
 	public PricingSettings getPricingSettings(){
@@ -135,7 +131,7 @@ public class Controller implements SearchObserver, GridListener {
 	}
 	
 	@Override
-	public void startedSearchingForCard(Card card, CardFinder finder) {
+	public void cardSearchStarted(Card card, CardFinder finder) {
 		//Empty
 	}
 
@@ -146,9 +142,20 @@ public class Controller implements SearchObserver, GridListener {
 
 	
 	@Override
-	public void finishedSearchingForCard(Card card, CardResult result,
+	public void cardSearchFinished(Card card, CardResult result,
 			CardFinder finder) {
-		// TODO Auto-generated method stub
+		
+		//System.out.println(finder + " " + searchExecutor.getResultsStorage(finder).getCardResults().size());
+		
+		
+		SwingUtilities.invokeLater(new Runnable(){
+
+			@Override
+			public void run() {
+				tableModel.fireTableRowsUpdated(0, Integer.MAX_VALUE);
+			}
+			
+		});
 		
 	}
 
@@ -163,7 +170,10 @@ public class Controller implements SearchObserver, GridListener {
 	@Override
 	public void searchingFinished(boolean interrupted) {
 		System.out.println("Searching finished");
-		mainView.setActiveState(); //In case the search was stopped by user and the view was set to busy state
+		if (interrupted)
+			mainView.searchStopped(); //In case the search was stopped by user and the view was set to busy state
+		else
+			mainView.searchFinished();
 	}
 	
 
@@ -259,9 +269,12 @@ public class Controller implements SearchObserver, GridListener {
 	}
 	
 	private void setDefaultActionAvailability(){
-		actionMap.get(UserAction.REMOVE_CARD).setEnabled(false);
-		actionMap.get(UserAction.ADD_CARD).setEnabled(false);
-		actionMap.get(UserAction.OPEN_IN_BROWSER).setEnabled(false);
+		disableAction(UserAction.REMOVE_CARD);
+		disableAction(UserAction.ADD_CARD);
+		disableAction(UserAction.OPEN_IN_BROWSER);
+		disableAction(UserAction.START_SEARCH);
+		disableAction(UserAction.STOP_SEARCH);
+		disableAction(UserAction.REMOVE_CARD);
 	}
 	
 	
@@ -331,6 +344,8 @@ public class Controller implements SearchObserver, GridListener {
 			mainView.clearAddCardTextField();
 			cardNameTextFieldValue = null;
 			
+			if (pricingSettings.getCards().size() > 0)
+				enableAction(UserAction.START_SEARCH); //Enable start search if we added some cards
 		}
 		
 	}
@@ -352,6 +367,9 @@ public class Controller implements SearchObserver, GridListener {
 				pricingSettings.removeCard(card);
 			
 			tableModel.fireTableStructureChanged();
+			
+			if (pricingSettings.getCards().size() < 1) //Disable start search if there are no cards left
+				disableAction(UserAction.START_SEARCH);
 		}
 		
 	}
@@ -397,6 +415,9 @@ public class Controller implements SearchObserver, GridListener {
 			for (Card c : result.keySet())
 				addCardLeniently(c, result.get(c));
 			tableModel.fireTableStructureChanged();
+			
+			if (pricingSettings.getCards().size() > 0) //Enable start search if we added some cards
+				enableAction(UserAction.START_SEARCH);
 			
 		}	
 	}
@@ -508,9 +529,11 @@ public class Controller implements SearchObserver, GridListener {
 			System.out.println("Starting search");
 			searchExecutor = new SearchExecutor(pricingSettings.getCards(), 
 					pricingSettings.getFinders());
-			
-			mainView.showSearchProgress(searchExecutor);
+			searchExecutor.addSearchObserver(Controller.this);
+			mainView.searchStarted(searchExecutor);
 			searchExecutor.startSearch();
+			tableModel.startPresentingResults(searchExecutor.getResultsStorage());
+			enableAction(UserAction.STOP_SEARCH);
 			
 		}
 	}
@@ -526,7 +549,7 @@ public class Controller implements SearchObserver, GridListener {
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
 			searchExecutor.stopSearch();
-			mainView.setBusyState(); //Active state will be set in observer method when the search has been reported to finish
+			mainView.stopSearchIssued(); //Active state will be set in observer method when the search has been reported to finish
 			setEnabled(false);
 		}
 	}

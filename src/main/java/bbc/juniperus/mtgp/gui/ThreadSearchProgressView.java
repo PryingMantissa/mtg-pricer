@@ -12,7 +12,7 @@ import javax.swing.border.Border;
 
 import bbc.juniperus.mtgp.cardsearch.CardFinder;
 import bbc.juniperus.mtgp.cardsearch.SearchObserver;
-import bbc.juniperus.mtgp.cardsearch.SearchResults;
+import bbc.juniperus.mtgp.cardsearch.SearchResultsData;
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.domain.CardResult;
 
@@ -88,7 +88,7 @@ public class ThreadSearchProgressView extends JPanel implements SearchObserver{
 	}
 	
 	@Override
-	public void startedSearchingForCard(Card card, CardFinder finder) {
+	public void cardSearchStarted(Card card, CardFinder finder) {
 		if (finder != this.finder)
 			return;
 		
@@ -97,7 +97,7 @@ public class ThreadSearchProgressView extends JPanel implements SearchObserver{
 	}
 
 	@Override
-	public void finishedSearchingForCard(Card card, CardResult result,
+	public void cardSearchFinished(Card card, CardResult result,
 			CardFinder finder) {
 		if (finder != this.finder)
 			return;

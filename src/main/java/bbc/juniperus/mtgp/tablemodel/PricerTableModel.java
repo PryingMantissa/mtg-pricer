@@ -1,14 +1,20 @@
 package bbc.juniperus.mtgp.tablemodel;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 
+import bbc.juniperus.mtgp.cardsearch.CardFinder;
+import bbc.juniperus.mtgp.cardsearch.SearchResultsData;
 import bbc.juniperus.mtgp.data.DataStorage;
 import bbc.juniperus.mtgp.data.PricingSettings;
 import bbc.juniperus.mtgp.domain.Card;
+import bbc.juniperus.mtgp.domain.CardResult;
 import bbc.juniperus.mtgp.gui.Controller;
 import bbc.juniperus.mtgp.gui.Controller.Phase;
 
@@ -20,12 +26,14 @@ import bbc.juniperus.mtgp.gui.Controller.Phase;
 @SuppressWarnings("serial")
 public class PricerTableModel extends AbstractTableModel {
 
+	private enum Column {NAME, QUANTITY}
+	
 	private List<Column> columns = new ArrayList<Column>();
 	private PricingSettings pricingSettings;
-	private Phase phase;
-	
-	private enum Column {NAME, QUANTITY}
+	private Phase currentPhase;
 	private Controller controller;
+	private List<CardFinder> cardFinders;
+	private Map<CardFinder,SearchResultsData> resultsContainer;
 	
 	
 	/**
@@ -36,11 +44,21 @@ public class PricerTableModel extends AbstractTableModel {
 		//data.addDataChangeListener(this);
 		//Default columns.
 		this.controller = controller;
-		phase = Phase.SETTING;
 	}
 	
-	public void setPricingSettings(PricingSettings settings){
+	public void newPricing(PricingSettings settings){
 		pricingSettings = settings;
+		currentPhase = Phase.SETTING;
+	}
+	
+	public void startPresentingResults(Collection<SearchResultsData> searchResults){
+		resultsContainer = new HashMap<>();
+		
+		for (SearchResultsData res : searchResults) //Store it in inernal hash map for faster acces
+			resultsContainer.put(res.getFinder(),res);
+		currentPhase = Phase.SEARCHING;
+		cardFinders = new ArrayList<>(resultsContainer.keySet());
+		fireTableStructureChanged();
 	}
 	
 	
@@ -106,8 +124,21 @@ public class PricerTableModel extends AbstractTableModel {
 		else if (column == Column.QUANTITY.ordinal())
 			return new Cell(pricingSettings.getQuantity(card) + "", Cell.Type.INTEGER);
 		else
-			throw new AssertionError();
-
+			if (currentPhase != Phase.SEARCHING && currentPhase != Phase.SEARCHING)
+				throw new AssertionError();
+			else{
+				CardFinder cardFinder = cardFinders.get(column - 2);
+				CardResult result = resultsContainer.get(cardFinder).getCardResult(card);
+				
+				String val;
+				if (result == null) //not yet found
+					val = "x";
+				else if (result == CardResult.NULL_CARD_RESULT)
+					val = "N/A";
+				else
+					val = result.getPrice() + " KKT";
+				return new Cell(val,Cell.Type.STRING);
+			}
 	}
 
 	
@@ -130,23 +161,32 @@ public class PricerTableModel extends AbstractTableModel {
 
 	@Override
 	public int getRowCount(){
-	//	System.out.println("getting row count");
+		if (currentPhase == null) //When gui objects are constructed but the first phase has not started 
+			return 0;
 		return pricingSettings.getCards().size();
 	}
 	
 
 	@Override
 	public int getColumnCount(){
-		if (phase == Phase.SETTING)
+		if (currentPhase == null) //When gui objects are constructed but the first phase has not started 
+			return 0;
+		
+		if (currentPhase == Phase.SETTING)
 			return 2;
-		else
-			throw new UnsupportedOperationException();
+		else if (currentPhase == Phase.SEARCHING ||
+				currentPhase == Phase.PRICING_FINISHED){
+			System.out.println("returning " + (2 + cardFinders.size()));
+			return 2 + cardFinders.size();
+		}
+		else;
+			throw new AssertionError();
 	}
 	
 
 	@Override
 	public boolean isCellEditable(int rowIndex, int columnIndex){
-		if (phase == Phase.SETTING) //Can edit either card name or quantity when in settings phase
+		if (currentPhase == Phase.SETTING) //Can edit either card name or quantity when in settings phase
 			return true;
 		else
 			throw new UnsupportedOperationException();

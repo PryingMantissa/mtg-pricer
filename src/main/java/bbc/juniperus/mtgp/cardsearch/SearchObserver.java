@@ -21,19 +21,19 @@ public interface SearchObserver {
 	void searchStarted(int numberOfCards);
 	
 	/**
-	 * Invoked when the card finder thread started searching for a card.
+	 * Invoked when a card finder thread started searching for a card.
 	 * @param card the card for which the finder has started searching
 	 * @param finder the card finder involved
 	 */
-	void startedSearchingForCard(Card card, CardFinder finder);
+	void cardSearchStarted(Card card, CardFinder finder);
 	
 	/**
-	 * Invoked when card finder thread has finished searched for a card.
+	 * Invoked when a finder thread has finished searching for a card.
 	 * @param card car for which the finder finished searching
 	 * @param result result of the card search
 	 * @param finder card finder involved
 	 */
-	void finishedSearchingForCard(Card card, CardResult result, CardFinder finder);
+	void cardSearchFinished(Card card, CardResult result, CardFinder finder);
 	
 	/**
 	 * Invoked when a card finder search thread successfully ended.

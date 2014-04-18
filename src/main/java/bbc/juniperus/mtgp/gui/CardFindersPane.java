@@ -18,6 +18,7 @@ public class CardFindersPane extends JPanel{
 	
 	private Map<JCheckBox, CardFinder> checkBoxMap = new HashMap<>();
 	private Controller controller;
+	private JLabel statusLabel;
 	
 	public CardFindersPane(Controller controller){
 		setLayout(new MigLayout());
@@ -25,18 +26,24 @@ public class CardFindersPane extends JPanel{
 		//JLabel lbl = new JLabel(searcher.getName());
 		//add(lbl, BorderLayout.NORTH);
 		//add(new SearchThreadView(pricer,searcher), BorderLayout.CENTER);
+		statusLabel = new JLabel();
 	}
 	
 	
 	public void showFinderSettings(){
 		removeAll();
-		add(new JLabel("<html><b>Card pricing sources:</b></html>"), "wrap");
+		statusLabel.setText("<html><b>Card pricing sources</b></html>");
+		add(statusLabel,"wrap");
 		
 		CheckBoxListener listener = new CheckBoxListener();
 		checkBoxMap.clear();
 		
 		for (CardFinder finder : controller.getCardFinders()){
 			JCheckBox checkBox = new JCheckBox(finder.getName());
+			
+			if (controller.getPricingSettings().getFinders().contains(finder)) //Set selected it its part of the settings
+				checkBox.setSelected(true);
+			
 			checkBox.addActionListener(listener);
 			checkBoxMap.put(checkBox, finder);
 			add(checkBox, "wrap");
@@ -46,8 +53,8 @@ public class CardFindersPane extends JPanel{
 	
 	public void showSearchProgress(SearchExecutor searchExecutor){
 		removeAll();
-		repaint();
-		add(new JLabel("<html><b>Search progress:</b></html>"), "wrap");
+		statusLabel.setText("<html><b>Search progress</b></html>");
+		add(statusLabel,"wrap");
 		
 		for (CardFinder finder : searchExecutor.getCardFinders()){
 			ThreadSearchProgressView view = new ThreadSearchProgressView(finder);
@@ -55,6 +62,18 @@ public class CardFindersPane extends JPanel{
 			add(view, "wrap");
 		}
 		revalidate();
+	}
+	
+	public void displayStoppingSearch(){
+		statusLabel.setText("<html><b>Stopping the search...</b></html>");
+	}
+	
+	public void displaySearchStopped(){
+		statusLabel.setText("<html><b>Search stopped by user</b></html>");
+	}
+	
+	public void displaySearchFinished(){
+		statusLabel.setText("<html><b>Search succesfully finished</b></html>");
 	}
 	
 	

@@ -68,21 +68,32 @@ public class MainView {
 		window.setVisible(true);
 	}
 	
-	public void showSearchProgress(SearchExecutor executor){
+	public void searchStarted(SearchExecutor executor){
 		findersPane.showSearchProgress(executor);
 	}
+	
+	
+	public void newPricing(){
+		findersPane.showFinderSettings();
+	}
+	
 	
 	public void clearAddCardTextField(){
 		addTextField.setText("");
 	}
-	public void setBusyState(){
-		window.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));	
+	public void stopSearchIssued(){
+		window.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		findersPane.displayStoppingSearch();
 	}
 	
-	public void setActiveState(){
+	public void searchStopped(){
 		window.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+		findersPane.displaySearchStopped();
 	}
 	
+	public void searchFinished(){
+		findersPane.displaySearchFinished();
+	}
 	
 	
 	/**
@@ -122,8 +133,6 @@ public class MainView {
 		window.add(findersPane, BorderLayout.WEST);
 		window.add(tablePane, BorderLayout.CENTER);
 		window.setJMenuBar(createMenuBar());
-		findersPane.showFinderSettings();
-		
 		
 	}
 	

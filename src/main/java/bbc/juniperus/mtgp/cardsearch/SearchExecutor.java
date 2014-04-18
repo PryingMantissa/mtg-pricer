@@ -26,7 +26,7 @@ public class SearchExecutor{
 	
 	private volatile boolean interruped;
 	private volatile int findersLeft;
-	private volatile Map<CardFinder, SearchResults> results;
+	private volatile Map<CardFinder, SearchResultsData> results;
 	
 	private final Collection<CardFinder> finders;
 	private final Collection<Card> cards;
@@ -37,6 +37,12 @@ public class SearchExecutor{
 		this.cards = cards;
 		this.finders = finders;
 		currentPhase = Phase.SETTING;
+		results = new HashMap<>();
+		fireSearchStarted(cards.size());
+		for (CardFinder f : finders){
+			results.put(f, new SearchResultsData(f));
+			new Thread(new SearchRunnable(f)).start();
+		}
 	}
 	
 	/**
@@ -50,15 +56,9 @@ public class SearchExecutor{
 		if (currentPhase != Phase.SETTING)
 			throw new IllegalStateException("The search cannot be started"
 					+ " because the current phase is not " + Phase.SETTING);
-
-		results = new HashMap<>();
 		currentPhase = Phase.SEARCHING;
 		findersLeft = finders.size();
 		fireSearchStarted(cards.size());
-		for (CardFinder f : finders){
-			results.put(f, new SearchResults(f));
-			new Thread(new SearchRunnable(f)).start();
-		}
 	}
 	
 	/**
@@ -89,28 +89,30 @@ public class SearchExecutor{
 	}
 	
 	/**
-	 * Returns copy of  search results for specific card finder.
+	 * Returns <strike>copy of</strike>  search results object for specific card finder.
 	 * @param cardFinder
 	 * @return car finder search results
+	 * 
+	 * @throws IllegalArgumentException if null or unknown card finder is used as an argument, or when the search has not started yet
 	 */
-	public SearchResults getResults(CardFinder cardFinder){
+	public SearchResultsData getResultsStorage(CardFinder cardFinder){
 		if (!finders.contains(cardFinder))
 			throw new IllegalArgumentException("No such finder registered with this search executor or null");
-		if (currentPhase != Phase.PRICING_FINISHED)
-			throw new IllegalStateException("The current phase is not " + Phase.PRICING_FINISHED);
-		
-		return results.get(cardFinder).makeClone();
+
+		return results.get(cardFinder);
 	}
 
 	/**
-	 * Returns copy of search results for all card finders.
+	 * Returns the search results storage object for all card finders.
 	 * @return search results for all card finders
+	 * 
+	 * @throws IllegalArgumentException if null or unknown card finder is used as an argument, or when the search has not started yet
 	 */
-	public Collection<SearchResults> getResults(){
-		List<SearchResults> resList = new ArrayList<>();
+	public Collection<SearchResultsData> getResultsStorage(){
+		List<SearchResultsData> resList = new ArrayList<>();
 		
-		for (SearchResults sr : results.values())
-			resList.add(sr.makeClone());
+		for (CardFinder cf : results.keySet())
+			resList.add(getResultsStorage(cf));
 		
 		return resList;
 	}
@@ -124,7 +126,7 @@ public class SearchExecutor{
 	 */
 	private void startSearching(CardFinder finder) throws IOException {
 		long timeStart = System.currentTimeMillis();
-		SearchResults theResults = this.results.get(finder);
+		SearchResultsData theResults = this.results.get(finder);
 		
 		for (Card card : cards){
 			//Test if stopped.
@@ -191,12 +193,12 @@ public class SearchExecutor{
 
 	private void fireCardSearchStarted(Card card, CardFinder finder){
 		for (SearchObserver o : observers)
-			o.startedSearchingForCard(card, finder);
+			o.cardSearchStarted(card, finder);
 	}
 	
 	private void fireCardSearchEnded(Card card, CardResult result, CardFinder finder){
 		for (SearchObserver o : observers)
-			o.finishedSearchingForCard(card, result, finder);
+			o.cardSearchFinished(card, result, finder);
 	}
 	
 
