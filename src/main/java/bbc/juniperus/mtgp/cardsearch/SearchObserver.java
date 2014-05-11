@@ -39,7 +39,7 @@ public interface SearchObserver {
 	 * Invoked when a card finder search thread successfully ended.
 	 * @param finder card finder involved
 	 */
-	void searchThreadFinished(CardFinder finder);
+	void searchThreadFinished(CardFinder finder, CardSearchResults results);
 	
 	/**
 	 * Invoked when a card finder search thread encountered an error and has been forced to stop.

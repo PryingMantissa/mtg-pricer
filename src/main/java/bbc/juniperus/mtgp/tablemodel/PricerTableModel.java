@@ -10,7 +10,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 
 import bbc.juniperus.mtgp.cardsearch.CardFinder;
-import bbc.juniperus.mtgp.cardsearch.SearchResultsData;
+import bbc.juniperus.mtgp.cardsearch.CardSearchResults;
 import bbc.juniperus.mtgp.data.DataStorage;
 import bbc.juniperus.mtgp.data.PricingSettings;
 import bbc.juniperus.mtgp.domain.Card;
@@ -26,15 +26,27 @@ import bbc.juniperus.mtgp.gui.Controller.Phase;
 @SuppressWarnings("serial")
 public class PricerTableModel extends AbstractTableModel {
 
-	private enum Column {NAME, QUANTITY}
+	private enum Column {
+		NAME("Name"), QUANTITY("Quantity");
+	
+		private final String name;
+		
+		Column(String name){
+			this.name = name;
+		}
+		
+		public String getName(){
+			return name;
+		}
+		
+	}
 	
 	private List<Column> columns = new ArrayList<Column>();
 	private PricingSettings pricingSettings;
 	private Phase currentPhase;
 	private Controller controller;
 	private List<CardFinder> cardFinders;
-	private Map<CardFinder,SearchResultsData> resultsContainer;
-	
+	private Map<CardFinder,CardSearchResults> resultsContainer;
 	
 	/**
 	 * Constructs table model around {@link DataStorage}.
@@ -51,10 +63,10 @@ public class PricerTableModel extends AbstractTableModel {
 		currentPhase = Phase.SETTING;
 	}
 	
-	public void startPresentingResults(Collection<SearchResultsData> searchResults){
+	public void startPresentingResults(Collection<CardSearchResults> searchResults){
 		resultsContainer = new HashMap<>();
 		
-		for (SearchResultsData res : searchResults) //Store it in inernal hash map for faster acces
+		for (CardSearchResults res : searchResults) //Store it in inernal hash map for faster acces
 			resultsContainer.put(res.getFinder(),res);
 		currentPhase = Phase.SEARCHING;
 		cardFinders = new ArrayList<>(resultsContainer.keySet());
@@ -184,17 +196,21 @@ public class PricerTableModel extends AbstractTableModel {
 	}
 	
 
+	
+	
 	@Override
 	public boolean isCellEditable(int rowIndex, int columnIndex){
-		if (currentPhase == Phase.SETTING) //Can edit either card name or quantity when in settings phase
-			return true;
-		else
-			throw new UnsupportedOperationException();
+		return (currentPhase == Phase.SETTING); //Can edit either card name or quantity when in settings phase
 	}
 	
 	@Override
 	public String getColumnName(int columnIndex) {
-		return "col " + columnIndex;
+		if (columnIndex < Column.values().length)
+			return Column.values()[columnIndex].getName();
+		else{
+			CardFinder cardFinder = cardFinders.get(columnIndex - 2);
+			return cardFinder.getName();
+		}
 	}
 	
 	
@@ -226,6 +242,16 @@ public class PricerTableModel extends AbstractTableModel {
 			throw new AssertionError();
 	}
 
+	/**
+	 * Returns a card for a given row.
+	 * @param row row 
+	 * @return card 
+	 */
+	public Card getCardAt(int row){
+		return pricingSettings.getCards().get(row);
+	}
+	
+	
 	
 	/**
 	 * Hacky method to provide notification to table that it should be repainted without
@@ -311,18 +337,8 @@ public class PricerTableModel extends AbstractTableModel {
 	 * @param column index of the column
 	 * @return column meta info object
 	 */
-	public Column getColumnInfo(int column){
-		return columns.get(column);
-	}
-	
-	/**
-	 * Returns a card for a given row.
-	 * @param row row 
-	 * @return card 
-	 */
-	public Card getCardAt(int row){
-		return pricingSettings.getCards().get(row);
-	}
+
+
 
 	/**
 	 * Determines all columns width based on the width of the widest cell in each column.

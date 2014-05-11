@@ -17,30 +17,20 @@ import bbc.juniperus.mtgp.domain.CardResult;
  * Methods are thread safe - getters and setters are synchronized.
  * 
  */
-public class SearchResultsData {
+public class CardSearchResults {
 	
 	private long searchTime;
-	private final List<Card> notFound; //TODO remove? useless
+	private final List<Card> notFound = new ArrayList<>();
+	private final List<Card> notFoundRO = Collections.unmodifiableList(notFound);
 	private final CardFinder finder;
 	private final Map<Card, CardResult> results;
 	private final Map<Card, CardResult> resultsView;
 	
-	public SearchResultsData(CardFinder finder){
+	public CardSearchResults(CardFinder finder){
 		this.finder = finder;  
-		notFound = new ArrayList<Card>();
 		results = new HashMap<>();
 		resultsView = Collections.unmodifiableMap(results);
 	}
-	
-	/** Copy constructor*/
-	private SearchResultsData(SearchResultsData oldInstance){
-		finder = oldInstance.finder;  
-		searchTime = oldInstance.searchTime;
-		notFound = new ArrayList<>(oldInstance.notFound);
-		results = new HashMap<>(oldInstance.results);
-		resultsView = Collections.unmodifiableMap(results);
-	}
-	
 	
 	public synchronized CardResult getCardResult(Card card){
 		return results.get(card);
@@ -64,7 +54,7 @@ public class SearchResultsData {
 	 * @return list of cards not found
 	 */
 	public synchronized List<Card> getNotFoundCards(){
-		return notFound;
+		return notFoundRO;
 	}
 	
 	/**
@@ -75,15 +65,7 @@ public class SearchResultsData {
 		return searchTime;
 	}
 	
-	/**
-	 * Alternative method to {@link #clone()} with the same functionality.
-	 * @return
-	 */
-	public SearchResultsData makeClone(){
-		return new SearchResultsData(this);
-	}
-	
-	
+
 	synchronized void addCardResult(Card card, CardResult result){
 		results.put(card, result);
 	}

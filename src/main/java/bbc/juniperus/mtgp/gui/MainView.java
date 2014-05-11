@@ -70,6 +70,7 @@ public class MainView {
 	
 	public void searchStarted(SearchExecutor executor){
 		findersPane.showSearchProgress(executor);
+		window.pack();
 	}
 	
 	
@@ -238,7 +239,7 @@ public class MainView {
 		menu.add(mi);
 		menuBar.add(menu);
 		menu= new JMenu("Help");
-		mi = new JMenuItem("About");
+		mi = new JMenuItem("About MtGPricer");
 		mi.addActionListener(new ActionListener() {
 			
 			@Override

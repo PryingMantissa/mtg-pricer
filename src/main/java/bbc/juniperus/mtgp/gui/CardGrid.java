@@ -106,10 +106,7 @@ public class CardGrid extends JPanel implements TableModelListener {
 			table.prepareRenderer(renderer, row, column);
 			comp = table.prepareRenderer(renderer, row, column);
 			
-			System.out.println("getMax() Thread " + SwingUtilities.isEventDispatchThread() + " ID: " + Thread.currentThread().getId());
 			width = Math.max (comp.getPreferredSize().width, width);
-		    System.out.println("\tRow " + row + " width "+ width + " val " 
-		    +  ((Cell)table.getValueAt(row, column)).getText());
 		    
 		}
 		return width;
@@ -330,8 +327,6 @@ public class CardGrid extends JPanel implements TableModelListener {
 				lbl.setBorder(focusBoder);
 			
 */		
-			System.out.println("Renderer: Size of cell " + text + " " + 
-					lbl.getPreferredSize().getWidth() + " " + SwingUtilities.isEventDispatchThread() + " id " + Thread.currentThread().getId());
 			return lbl;
 		}
 		
@@ -390,15 +385,12 @@ public class CardGrid extends JPanel implements TableModelListener {
 		
 		@Override
 		public void tableChanged(TableModelEvent e){
-			System.out.println("---------------------------    model changed");
 			super.tableChanged(e);
 		}
 	}
 
 	@Override
 	public void tableChanged(TableModelEvent e) {
-		System.out.println("table changed event " + SwingUtilities.isEventDispatchThread());
-		
 		setColumnsAutoWidth();
 	}
 	

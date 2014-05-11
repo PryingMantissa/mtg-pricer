@@ -26,7 +26,7 @@ public class SearchExecutor{
 	
 	private volatile boolean interruped;
 	private volatile int findersLeft;
-	private volatile Map<CardFinder, SearchResultsData> results;
+	private volatile Map<CardFinder, CardSearchResults> results;
 	
 	private final Collection<CardFinder> finders;
 	private final Collection<Card> cards;
@@ -40,7 +40,7 @@ public class SearchExecutor{
 		results = new HashMap<>();
 		fireSearchStarted(cards.size());
 		for (CardFinder f : finders){
-			results.put(f, new SearchResultsData(f));
+			results.put(f, new CardSearchResults(f));
 			new Thread(new SearchRunnable(f)).start();
 		}
 	}
@@ -95,7 +95,7 @@ public class SearchExecutor{
 	 * 
 	 * @throws IllegalArgumentException if null or unknown card finder is used as an argument, or when the search has not started yet
 	 */
-	public SearchResultsData getResultsStorage(CardFinder cardFinder){
+	public CardSearchResults getResultsStorage(CardFinder cardFinder){
 		if (!finders.contains(cardFinder))
 			throw new IllegalArgumentException("No such finder registered with this search executor or null");
 
@@ -108,8 +108,8 @@ public class SearchExecutor{
 	 * 
 	 * @throws IllegalArgumentException if null or unknown card finder is used as an argument, or when the search has not started yet
 	 */
-	public Collection<SearchResultsData> getResultsStorage(){
-		List<SearchResultsData> resList = new ArrayList<>();
+	public Collection<CardSearchResults> getResultsStorage(){
+		List<CardSearchResults> resList = new ArrayList<>();
 		
 		for (CardFinder cf : results.keySet())
 			resList.add(getResultsStorage(cf));
@@ -124,15 +124,15 @@ public class SearchExecutor{
 	 * @param finder card finder for the search
 	 * @throws IOException
 	 */
-	private void startSearching(CardFinder finder) throws IOException {
+	private void doSearch(CardFinder finder) throws IOException {
 		long timeStart = System.currentTimeMillis();
-		SearchResultsData theResults = this.results.get(finder);
+		CardSearchResults theResults = this.results.get(finder);
 		
 		for (Card card : cards){
 			//Test if stopped.
 			if (interruped){
 				System.out.println("interrupted " + finder);
-				fireSearchThreadFinished(finder); //Finishing just this finder's worker thread.
+				fireSearchThreadFinished(finder,results.get(finder)); //Finishing just this finder's worker thread.
 				
 				//If this is the last running thread consider the search to be finished.
 				if (--findersLeft < 1){ //TODO put in one method with the other part
@@ -158,11 +158,12 @@ public class SearchExecutor{
 		
 		theResults.setSearchTime(System.currentTimeMillis() - timeStart);
 		
-		fireSearchThreadFinished(finder);
+		fireSearchThreadFinished(finder,results.get(finder));
 		
 		//If this was the last search thread then mark the search as finished.
 		if (--findersLeft < 1){
 			currentPhase = Phase.PRICING_FINISHED;
+			System.out.println("Finishhing search");
 			fireSearchFinished(false);
 		}
 	}
@@ -202,9 +203,9 @@ public class SearchExecutor{
 	}
 	
 
-	private void fireSearchThreadFinished(CardFinder finder){
+	private void fireSearchThreadFinished(CardFinder finder, CardSearchResults theResults){
 		for (SearchObserver o : observers)
-				o.searchThreadFinished(finder);
+				o.searchThreadFinished(finder, theResults);
 	}
 
 	private void fireSearchThreadFailed(CardFinder finder, Throwable t){
@@ -236,7 +237,7 @@ public class SearchExecutor{
 		@Override
 		public void run() {
 			try {
-				startSearching(finder);
+				doSearch(finder);
 			} catch (final IOException e) {
 				System.out.println("IO exception during search for " + finder
 						+ ": " + e.getMessage());

@@ -2,6 +2,8 @@ package bbc.juniperus.mtgp.gui;
 
 
 import java.awt.BorderLayout;
+import java.awt.Font;
+import java.text.SimpleDateFormat;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -12,16 +14,16 @@ import javax.swing.border.Border;
 
 import bbc.juniperus.mtgp.cardsearch.CardFinder;
 import bbc.juniperus.mtgp.cardsearch.SearchObserver;
-import bbc.juniperus.mtgp.cardsearch.SearchResultsData;
+import bbc.juniperus.mtgp.cardsearch.CardSearchResults;
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.domain.CardResult;
 
 @SuppressWarnings("serial")
-public class ThreadSearchProgressView extends JPanel implements SearchObserver{
+public class SearchThreadProgressView extends JPanel implements SearchObserver{
 
-	
+	private static final SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("mm:ss");
 	private JProgressBar progressBar = new JProgressBar();
-	private JLabel cardNameLabel = new JLabel();
+	private JLabel resultsLabel = new JLabel();
 	private CardFinder finder;
 //	private JLabel lblFoundNumber;
 //	private JLabel lblPrice;
@@ -33,13 +35,18 @@ public class ThreadSearchProgressView extends JPanel implements SearchObserver{
 	private int t = 5;
 	Border border = BorderFactory.createEmptyBorder(t, t, t, t);
 	
-	public ThreadSearchProgressView(CardFinder finder){
+	public SearchThreadProgressView(CardFinder finder){
 		super (new BorderLayout());
 		this.finder = finder;
-		
+		JLabel label = new JLabel();
+		label.setText(finder.getName());
+		add(label,BorderLayout.NORTH);
 		add(progressBar);
-		add(cardNameLabel, BorderLayout.SOUTH);
-		cardNameLabel.setText("No serch...");	
+		add(resultsLabel, BorderLayout.SOUTH);
+		
+		Font f  = label.getFont().deriveFont(Font.BOLD);
+		label.setFont(f);
+		//cardNameLabel.setText("No serch...");	
 		/*
 		//setBackground(Color.green);
 		//setBorder(border);
@@ -71,7 +78,7 @@ public class ThreadSearchProgressView extends JPanel implements SearchObserver{
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				cardNameLabel.setText(text);
+				resultsLabel.setText(text);
 			}
 		});
 	}
@@ -92,7 +99,9 @@ public class ThreadSearchProgressView extends JPanel implements SearchObserver{
 		if (finder != this.finder)
 			return;
 		
-		setLabelText(card.getName());
+		//setLabelText(card.getName());
+		progressBar.setStringPainted(true);
+		progressBar.setString(card.getName());
 		
 	}
 
@@ -112,13 +121,41 @@ public class ThreadSearchProgressView extends JPanel implements SearchObserver{
 	}
 
 	@Override
-	public void searchThreadFinished(CardFinder finder) {
-		setLabelText("Completed");
+	public void searchThreadFinished(CardFinder finder, CardSearchResults results) {
+		if (this.finder == finder){
+			String text = "Completed";
+			
+			int all = results.getCardResults().size();
+			int found = all - results.getNotFoundCards().size();
+			
+			long time = results.getSearchTime();
+			
+			text = "Found " + found + "/" + all  + " cards in " + formatTime(time);
+			progressBar.setVisible(false);
+			setLabelText(text);
+		}
+	}
+	
+	private static String formatTime(long time){
+		int timeSeconds = (int) (time /1000); //Convert to seconds
+		int seconds = timeSeconds % 60;
+		timeSeconds =- seconds;
+		int minutes = timeSeconds/60;
+
+		String result;
+		
+		if (minutes == 0)
+			result = seconds  + " s";
+		else
+			result = minutes + " min " + seconds + " s";
+		
+		return result;
+		
 	}
 
 	@Override
 	public void searchThreadFailed(CardFinder finder, Throwable t) {
-		setLabelText("Finished");
+		setLabelText("Failed");
 	}
 
 	@Override

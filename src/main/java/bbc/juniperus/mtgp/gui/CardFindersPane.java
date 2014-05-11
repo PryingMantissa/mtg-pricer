@@ -2,6 +2,7 @@ package bbc.juniperus.mtgp.gui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,6 +16,7 @@ import bbc.juniperus.mtgp.cardsearch.SearchExecutor;
 
 @SuppressWarnings("serial")
 public class CardFindersPane extends JPanel{
+	
 	
 	private Map<JCheckBox, CardFinder> checkBoxMap = new HashMap<>();
 	private Controller controller;
@@ -53,11 +55,11 @@ public class CardFindersPane extends JPanel{
 	
 	public void showSearchProgress(SearchExecutor searchExecutor){
 		removeAll();
-		statusLabel.setText("<html><b>Search progress</b></html>");
+		statusLabel.setText("<html><b>Search in progress ...</b></html>");
 		add(statusLabel,"wrap");
 		
 		for (CardFinder finder : searchExecutor.getCardFinders()){
-			ThreadSearchProgressView view = new ThreadSearchProgressView(finder);
+			SearchThreadProgressView view = new SearchThreadProgressView(finder);
 			searchExecutor.addSearchObserver(view);
 			add(view, "wrap");
 		}
@@ -83,7 +85,6 @@ public class CardFindersPane extends JPanel{
 		public void actionPerformed(ActionEvent e) {
 			JCheckBox checkBox = (JCheckBox) e.getSource();
 			
-			System.out.println(checkBox.isSelected());
 			controller.setFinderEnabled(checkBoxMap.get(checkBox), checkBox.isSelected());
 		}
 		

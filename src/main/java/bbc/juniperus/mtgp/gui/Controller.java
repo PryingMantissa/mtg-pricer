@@ -26,6 +26,7 @@ import bbc.juniperus.mtgp.cardsearch.CardFinderFactory;
 import bbc.juniperus.mtgp.cardsearch.CardParser;
 import bbc.juniperus.mtgp.cardsearch.SearchExecutor;
 import bbc.juniperus.mtgp.cardsearch.SearchObserver;
+import bbc.juniperus.mtgp.cardsearch.CardSearchResults;
 import bbc.juniperus.mtgp.data.PricingSettings;
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.domain.CardResult;
@@ -160,9 +161,9 @@ public class Controller implements SearchObserver, GridListener {
 	}
 
 	@Override
-	public void searchThreadFinished(CardFinder finder) {
+	public void searchThreadFinished(CardFinder finder, CardSearchResults results) {
 		// TODO Auto-generated method stub
-		
+		 
 	}
 	
 	
