@@ -4,19 +4,20 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -25,6 +26,7 @@ import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.TransferHandler;
 import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -35,25 +37,30 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.tablemodel.Cell;
-import bbc.juniperus.mtgp.tablemodel.PricerTableModel;
+import bbc.juniperus.mtgp.tablemodel.MtgPricerTableModel;
+import bbc.juniperus.mtgp.tablemodel.MtgPricerTableModel.PricerColumn;
 
 @SuppressWarnings("serial")
 public class CardGrid extends JPanel implements TableModelListener {
 
+	private final static int NAME_COLUMN_MIN_WIDTH = 90;
+	private final static int QUANTITY_COLUMN_MIN_WIDTH = 40;
+	private final static int RESULT_COLUMN_MIN_WIDTH = 90;
+	
 	private JTable table;
 	private JScrollPane scrollPane;
-	private Border trueEmpty = BorderFactory.createEmptyBorder();
-	private PricerTableModel tableModel;
+	private Border EMPTY_BORDER = BorderFactory.createEmptyBorder();
+	private MtgPricerTableModel tableModel;
 //	private Color selectColor = new Color(225,225,225);
 	private Set<GridListener> listeners = new HashSet<>();
 	private InternalTableListener internalTableListener;
-	private CellRenderer copyOfRenderer = new CellRenderer();
+	private int lastColumnCount;
 	
-	
-	public CardGrid(PricerTableModel tableModel){   
+	public CardGrid(MtgPricerTableModel tableModel){   
 		this.tableModel = tableModel;
 		tableModel.addTableModelListener(this);
 		internalTableListener = new InternalTableListener();
@@ -91,8 +98,8 @@ public class CardGrid extends JPanel implements TableModelListener {
 		table.getActionMap().put(action.getValue(Action.NAME),action);
 	}
 	
-	private int getMaxColumnWidth(int column){
-		int width = 0;
+	private int getMaxColumnWidth(int column, int minWidth){
+		int width = minWidth;
 		
 		TableCellRenderer headerRenderer = table.getTableHeader().getDefaultRenderer();
         Component comp = headerRenderer.getTableCellRendererComponent(
@@ -122,7 +129,7 @@ public class CardGrid extends JPanel implements TableModelListener {
 		final int[] widths = new int[model.getColumnCount()];
 		
 		for (int i = 0; i < widths.length; i++){
-			int w = getMaxColumnWidth(i);
+			int w = getMaxColumnWidth(i, model.getColumn(i).getMinWidth());
 			widths[i] = w + margin;
 		}
 
@@ -145,11 +152,11 @@ public class CardGrid extends JPanel implements TableModelListener {
 
 			@Override public Dimension getPreferredSize() {
 		        Dimension d = super.getPreferredSize();
-		        d.height = 25;
+		        d.height = 25; //TODO magic!
 		        return d;
 			}
 		});
-		scrollPane.setBorder(trueEmpty);
+		scrollPane.setBorder(EMPTY_BORDER);
 		table.setBorder(null);
 		add(scrollPane);
 	}
@@ -163,18 +170,21 @@ public class CardGrid extends JPanel implements TableModelListener {
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		table.getTableHeader().setReorderingAllowed(false);
 		
-		/*
+		
 		TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>();
 		table.setRowSorter(sorter);
 		sorter.setModel(tableModel);
-		sorter.setComparator(0,new CellComparator());
-		sorter.setComparator(1,new CellComparator());
-		*/
+		
 		table.setDefaultRenderer(Object.class, new CellRenderer());
-		
-		
 		table.setShowHorizontalLines(false);
 		table.setShowVerticalLines(false);
+		
+		lastColumnCount = table.getColumnCount();
+		table.setTransferHandler(new TableTransferHandler()); //For custom translation of cell values when copying.
+		TableCellRenderer origHeaderRenderer = table.getTableHeader().getDefaultRenderer();
+		table.getTableHeader().setDefaultRenderer(
+				new HeaderCellDecorator(origHeaderRenderer));
+		
 		//table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		
 		/*
@@ -236,97 +246,113 @@ public class CardGrid extends JPanel implements TableModelListener {
 		*/
 	}
 	
+	private static int getMinColumnWidth(PricerColumn type){
+		if (type == PricerColumn.NAME)
+			return NAME_COLUMN_MIN_WIDTH;
+		else if (type == PricerColumn.QUANTITY)
+			return QUANTITY_COLUMN_MIN_WIDTH;
+		else if (type == PricerColumn.RESULT)
+			return RESULT_COLUMN_MIN_WIDTH;
+		else
+			throw new AssertionError();
+	}
 	
-	private class CellComparator implements Comparator<Cell>{
+	
+	class TableTransferHandler extends TransferHandler {
 
 		@Override
-		public int compare(Cell c1, Cell c2) {
-			
-			//If the first is not loaded
-			if (c1.getType() == Cell.Type.NOT_LOADED)
-				//..and the second is not.
-				if (c2.getType() != Cell.Type.NOT_LOADED)
-					return -1;
-				//if both are NA.
-				else
-					return 0;
-			//If only second is NA.
-			if (c2.getType() == Cell.Type.NOT_LOADED)
-				return 1;
-			
-			//If the first is NA...
-			if (c1.getType() == Cell.Type.NA)
-				//..and the second is not.
-				if (c2.getType() != Cell.Type.NA)
-					return -1;
-				//if both are NA.
-				else
-					return 0;
-			//If only second is NA.
-			if (c2.getType() == Cell.Type.NA)
-				return 1;
-			
-			
-			if (c1.getType() != c2.getType())
-				throw new IllegalArgumentException("Cells are not of the same type!");
-			
-			if (c1.getType() == Cell.Type.STRING)
-				return c1.getText().compareTo(c2.getText());
-			
-			if (c1.getType() == Cell.Type.PRICE){
-				Double d1 = Double.parseDouble(c1.getText().substring(0,5));
-				Double d2 = Double.parseDouble(c1.getText().substring(0,5));
-				return d1.compareTo(d2); 
-			}
-			if (c1.getType() == Cell.Type.INTEGER){
-				Integer i1 = Integer.parseInt(c1.getText());
-				Integer i2 = Integer.parseInt(c2.getText());
-				return i1.compareTo(i2); 
+		public void exportToClipboard(JComponent comp, Clipboard clip,
+				int action) throws IllegalStateException {
+			// TODO Auto-generated method stub
+			System.out.println("Exporting to clipboard");
+
+			JTable table = (JTable) comp; 
+			TableModel model = table.getModel();
+		
+			//System EOL character.
+			String sep = System.lineSeparator();
+			//Fall-back value.
+			if (sep == null)
+				sep = "\n";
+		
+			StringBuilder sb = new StringBuilder();	
+			int firstRow  = table.getSelectedRow();
+			int lastRow = table.getSelectedRowCount() + firstRow - 1;
+			for (int row = firstRow;  row <= lastRow; row++){
+				int firstColumn  = table.getSelectedColumn();
+				int lastColumn = table.getSelectedColumnCount() + firstColumn - 1;
+				for (int column = firstColumn; column <= lastColumn; column++){
+					Cell cell  = (Cell) model.getValueAt(row, column);
+					sb.append(cell.getText()).append("\t");
+				}
+				if (row != lastRow){
+					sb.append(sep);
+				}
 			}
 			
-			throw new IllegalArgumentException("We were not supposed to get here");
+			StringSelection sel = new StringSelection(sb.toString());
+			
+			clip.setContents(sel, null);
+		}
+			
+	}
+	
+	/**
+	 * Decorator to modify rendering of original table cell renderer.
+	 */
+	private class HeaderCellDecorator implements TableCellRenderer{
+		
+		private TableCellRenderer originalRenderer;
+		
+		public HeaderCellDecorator(TableCellRenderer originalRenderer){
+			this.originalRenderer = originalRenderer;
 		}
 		
+		
+		@Override
+		public Component getTableCellRendererComponent(JTable table,
+				Object val, boolean isSelected, boolean hasFocus, int row, int col) {
+			
+				JLabel lbl = (JLabel) originalRenderer.getTableCellRendererComponent(table,
+						val, isSelected, hasFocus, row, col);
+				
+				lbl.setHorizontalAlignment(SwingConstants.CENTER);
+				lbl.setFont(lbl.getFont().deriveFont(Font.BOLD));
+				
+				return lbl;
+		}
 	}
 	
 	private class CellRenderer extends DefaultTableCellRenderer{
-
-//		Border brdThinEmpty = BorderFactory.createEmptyBorder(1, 1, 1, 1);
-//		Border brdDefEmpty = BorderFactory.createEmptyBorder(2,2,2,2);
-//		Border focusBoder = UIManager.getDefaults().getBorder("Table.focusCellHighlightBorder");
+		
+		private final Border padding = BorderFactory.createEmptyBorder(2, 3, 2, 2);
+		private Color originalColor;
+		private final Color notFoundColor = Color.RED; 
+		
+		
+		public CellRenderer(){
+			originalColor = getForeground();
+		}
+		
 		
 		@Override
-		public Component getTableCellRendererComponent(JTable arg0,
+		public Component getTableCellRendererComponent(JTable table,
 				Object val, boolean isSelected, boolean hasFocus, int row, int col) {
 			
 			
 			Cell cell = (Cell) val;
-			String text = cell.getText();
-			JLabel lbl = (JLabel) super.getTableCellRendererComponent(arg0, val, isSelected, hasFocus, row, col);
+			JLabel lbl = (JLabel) super.getTableCellRendererComponent(table, val, isSelected, hasFocus, row, col);
 			
 			
-			if (cell.getType() == Cell.Type.NA){
-				text = "not found";
-				lbl.setForeground(Color.red);
-			}
-			
-			lbl.setText(text);
-			lbl.setHorizontalAlignment(getAllignment(cell.getType()));
-			//lbl.setBorder(brdDefEmpty);
-			/*
-			Color color;
-			Border brd = brdThinEmpty;
+			if (cell == Cell.NOT_FOUND_CELL){
+				lbl.setForeground(notFoundColor);
+			}else
+				lbl.setForeground(originalColor);
 
-			if (isSelected)
-				color = selectColor;
-			else
-				color = Color.WHITE;
-			
-			/*
-			if (hasFocus)
-				lbl.setBorder(focusBoder);
-			
-*/		
+			lbl.setBorder(padding);
+			lbl.setText(cell.getText());
+			lbl.setHorizontalAlignment(getAllignment(cell.getType()));
+	
 			return lbl;
 		}
 		
@@ -391,6 +417,24 @@ public class CardGrid extends JPanel implements TableModelListener {
 
 	@Override
 	public void tableChanged(TableModelEvent e) {
+		/*The only place where we receive events from changes in model
+		 * so we need to track the changes in  column count this way.
+		 */
+		if (tableModel.getColumnCount() != lastColumnCount){
+			System.out.println("The table column count changed from " + 
+					lastColumnCount + " to  " + tableModel.getColumnCount());
+			//Set the minimal column widths for all columns.
+			TableColumnModel columnModel = table.getColumnModel();
+			for (int i = 0; i < tableModel.getColumnCount(); i++) {
+				PricerColumn column = tableModel.getColumnType(i);
+				int minWidth = getMinColumnWidth(column);
+				columnModel.getColumn(i).setMinWidth(minWidth);
+			}
+			
+			lastColumnCount = tableModel.getColumnCount();
+		}
+			
+			
 		setColumnsAutoWidth();
 	}
 	

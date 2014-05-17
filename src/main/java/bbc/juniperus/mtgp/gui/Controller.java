@@ -30,7 +30,7 @@ import bbc.juniperus.mtgp.cardsearch.CardSearchResults;
 import bbc.juniperus.mtgp.data.PricingSettings;
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.domain.CardResult;
-import bbc.juniperus.mtgp.tablemodel.PricerTableModel;
+import bbc.juniperus.mtgp.tablemodel.MtgPricerTableModel;
 
 public class Controller implements SearchObserver, GridListener {
 	
@@ -44,7 +44,7 @@ public class Controller implements SearchObserver, GridListener {
 	private SearchExecutor searchExecutor;
 	private PricingSettings pricingSettings;
 	private List<CardFinder> finders;
-	private PricerTableModel tableModel;
+	private MtgPricerTableModel tableModel;
 	private Phase currentPhase;
 	private MainView mainView;
 	private String cardNameTextFieldValue;
@@ -55,7 +55,7 @@ public class Controller implements SearchObserver, GridListener {
 	public Controller(){
 		createActions();
 		finders = CardFinderFactory.allCardFinders();
-		tableModel = new PricerTableModel(this);
+		tableModel = new MtgPricerTableModel(this);
 		mainView = new MainView(this); //TODO maybe we dont need it here
 		mainView.show();
 	}
@@ -74,7 +74,7 @@ public class Controller implements SearchObserver, GridListener {
 		return pricingSettings;
 	}
 	
-	public PricerTableModel getTableModel(){
+	public MtgPricerTableModel getTableModel(){
 		System.out.println("returnin Tm: " + tableModel);
 		return tableModel;
 	}

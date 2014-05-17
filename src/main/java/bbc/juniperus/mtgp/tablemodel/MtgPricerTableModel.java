@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 
@@ -24,24 +25,23 @@ import bbc.juniperus.mtgp.gui.Controller.Phase;
  *
  */
 @SuppressWarnings("serial")
-public class PricerTableModel extends AbstractTableModel {
+public class MtgPricerTableModel extends AbstractTableModel {
 
-	private enum Column {
-		NAME("Name"), QUANTITY("Quantity");
+	public enum PricerColumn {
+		NAME("Name"), QUANTITY("Quantity"), RESULT("CardFinder");
 	
-		private final String name;
+		private final String headerText;
 		
-		Column(String name){
-			this.name = name;
+		PricerColumn(String name){
+			this.headerText = name;
 		}
 		
 		public String getName(){
-			return name;
+			return headerText;
 		}
 		
 	}
 	
-	private List<Column> columns = new ArrayList<Column>();
 	private PricingSettings pricingSettings;
 	private Phase currentPhase;
 	private Controller controller;
@@ -52,7 +52,7 @@ public class PricerTableModel extends AbstractTableModel {
 	 * Constructs table model around {@link DataStorage}.
 	 * @param data central data storage.
 	 */
-	public PricerTableModel(Controller controller){
+	public MtgPricerTableModel(Controller controller){
 		//data.addDataChangeListener(this);
 		//Default columns.
 		this.controller = controller;
@@ -131,9 +131,9 @@ public class PricerTableModel extends AbstractTableModel {
 		
 		Card card  = getCardAt(row);
 		
-		if (column == Column.NAME.ordinal())
+		if (column == PricerColumn.NAME.ordinal())
 			return new Cell(card.getName(), Cell.Type.STRING); 
-		else if (column == Column.QUANTITY.ordinal())
+		else if (column == PricerColumn.QUANTITY.ordinal())
 			return new Cell(pricingSettings.getQuantity(card) + "", Cell.Type.INTEGER);
 		else
 			if (currentPhase != Phase.SEARCHING && currentPhase != Phase.SEARCHING)
@@ -143,16 +143,20 @@ public class PricerTableModel extends AbstractTableModel {
 				CardResult result = resultsContainer.get(cardFinder).getCardResult(card);
 				
 				String val;
-				if (result == null) //not yet found
-					val = "x";
-				else if (result == CardResult.NULL_CARD_RESULT)
-					val = "N/A";
-				else
-					val = result.getPrice() + " KKT";
-				return new Cell(val,Cell.Type.STRING);
+				if (result == null) //This card is not processed yet so show just empty string.
+					return Cell.NOT_PROCESSED_CELL;
+				else if (result == CardResult.NULL_CARD_RESULT) //The card was not found.
+					return Cell.NOT_FOUND_CELL;
+				else{
+					val = result.getPrice() + " " + result.getCurrency().getCurrencyCode();
+					return new Cell(val,Cell.Type.PRICE);
+				}
 			}
 	}
 
+
+	
+	
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
@@ -166,8 +170,8 @@ public class PricerTableModel extends AbstractTableModel {
 			throw new AssertionError();
 			*/
 		
+		
 		return Cell.class;
-					
 	}
 	
 
@@ -188,7 +192,6 @@ public class PricerTableModel extends AbstractTableModel {
 			return 2;
 		else if (currentPhase == Phase.SEARCHING ||
 				currentPhase == Phase.PRICING_FINISHED){
-			System.out.println("returning " + (2 + cardFinders.size()));
 			return 2 + cardFinders.size();
 		}
 		else;
@@ -205,12 +208,21 @@ public class PricerTableModel extends AbstractTableModel {
 	
 	@Override
 	public String getColumnName(int columnIndex) {
-		if (columnIndex < Column.values().length)
-			return Column.values()[columnIndex].getName();
-		else{
+		PricerColumn column = getColumnType(columnIndex);
+		
+		if (column == PricerColumn.RESULT){
 			CardFinder cardFinder = cardFinders.get(columnIndex - 2);
 			return cardFinder.getName();
-		}
+		}else
+			return column.getName();
+		
+	}
+	
+	public PricerColumn getColumnType(int columnIndex){
+		if (columnIndex < 2)
+			return PricerColumn.values()[columnIndex];
+		else
+			return PricerColumn.RESULT;
 	}
 	
 	
@@ -224,7 +236,7 @@ public class PricerTableModel extends AbstractTableModel {
 		
 		Card card = getCardAt(rowIndex);
 		
-		if (columnIndex == Column.NAME.ordinal()){
+		if (columnIndex == PricerColumn.NAME.ordinal()){
 			String str = (String) value;
 			Card newCard = new Card(str.trim());
 			

@@ -6,12 +6,15 @@ package bbc.juniperus.mtgp.tablemodel;
  * to be rendered/ordered properly.
  *
  */
-public class Cell{
+public class Cell implements Comparable<Cell>{
 	
 	/**
 	 * Type of cell. Useful for comparing and ordering of the cells.
 	 */
-	public static enum Type {STRING, PRICE, INTEGER, NOT_LOADED,NA};
+	public static enum Type {STRING, PRICE, INTEGER};
+	
+	public static Cell NOT_FOUND_CELL = new Cell("not found",Type.PRICE);
+	public static Cell NOT_PROCESSED_CELL = new Cell("",Type.PRICE);
 	
 	private String text;
 	private Type type;
@@ -75,6 +78,56 @@ public class Cell{
 	@Override
 	public String toString(){
 		return getClass().getSimpleName() + " [ text:"  + text  + ", type: " + type + "]";
+	}
+
+	@Override
+	public int compareTo(Cell anotherCell) {
+		
+		//If the first is not loaded
+		if (this == Cell.NOT_PROCESSED_CELL)
+			//..and the second is not.
+			if (anotherCell != Cell.NOT_PROCESSED_CELL)
+				return -1;
+			//if both are NA.
+			else
+				return 0;
+		//If only second is NA.
+		if (anotherCell == Cell.NOT_PROCESSED_CELL)
+			return 1;
+		
+		//If the first is NA...
+		if (this == Cell.NOT_FOUND_CELL)
+			//..and the second is not.
+			if (anotherCell != Cell.NOT_FOUND_CELL)
+				return -1;
+			//if both are NA.
+			else
+				return 0;
+		//If only second is NA.
+		if (anotherCell == Cell.NOT_FOUND_CELL)
+			return 1;
+		
+		
+		if (this.getType() != anotherCell.getType())
+			throw new IllegalArgumentException("Cells are not of the same type!");
+		
+		if (this.getType() == Cell.Type.STRING)
+			return this.getText().compareTo(anotherCell.getText());
+		
+		if (this.getType() == Cell.Type.PRICE){
+			
+			//Split the format '##.## CURRENCY' and take the first token -  double value part (get rid of currency characters).
+			Double d1 = Double.parseDouble(this.getText().split(" ")[0]); 
+			Double d2 = Double.parseDouble(this.getText().split(" ")[0]);
+			return d1.compareTo(d2); 
+		}
+		if (this.getType() == Cell.Type.INTEGER){
+			Integer i1 = Integer.parseInt(this.getText());
+			Integer i2 = Integer.parseInt(anotherCell.getText());
+			return i1.compareTo(i2); 
+		}
+		
+		throw new AssertionError();
 	}
 	
 }

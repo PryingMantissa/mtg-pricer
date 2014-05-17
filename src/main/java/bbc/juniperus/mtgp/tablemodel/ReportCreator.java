@@ -8,9 +8,9 @@ import bbc.juniperus.mtgp.domain.Card;
  */
 public class ReportCreator {
 	
-	private PricerTableModel data;
+	private MtgPricerTableModel data;
 	
-	public ReportCreator(PricerTableModel tableModel){
+	public ReportCreator(MtgPricerTableModel tableModel){
 		this.data = tableModel;
 	}
 	

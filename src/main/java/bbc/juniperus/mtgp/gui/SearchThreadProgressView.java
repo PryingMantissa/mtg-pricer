@@ -3,6 +3,7 @@ package bbc.juniperus.mtgp.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 
 import javax.swing.BorderFactory;
@@ -21,19 +22,10 @@ import bbc.juniperus.mtgp.domain.CardResult;
 @SuppressWarnings("serial")
 public class SearchThreadProgressView extends JPanel implements SearchObserver{
 
-	private static final SimpleDateFormat TIME_FORMAT = new SimpleDateFormat("mm:ss");
-	private JProgressBar progressBar = new JProgressBar();
-	private JLabel resultsLabel = new JLabel();
-	private CardFinder finder;
-//	private JLabel lblFoundNumber;
-//	private JLabel lblPrice;
-//	private JLabel lblName;
-//	
-	Border brdRight = BorderFactory.createEmptyBorder(0, 0, 0, 30);
-	Border brdLeft = BorderFactory.createEmptyBorder(0, 30, 0, 0);
-	
-	private int t = 5;
-	Border border = BorderFactory.createEmptyBorder(t, t, t, t);
+	private final JProgressBar progressBar = new JProgressBar();
+	private final JLabel resultsLabel = new JLabel();
+	private final CardFinder finder;
+	private final static DecimalFormat DOUBLE_FORMAT = new DecimalFormat("#.##");
 	
 	public SearchThreadProgressView(CardFinder finder){
 		super (new BorderLayout());
@@ -123,14 +115,25 @@ public class SearchThreadProgressView extends JPanel implements SearchObserver{
 	@Override
 	public void searchThreadFinished(CardFinder finder, CardSearchResults results) {
 		if (this.finder == finder){
-			String text = "Completed";
 			
 			int all = results.getCardResults().size();
 			int found = all - results.getNotFoundCards().size();
-			
+
 			long time = results.getSearchTime();
 			
-			text = "Found " + found + "/" + all  + " cards in " + formatTime(time);
+			double totalPrice = 0;
+			
+			for (CardResult cardResult : results.getCardResults().values())
+				if (cardResult != CardResult.NULL_CARD_RESULT)
+					totalPrice += cardResult.getPrice();
+			
+			
+			
+			String  text = "Found " + found + "/" + all  + " cards <br/>" + 
+			"Pricing time: "+ formatTime(time) + "<br/>" +
+			"Total price: " + DOUBLE_FORMAT.format(totalPrice) + " " + finder.getCurrency().getCurrencyCode(); 
+			
+			text = "<html><body style='padding-left:10px;'>"+  text + "</body></html>";
 			progressBar.setVisible(false);
 			setLabelText(text);
 		}

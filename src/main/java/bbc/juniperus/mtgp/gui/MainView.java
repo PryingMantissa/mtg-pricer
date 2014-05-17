@@ -1,6 +1,7 @@
 package bbc.juniperus.mtgp.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -36,10 +37,18 @@ import bbc.juniperus.mtgp.gui.Controller.UserAction;
 public class MainView {
 	
 	
-	private static final Border ETCHED_BORDER = BorderFactory.createEtchedBorder();
+	private final static Color BORDER_COLOR = new Color(190,190,190);
+	//private static final Border ETCHED_BORDER = BorderFactory.createEtchedBorder();
+	private static final Border LINE_BORDER = BorderFactory.createLineBorder(BORDER_COLOR);
+	private static final Border PADDING_BORDER = BorderFactory.createEmptyBorder(1, 1, 1, 1);
+	private static final Border ETCHED_BORDER = BorderFactory.createCompoundBorder(PADDING_BORDER, LINE_BORDER);
+	
+	private static final int PADDING = 1;
+	//private final static Border PADDING_BORDER = BorderFactory.createEmptyBorder(PADDING,PADDING,PADDING,PADDING);
 	private static final int HEIGHT = 500;
  	private static final int WIDTH = 850;
 
+ 	private JPanel windowPane;
 	private JPanel tablePane;
 	private CardGrid cardGrid;
 	private CardFindersPane findersPane;
@@ -59,6 +68,9 @@ public class MainView {
 		window.setIconImage(ResourceLoader.ICON_APP.getImage());
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		window.setLocationRelativeTo(null);
+		windowPane = new JPanel(new BorderLayout());
+		windowPane.setBorder(PADDING_BORDER);
+		window.add(windowPane);
 		this.controller = controller;
 		setupGui();
 	}
@@ -129,10 +141,11 @@ public class MainView {
 		tablePane.add(cardGrid);
 		
 		toolBar = createToolBar();
-		window.add(toolBar, BorderLayout.NORTH);
+		windowPane.add(toolBar, BorderLayout.NORTH);
 		findersPane = new CardFindersPane(controller);
-		window.add(findersPane, BorderLayout.WEST);
-		window.add(tablePane, BorderLayout.CENTER);
+		findersPane.setBorder(ETCHED_BORDER);
+		windowPane.add(findersPane, BorderLayout.WEST);
+		windowPane.add(tablePane, BorderLayout.CENTER);
 		window.setJMenuBar(createMenuBar());
 		
 	}
