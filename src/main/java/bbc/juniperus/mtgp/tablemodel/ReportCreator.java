@@ -1,6 +1,10 @@
 package bbc.juniperus.mtgp.tablemodel;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import bbc.juniperus.mtgp.domain.Card;
+import bbc.juniperus.mtgp.tablemodel.MtgPricerTableModel.PricerColumn;
 
 /**
  * Generator of string reports in various formats. Used for export functionality 
@@ -8,34 +12,57 @@ import bbc.juniperus.mtgp.domain.Card;
  */
 public class ReportCreator {
 	
-	private MtgPricerTableModel data;
+	private MtgPricerTableModel tableModel;
 	
 	public ReportCreator(MtgPricerTableModel tableModel){
-		this.data = tableModel;
+		this.tableModel = tableModel;
 	}
 	
 	/**
 	 * Creates card pricing table in normal txt format.
 	 * @return txt format card - price table.
 	 */
-	public String generateFormattedReport(){
+	public String generateTxtReport(){
 		
-		StringBuilder sb = new StringBuilder();
 		
-		int rowCount = data.getRowCount();
-		int colCount = data.getColumnCount();
+		int rowCount = tableModel.getRowCount();
+		int colCount = tableModel.getColumnCount();
+		
+		//Find out maximum widths.
+		Map<Integer,Integer> columnWidths = new HashMap<Integer, Integer>();
+		for (int column = 0 ; column < colCount;column++){
+			int maxWidth = tableModel.getColumnName(column).length();
+			for (int row = 0; row < rowCount; row++){
+				Cell val = (Cell) tableModel.getValueAt(row, column);
+				maxWidth = Math.max(maxWidth, val.getText().length());
+			}
+			columnWidths.put(column, maxWidth);
+		}
 
+		StringBuilder sb = new StringBuilder();
+		//Write headers.
 		for (int i = 0 ; i < colCount;i++){
-			String text = alignLeft(data.getColumnName(i), data.getColumnInfo(i).getWidth());
+			String text = alignLeft(tableModel.getColumnName(i), columnWidths.get(i));
 			sb.append(text);
 			if (i - 1 <  colCount)
 				sb.append(" | ");
 		}
 		sb.append("\n");
-
+		//Headers & body separating line.
+		for (int i = 0 ; i < colCount;i++){
+			for (int j = 0; j < columnWidths.get(i); j++)
+			sb.append("-");
+			if (i - 1 <  colCount)
+				sb.append(" | ");
+		}
+		sb.append("\n");
+		
+		
+		//Write rest of values.
 		for (int i = 0; i < rowCount; i++) {
 			for (int j = 0; j < colCount; j++){
-				sb.append(getPaddedValue(i, j));
+				sb.append(getPaddedValue(i, j, columnWidths.get(j)));
+
 				if (j - 1 <  colCount)
 					sb.append(" | ");
 			}
@@ -43,6 +70,8 @@ public class ReportCreator {
 		}
 			
 		return sb.toString();
+		
+		//TODO add total price
 	}
 	
 	/**
@@ -54,14 +83,14 @@ public class ReportCreator {
 		
 		StringBuilder sb = new StringBuilder();
 		
-		for (int i = 0 ; i < data.getColumnCount();i++)
-			sb.append(data.getColumnName(i) +";");
+		for (int i = 0 ; i < tableModel.getColumnCount();i++)
+			sb.append(tableModel.getColumnName(i) +";");
 			
 		sb.append("\n");
 		
-		for (int i = 0; i < data.getRowCount(); i++) {
-			for (int j = 0; j < data.getColumnCount(); j++){
-				sb.append(data.getValueAt(i,j).toString());
+		for (int i = 0; i < tableModel.getRowCount(); i++) {
+			for (int j = 0; j < tableModel.getColumnCount(); j++){
+				sb.append(tableModel.getValueAt(i,j).toString());
 				sb.append(separator);
 			}
 			sb.append("\n");
@@ -77,10 +106,10 @@ public class ReportCreator {
 	public String createCardList(){
 		
 		StringBuilder sb = new StringBuilder();
-
+/*
 		int qCol = -1;
-		for (int i = 0 ; i < data.getColumnCount(); i++)
-			if (data.getColumnInfo(i).getType() == Column.Type.QUANTITY){
+		for (int i = 0 ; i < tableModel.getColumnCount(); i++)
+			if (tableModel.getColumnInfo(i).getType() == Column.Type.QUANTITY){
 				qCol = i;
 				break;
 			}
@@ -89,12 +118,13 @@ public class ReportCreator {
 			throw new IllegalStateException("There is no quantity columns. Aplication error.");
 		
 		
-		for (int i = 0; i < data.getRowCount(); i++) {
-			Card card = data.getCardAt(i);
+		for (int i = 0; i < tableModel.getRowCount(); i++) {
+			Card card = tableModel.getCardAt(i);
 			sb.append(card.getName() + " ");
-			sb.append(data.getValueAt(i, qCol).toString());
+			sb.append(tableModel.getValueAt(i, qCol).toString());
 			sb.append("\n");
 		}
+		*/
 		return sb.toString();
 	}
 	
@@ -106,14 +136,15 @@ public class ReportCreator {
 	 * @param column
 	 * @return
 	 */
-	private String getPaddedValue(int row,int column){
-		Column col = data.getColumnInfo(column);
-		String res = data.getValueAt(row,column).toString();
+	private String getPaddedValue(int row,int column, int width){
+		PricerColumn col = tableModel.getColumnType(column);
+		Cell val = (Cell) tableModel.getValueAt(row,column);
+		String res = val.getText();
 		
-		if (col.getAlignment() == Column.RIGHT)
-			res = alignRight(res, col.getWidth());
+		if (col == PricerColumn.QUANTITY || col == PricerColumn.RESULT)
+			res = alignRight(res, width);
 		else
-			res = alignLeft(res, col.getWidth());
+			res = alignLeft(res, width);
 		
 		return res;
 	}

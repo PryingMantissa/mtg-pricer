@@ -1,16 +1,19 @@
 package bbc.juniperus.mtgp.gui;
 
-import java.awt.Cursor;
 import java.awt.Desktop;
 import java.awt.event.ActionEvent;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,16 +24,19 @@ import javax.swing.JFileChooser;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
+import com.sun.java.swing.plaf.windows.resources.windows;
+
 import bbc.juniperus.mtgp.cardsearch.CardFinder;
 import bbc.juniperus.mtgp.cardsearch.CardFinderFactory;
 import bbc.juniperus.mtgp.cardsearch.CardParser;
+import bbc.juniperus.mtgp.cardsearch.CardSearchResults;
 import bbc.juniperus.mtgp.cardsearch.SearchExecutor;
 import bbc.juniperus.mtgp.cardsearch.SearchObserver;
-import bbc.juniperus.mtgp.cardsearch.CardSearchResults;
 import bbc.juniperus.mtgp.data.PricingSettings;
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.domain.CardResult;
 import bbc.juniperus.mtgp.tablemodel.MtgPricerTableModel;
+import bbc.juniperus.mtgp.tablemodel.ReportCreator;
 
 public class Controller implements SearchObserver, GridListener {
 	
@@ -116,7 +122,6 @@ public class Controller implements SearchObserver, GridListener {
 	}
 	
 	public void quantitySpinnerValueChanged(int newValue){
-		System.out.println("spinner val changed" + newValue);
 		quantitySpinnerValue = newValue;
 	}
 	
@@ -476,30 +481,30 @@ public class Controller implements SearchObserver, GridListener {
 		public void actionPerformed(ActionEvent e) {
 			
 			System.out.println("Exporting cards to txt");
-			/*
+			
 			JFileChooser chooser = new JFileChooser();
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 			String name = "exported-deck_" + sdf.format(new Date()) + ".txt";
 			chooser.setSelectedFile(new File(name));
-			chooser.showSaveDialog(window);
+			chooser.showSaveDialog(null);
 			File f = chooser.getSelectedFile();
 			if (f == null)
 				return;
 			
-			ReportCreator report = new ReportCreator(view.tableModel());
+			ReportCreator report = new ReportCreator(tableModel);
 			try {
 				FileWriter fw = new FileWriter(f);
 				BufferedWriter  bw = new BufferedWriter(fw);
-				bw.write(report.generateFormattedReport());
+				bw.write(report.generateTxtReport());
 				bw.close();
 			} catch (IOException ex) {
-				reportError("An I/O exception occurred while writing to file\n" +
+				mainView.reportError("An I/O exception occurred while writing to file\n" +
 							f.getName() +
 							"\n\n" +
 							ex.getMessage());
 				ex.printStackTrace();
 			}
-			*/
+			
 		}
 		
 	}

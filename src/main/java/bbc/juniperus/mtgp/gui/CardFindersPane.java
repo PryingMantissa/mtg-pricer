@@ -2,6 +2,7 @@ package bbc.juniperus.mtgp.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.SimpleDateFormat;
@@ -15,6 +16,8 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 
+import com.sun.naming.internal.ResourceManager;
+
 import net.miginfocom.swing.MigLayout;
 import bbc.juniperus.mtgp.cardsearch.CardFinder;
 import bbc.juniperus.mtgp.cardsearch.SearchExecutor;
@@ -22,14 +25,17 @@ import bbc.juniperus.mtgp.cardsearch.SearchExecutor;
 @SuppressWarnings("serial")
 public class CardFindersPane extends JPanel{
 	
+	private static final int TOTAL_WIDTH = 170;
 	
 	private Map<JCheckBox, CardFinder> checkBoxMap = new HashMap<>();
 	private Controller controller;
-	private JLabel header;
+	private JLabel headLabelLeft;
+	private JLabel headLabelRight;
+	private JPanel header;
 	private JPanel body;
-	private static final int WIDTH = 5;
+	private static final int BORDER_WIDTH = 5;
 	private final static Color BORDER_COLOR = new Color(190,190,190);
-	private final static Border PADDING_BORDER = BorderFactory.createEmptyBorder(WIDTH, WIDTH, WIDTH - 3, WIDTH);
+	private final static Border PADDING_BORDER = BorderFactory.createEmptyBorder(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH - 3, BORDER_WIDTH);
 	private final static Border LINE_BORDER = BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER_COLOR);
 	private final static Border HEADER_BORDER = BorderFactory.createCompoundBorder(LINE_BORDER, PADDING_BORDER);
 	private Color bcgColor = Color.white;
@@ -45,10 +51,17 @@ public class CardFindersPane extends JPanel{
 		//JLabel lbl = new JLabel(searcher.getName());
 		//add(lbl, BorderLayout.NORTH);
 		//add(new SearchThreadView(pricer,searcher), BorderLayout.CENTER);
-		header = new JLabel();
+		header = new JPanel(new BorderLayout());
+		headLabelLeft = new JLabel();
+		headLabelRight = new JLabel();
+		header.add(headLabelLeft, BorderLayout.WEST);
+		header.add(headLabelRight, BorderLayout.EAST);
 		
 		header.setOpaque(true);
 		//header.setBackground(Color.blue);
+		
+		//Fix the size of the header to 25 px so it does not change size with differen icons.
+		header.setPreferredSize(new Dimension(header.getPreferredSize().width,25));
 		
 		header.setBorder(HEADER_BORDER);
 		body.setBackground(Color.white);
@@ -57,10 +70,17 @@ public class CardFindersPane extends JPanel{
 	}
 	
 	
+	@Override
+	public Dimension getPreferredSize(){
+		Dimension dim = super.getPreferredSize();
+		dim.width = TOTAL_WIDTH;
+		return dim;
+	}
+
 	public void showFinderSettings(){
 		
-		header.setText("<html><b> Card pricing sources</b></html>");
-		
+		headLabelLeft.setText("<html><b> Card pricing sources</b></html>");
+		headLabelRight.setIcon(ResourceLoader.ICON_SEARCH_SETTINGS);
 		CheckBoxListener listener = new CheckBoxListener();
 		checkBoxMap.clear();
 		
@@ -80,7 +100,8 @@ public class CardFindersPane extends JPanel{
 	}
 	
 	public void showSearchProgress(SearchExecutor searchExecutor){
-		header.setText("<html><b>Search in progress</b></html>");
+		headLabelLeft.setText("<html><b>Search in progress</b></html>");
+		headLabelRight.setIcon(ResourceLoader.ICON_LOADING);
 		body.removeAll();
 		body.setLayout(new MigLayout()); //New Miglayout with gaps between rows.
 		
@@ -94,15 +115,18 @@ public class CardFindersPane extends JPanel{
 	}
 	
 	public void displayStoppingSearch(){
-		header.setText("<html ><b>Stopping the search...</b></html>");
+		headLabelLeft.setText("<html><b>Stopping the search</b></html>");
+		headLabelRight.setIcon(ResourceLoader.ICON_STOPPING);
 	}
 	
 	public void displaySearchStopped(){
-		header.setText("<html><b>Search stopped by user</b></html>");
+		headLabelLeft.setText("<html><b>Search stopped by user</b></html>");
+		headLabelRight.setIcon(ResourceLoader.ICON_SEARCH_FINISHED);
 	}
 	
 	public void displaySearchFinished(){
-		header.setText("<html><b>Search succesfully finished</b></html>");
+		headLabelLeft.setText("<html><b>Search finished</b></html>");
+		headLabelRight.setIcon(ResourceLoader.ICON_SEARCH_FINISHED);
 		body.revalidate();
 	}
 	
