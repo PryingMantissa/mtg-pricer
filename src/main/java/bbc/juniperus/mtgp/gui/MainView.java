@@ -82,11 +82,16 @@ public class MainView {
 	
 	public void searchStarted(SearchExecutor executor){
 		findersPane.showSearchProgress(executor);
+		addSpinner.setEnabled(false);
+		addTextField.setEnabled(false);
 		window.pack();
 	}
 	
 	
 	public void newPricing(){
+		addSpinner.setEnabled(true);
+		addTextField.setEnabled(true);
+		setNewFindersPane();
 		findersPane.showFinderSettings();
 	}
 	
@@ -142,12 +147,19 @@ public class MainView {
 		
 		toolBar = createToolBar();
 		windowPane.add(toolBar, BorderLayout.NORTH);
-		findersPane = new CardFindersPane(controller);
-		findersPane.setBorder(ETCHED_BORDER);
-		windowPane.add(findersPane, BorderLayout.WEST);
+		
 		windowPane.add(tablePane, BorderLayout.CENTER);
 		window.setJMenuBar(createMenuBar());
 		
+	}
+	
+	private void setNewFindersPane(){
+		if (findersPane != null)
+			windowPane.remove(findersPane);
+		findersPane = new CardFindersPane(controller);
+		findersPane.setBorder(ETCHED_BORDER);
+		windowPane.add(findersPane, BorderLayout.WEST);
+		windowPane.revalidate();
 	}
 	
 	

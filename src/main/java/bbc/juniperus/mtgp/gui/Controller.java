@@ -73,6 +73,7 @@ public class Controller implements SearchObserver, GridListener {
 			pricingSettings.addFinder(finder);
 		tableModel.newPricing(pricingSettings);
 		mainView.newPricing();
+		setDefaultActionAvailability();
 		tableModel.fireTableStructureChanged();
 	}
 	
@@ -100,6 +101,8 @@ public class Controller implements SearchObserver, GridListener {
 		
 		if (!enabled && pricingSettings.getFinders().contains(finder))
 			pricingSettings.removeFinder(finder);
+		actionMap.get(UserAction.START_SEARCH).setEnabled((pricingSettings.getFinders().size() > 0));
+		
 	}
 	
 	
@@ -153,12 +156,12 @@ public class Controller implements SearchObserver, GridListener {
 		
 		//System.out.println(finder + " " + searchExecutor.getResultsStorage(finder).getCardResults().size());
 		
-		
 		SwingUtilities.invokeLater(new Runnable(){
 
 			@Override
 			public void run() {
 				tableModel.fireTableRowsUpdated(0, Integer.MAX_VALUE);
+				
 			}
 			
 		});
@@ -174,12 +177,25 @@ public class Controller implements SearchObserver, GridListener {
 	
 
 	@Override
-	public void searchingFinished(boolean interrupted) {
+	public void searchingFinished(final boolean interrupted) {
 		System.out.println("Searching finished");
-		if (interrupted)
-			mainView.searchStopped(); //In case the search was stopped by user and the view was set to busy state
-		else
-			mainView.searchFinished();
+		currentPhase = Phase.PRICING_FINISHED;
+		
+	
+		SwingUtilities.invokeLater(new Runnable(){
+
+			@Override
+			public void run() {
+				if (interrupted)
+					mainView.searchStopped(); //In case the search was stopped by user and the view was set to busy state
+				else
+					mainView.searchFinished();
+				disableAction(UserAction.STOP_SEARCH);
+				enableAction(UserAction.NEW_SEARCH);
+			}
+			
+		});
+		
 	}
 	
 
@@ -247,7 +263,7 @@ public class Controller implements SearchObserver, GridListener {
 		actionMap.put(UserAction.EXPORT_TO_CSV, action);
 		action = new ExportTableTxtAction();
 		actionMap.put(UserAction.EXPORT_TO_TXT, action);
-		action = new NewSearchAction();
+		action = new NewPricingAction();
 		actionMap.put(UserAction.NEW_SEARCH, action);
 		action = new SearchInBrowserAction();
 		actionMap.put(UserAction.OPEN_IN_BROWSER, action);
@@ -275,6 +291,7 @@ public class Controller implements SearchObserver, GridListener {
 	}
 	
 	private void setDefaultActionAvailability(){
+		enableAction(UserAction.IMPORT_CARDS);
 		disableAction(UserAction.REMOVE_CARD);
 		disableAction(UserAction.ADD_CARD);
 		disableAction(UserAction.OPEN_IN_BROWSER);
@@ -291,43 +308,17 @@ public class Controller implements SearchObserver, GridListener {
 	
 	
 	@SuppressWarnings("serial")
-	private class NewSearchAction extends AbstractAction{
+	private class NewPricingAction extends AbstractAction{
 
-		NewSearchAction(){
+		NewPricingAction(){
 			super("New pricing");
 		}
 		
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			
-			System.out.println("New pricing");
-			
-			/*
-			String msg = "This will";
-			if (searchExecutor.isSearchInProgress())
-				msg += " interrupt the current search and";
-			msg += " clear the card list.\n Do you want to continue?";
-			String title = "For sure?";
-			
-			int response = JOptionPane.showConfirmDialog(window, msg,
-					title, JOptionPane.YES_NO_OPTION);
-			if (response == JOptionPane.NO_OPTION)
-				return;
-			
-			//Interrup. Just in case the search is in progress.
-			searchExecutor.interrupt();
-			
-			//Disable them as no notification will be received from the table
-			//that table has no rows.
-			actionMap.get(NewSearchAction.class).setEnabled(false);
-			actionMap.get(StartSearchAction.class).setEnabled(false);
-
-			window.remove(leftPane);
-			window.add(createCardFindersPane(), BorderLayout.WEST);
-			window.validate();
-			window.repaint();
-			
-			startNewPricing();*/
+			assert currentPhase != Phase.SEARCHING;
+			newPricing();
 		}
 		
 	}
@@ -354,6 +345,15 @@ public class Controller implements SearchObserver, GridListener {
 				enableAction(UserAction.START_SEARCH); //Enable start search if we added some cards
 		}
 		
+		@Override
+		public void setEnabled(boolean newValue) {
+			if (newValue){
+				if (currentPhase != Phase.SETTING)
+					return;
+			}
+			super.setEnabled(newValue);
+		}
+		
 	}
 	
 	@SuppressWarnings("serial")
@@ -377,6 +377,17 @@ public class Controller implements SearchObserver, GridListener {
 			if (pricingSettings.getCards().size() < 1) //Disable start search if there are no cards left
 				disableAction(UserAction.START_SEARCH);
 		}
+
+		@Override
+		public void setEnabled(boolean newValue) {
+			if (newValue){
+				if (currentPhase == Phase.SEARCHING)
+					return;
+			}
+			super.setEnabled(newValue);
+		}
+		
+		
 		
 	}
 	
@@ -441,30 +452,30 @@ public class Controller implements SearchObserver, GridListener {
 			
 			System.out.println("Exporting cards");
 			
-			/*
+			
 			JFileChooser chooser = new JFileChooser();
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 			String name = "exported-deck_" + sdf.format(new Date()) + ".csv";
 			chooser.setSelectedFile(new File(name));
-			chooser.showSaveDialog(window);
+			chooser.showSaveDialog(null);
 			File f = chooser.getSelectedFile();
 			if (f == null)
 				return;
 			
-			ReportCreator report = new ReportCreator(view.tableModel());
+			ReportCreator report = new ReportCreator(tableModel);
 			try {
 				FileWriter fw = new FileWriter(f);
 				BufferedWriter  bw = new BufferedWriter(fw);
 				bw.write(report.createCSVReport(","));
 				bw.close();
 			} catch (IOException ex) {
-				reportError("An I/O exception occurred while writing to file\n" +
+				mainView.reportError("An I/O exception occurred while writing to file\n" +
 							f.getName() +
 							"\n\n" +
 							ex.getMessage());
 				ex.printStackTrace();
 			}
-			*/
+			
 		}
 		
 	}
@@ -509,6 +520,7 @@ public class Controller implements SearchObserver, GridListener {
 		
 	}
 	
+	
 	private class ExportCardListAction extends AbstractAction{
 		
 		public ExportCardListAction() {
@@ -536,12 +548,34 @@ public class Controller implements SearchObserver, GridListener {
 			searchExecutor = new SearchExecutor(pricingSettings.getCards(), 
 					pricingSettings.getFinders());
 			searchExecutor.addSearchObserver(Controller.this);
+			currentPhase = Phase.SEARCHING;
 			mainView.searchStarted(searchExecutor);
 			searchExecutor.startSearch();
 			tableModel.startPresentingResults(searchExecutor.getResultsStorage());
 			enableAction(UserAction.STOP_SEARCH);
+			disableAction(UserAction.START_SEARCH);
+			disableAction(UserAction.ADD_CARD);
+			disableAction(UserAction.REMOVE_CARD);
+			disableAction(UserAction.IMPORT_CARDS);
+			disableAction(UserAction.NEW_SEARCH);
 			
 		}
+
+		/**
+		 * Intercepts the call and inspects if the action can really be enabled.
+		 */
+		@Override
+		public void setEnabled(boolean newValue) {
+			if (newValue){
+				//There must be at least 1 card and card pricer selected.
+				if (pricingSettings.getCards().size() == 0||
+						pricingSettings.getFinders().size() == 0)
+					return;
+			}
+			super.setEnabled(newValue);
+		}
+		
+		
 	}
 	
 	@SuppressWarnings("serial")

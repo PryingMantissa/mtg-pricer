@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,7 +21,8 @@ public class SearchExecutor{
 
 	public enum Phase {SETTING, SEARCHING, PRICING_FINISHED}
 
-	private Set<SearchObserver> observers = new HashSet<>();
+	//To prevent concurrent modification exception when iterating concurrently we use concurrent hash set.
+	private Set<SearchObserver> observers = Collections.newSetFromMap(new HashMap<SearchObserver,Boolean>());
 	
 	private volatile boolean interruped;
 	private volatile int findersLeft;
