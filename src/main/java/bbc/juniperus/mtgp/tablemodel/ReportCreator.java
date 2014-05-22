@@ -122,33 +122,6 @@ public class ReportCreator {
 	}
 
 	/**
-	 * Creates list of the cards and its quantity (basically deck) from the
-	 * actual data in table.
-	 * 
-	 * @return simple card - quantity list based on values in table
-	 */
-	public String createCardList() {
-
-		StringBuilder sb = new StringBuilder();
-		/*
-		 * int qCol = -1; for (int i = 0 ; i < tableModel.getColumnCount(); i++)
-		 * if (tableModel.getColumnInfo(i).getType() == Column.Type.QUANTITY){
-		 * qCol = i; break; }
-		 * 
-		 * if (qCol < 0) throw new
-		 * IllegalStateException("There is no quantity columns. Aplication error."
-		 * );
-		 * 
-		 * 
-		 * for (int i = 0; i < tableModel.getRowCount(); i++) { Card card =
-		 * tableModel.getCardAt(i); sb.append(card.getName() + " ");
-		 * sb.append(tableModel.getValueAt(i, qCol).toString());
-		 * sb.append("\n"); }
-		 */
-		return sb.toString();
-	}
-
-	/**
 	 * Gets the padding string inserted between columns based on column type and
 	 * alignment.
 	 * 

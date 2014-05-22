@@ -19,21 +19,13 @@ public class QuantitySpinner extends JSpinner {
 		((NumberFormatter) txt.getFormatter()).setAllowsInvalid(false);
 		setMaximumSize(getPreferredSize());
 	}
-	
-	/*
-	@Override
-	public Dimension getPreferredSize(){
-		return new Dimension(50,super.getPreferredSize().height);
-	}
-	*/
-	
+
 }
 
 class SpinnerFilter extends DocumentFilter {
 
     @Override
     public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
-    	System.out.println("insertingString()");
         if (stringContainsOnlyDigits(string)) {
             super.insertString(fb, offset, string, attr);
         }
@@ -41,13 +33,11 @@ class SpinnerFilter extends DocumentFilter {
 
     @Override
     public void remove(FilterBypass fb, int offset, int length) throws BadLocationException {
-    	System.out.println("iremovingtring()");
         super.remove(fb, offset, length);
     }
 
     @Override
     public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
-    	System.out.println("replacing");
         if (stringContainsOnlyDigits(text)) {
             super.replace(fb, offset, length, text, attrs);
         }

@@ -1,4 +1,4 @@
-package bbc.juniperus.mtgp.data;
+package bbc.juniperus.mtgp.domain;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 
 import bbc.juniperus.mtgp.cardsearch.CardFinder;
-import bbc.juniperus.mtgp.domain.Card;
 
 public class PricingSettings {
 	

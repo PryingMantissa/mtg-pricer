@@ -11,6 +11,7 @@ import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -24,17 +25,15 @@ import javax.swing.JFileChooser;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
-import com.sun.java.swing.plaf.windows.resources.windows;
-
 import bbc.juniperus.mtgp.cardsearch.CardFinder;
 import bbc.juniperus.mtgp.cardsearch.CardFinderFactory;
 import bbc.juniperus.mtgp.cardsearch.CardParser;
 import bbc.juniperus.mtgp.cardsearch.CardSearchResults;
 import bbc.juniperus.mtgp.cardsearch.SearchExecutor;
 import bbc.juniperus.mtgp.cardsearch.SearchObserver;
-import bbc.juniperus.mtgp.data.PricingSettings;
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.domain.CardResult;
+import bbc.juniperus.mtgp.domain.PricingSettings;
 import bbc.juniperus.mtgp.tablemodel.MtgPricerTableModel;
 import bbc.juniperus.mtgp.tablemodel.ReportCreator;
 
@@ -82,7 +81,6 @@ public class Controller implements SearchObserver, GridListener {
 	}
 	
 	public MtgPricerTableModel getTableModel(){
-		System.out.println("returnin Tm: " + tableModel);
 		return tableModel;
 	}
 	
@@ -154,7 +152,6 @@ public class Controller implements SearchObserver, GridListener {
 	public void cardSearchFinished(Card card, CardResult result,
 			CardFinder finder) {
 		
-		//System.out.println(finder + " " + searchExecutor.getResultsStorage(finder).getCardResults().size());
 		
 		SwingUtilities.invokeLater(new Runnable(){
 
@@ -178,7 +175,6 @@ public class Controller implements SearchObserver, GridListener {
 
 	@Override
 	public void searchingFinished(final boolean interrupted) {
-		System.out.println("Searching finished");
 		currentPhase = Phase.PRICING_FINISHED;
 		
 	
@@ -218,14 +214,12 @@ public class Controller implements SearchObserver, GridListener {
 	
 	@Override
 	public void gridFocusLost() {
-		//System.out.println("losing focus");
-		//actionMap.get(UserAction.REMOVE_CARD).setEnabled(false);
-		//System.out.println(actionMap.get(UserAction.REMOVE_CARD).isEnabled());
+		//Empty.
 	}
 
 	@Override
 	public void gridFocusGained() {
-		//System.out.println("Grid focus gained");
+		//Empty.
 	}
 
 	@Override
@@ -267,24 +261,19 @@ public class Controller implements SearchObserver, GridListener {
 		actionMap.put(UserAction.NEW_SEARCH, action);
 		action = new SearchInBrowserAction();
 		actionMap.put(UserAction.OPEN_IN_BROWSER, action);
-		/*
-		action = new ExportCardListAction();
-		action.setEnabled(false);
-		actionMap.put(ExportCardListAction.class, action);
-		*/
 		setDefaultActionAvailability();
 	}
 	
 	
 	/**
-	 * Primitive implementation. For better code readability & maybe debugging. 
+	 * Primitive implementation. For better code readability & debugging. 
 	 */
 	private void enableAction(UserAction action){
 		actionMap.get(action).setEnabled(true);
 	}
 	
 	/**
-	 * Primitive implementation. For better code readability & maybe debugging. 
+	 * Primitive implementation. For better code readability & debugging. 
 	 */
 	private  void disableAction(UserAction action){
 		actionMap.get(action).setEnabled(false);
@@ -403,8 +392,6 @@ public class Controller implements SearchObserver, GridListener {
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
 			
-			System.out.println("Importing cards");
-			
 			JFileChooser fileChooser = new JFileChooser();
 			fileChooser.showOpenDialog(null);
 			File f = fileChooser.getSelectedFile();
@@ -449,10 +436,6 @@ public class Controller implements SearchObserver, GridListener {
 		
 		@Override
 		public void actionPerformed(ActionEvent e) {	
-			
-			System.out.println("Exporting cards");
-			
-			
 			JFileChooser chooser = new JFileChooser();
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 			String name = "exported-deck_" + sdf.format(new Date()) + ".csv";
@@ -491,8 +474,6 @@ public class Controller implements SearchObserver, GridListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			
-			System.out.println("Exporting cards to txt");
-			
 			JFileChooser chooser = new JFileChooser();
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 			String name = "exported-deck_" + sdf.format(new Date()) + ".txt";
@@ -520,20 +501,7 @@ public class Controller implements SearchObserver, GridListener {
 		
 	}
 	
-	
-	private class ExportCardListAction extends AbstractAction{
-		
-		public ExportCardListAction() {
-			super("Export card list");
-		}
-		
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			// TODO Auto-generated method stub
-		}
-		
-	}
-	
+
 	@SuppressWarnings("serial")
 	private class StartSearchAction extends AbstractAction{
 		
@@ -544,7 +512,6 @@ public class Controller implements SearchObserver, GridListener {
 
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
-			System.out.println("Starting search");
 			searchExecutor = new SearchExecutor(pricingSettings.getCards(), 
 					pricingSettings.getFinders());
 			searchExecutor.addSearchObserver(Controller.this);
@@ -605,16 +572,11 @@ public class Controller implements SearchObserver, GridListener {
 
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
-			System.out.println("Searching in browser");
-
 			// TODO handle this somewhere. Do not enable the action.
 			// assert Desktop.isDesktopSupported();
 
 			Collection<CardFinder> finders = pricingSettings.getFinders();
 			
-			System.out.println(finders);
-			
-
 			for (Card c : selectedCards)
 				for (CardFinder f : finders) {
 					URL url = f.getURLForCard(c.getName());

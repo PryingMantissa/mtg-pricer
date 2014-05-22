@@ -84,6 +84,7 @@ public class MainView {
 		findersPane.showSearchProgress(executor);
 		addSpinner.setEnabled(false);
 		addTextField.setEnabled(false);
+		//cardGrid.setRowSelectionAllowed(false);
 		window.pack();
 	}
 	
@@ -107,10 +108,12 @@ public class MainView {
 	public void searchStopped(){
 		window.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		findersPane.displaySearchStopped();
+		cardGrid.setRowSelectionAllowed(true);
 	}
 	
 	public void searchFinished(){
 		findersPane.displaySearchFinished();
+		cardGrid.setRowSelectionAllowed(true);
 	}
 	
 	
@@ -278,89 +281,5 @@ public class MainView {
 		
 		return menuBar;
 	}
-//	
-//	/** Disable actions which make no sense if table is empty and vice versa*/
-//	private void emptyStateChanged(boolean isEmpty){
-//		boolean enabled = !isEmpty;
-//		actionMap.get(StartSearchAction.class).setEnabled(enabled);
-//		actionMap.get(ExportTableCsvAction.class).setEnabled(enabled);
-//		actionMap.get(ExportTableTxtAction.class).setEnabled(enabled);
-//		actionMap.get(ExportCardListAction.class).setEnabled(enabled);
-//		actionMap.get(NewSearchAction.class).setEnabled(enabled);
-//	}
-//	
-//	private void pricingStarted(){
-//		pricingInProgress = true;
-//		actionMap.get(ImportCardsAction.class).setEnabled(false);
-//		actionMap.get(RemoveAction.class).setEnabled(false);
-//		actionMap.get(AddCardAction.class).setEnabled(false);
-//		actionMap.get(StartSearchAction.class).setEnabled(false);
-//		actionMap.get(StopSearchAction.class).setEnabled(true);
-//		
-//		addTextField.setEnabled(false);
-//		addSpinner.setEnabled(false);
-//	}
-//	
-
-	
-//	private void startNewPricing(){
-//		actionMap.get(ImportCardsAction.class).setEnabled(true);
-//		addTextField.setEnabled(true);
-//		addSpinner.setEnabled(true);
-//		actionMap.get(RemoveAction.class).setEnabled(false);
-//		actionMap.get(SearchInBrowserAction.class).setEnabled(false);
-//		
-//		pricer = new SearchExecutor();
-//		pricer.addSearchObserver(this, null);
-//		
-//		
-//		tablePane.removeAll();
-//		MtgPricerTableModel model = new MtgPricerTableModel(pricer.data());
-//		view = new CardsView(model);
-//		view.addPropertyChangeListener(this);
-//		view.setActionForKey(actionMap.get(RemoveAction.class), KeyStroke.getKeyStroke("DELETE"));
-//		tablePane.add(view);
-//		window.revalidate();
-//	}
-	
-	
-//	private Collection<CardFinder> getSelectedSearchers(){
-//		List<CardFinder> selected = new ArrayList<CardFinder>(); 
-//		for (JCheckBox cb : checkBoxes.keySet())
-//			if (cb.isSelected())
-//				selected.add(checkBoxes.get(cb));
-//		return selected;
-//	}
-	
-//	@Override
-//	public void propertyChange(PropertyChangeEvent evt) {
-//		if (evt.getPropertyName() == CardsView.GRID_SELECTED_PROPERTY){
-//			boolean enabled =  (boolean) evt.getNewValue();
-//			
-//			System.out.print("Grid selected property fired:  " +  enabled );
-//			actionMap.get(RemoveAction.class).setEnabled(enabled);
-//			actionMap.get(SearchInBrowserAction.class).setEnabled(enabled);
-//		}
-//		if (evt.getPropertyName() == CardsView.EMPTY_STATE_CHANGED){
-//			boolean empty =  (boolean) evt.getNewValue();
-//			emptyStateChanged(empty);
-//		}
-//
-//	}
-	
-
-//	private void addCard(Card card, int quantity){
-//		if (pricer.containsCard(card)){
-//			String text = card.getName() + " is already in the card list.\n"
-//					+ "Should the quantity of the "
-//					+ "card be incremented by " + quantity + " ?";
-//			String title = "Duplicity detected"; 
-//			int response = JOptionPane.showConfirmDialog(window, text,
-//					title, JOptionPane.YES_NO_OPTION);
-//			if (response == JOptionPane.NO_OPTION)
-//				return;
-//		}
-//		pricer.addCard(card, quantity);
-//	}
 	
 }

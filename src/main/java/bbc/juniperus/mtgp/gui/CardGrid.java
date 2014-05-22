@@ -10,6 +10,7 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -55,10 +56,11 @@ public class CardGrid extends JPanel implements TableModelListener {
 	private JScrollPane scrollPane;
 	private Border EMPTY_BORDER = BorderFactory.createEmptyBorder();
 	private MtgPricerTableModel tableModel;
-//	private Color selectColor = new Color(225,225,225);
 	private Set<GridListener> listeners = new HashSet<>();
 	private InternalTableListener internalTableListener;
 	private int lastColumnCount;
+	private int firstSelectedRow;
+	private int lastSelectedRow;
 	
 	public CardGrid(MtgPricerTableModel tableModel){   
 		this.tableModel = tableModel;
@@ -161,6 +163,11 @@ public class CardGrid extends JPanel implements TableModelListener {
 		add(scrollPane);
 	}
 	
+	
+	public void setRowSelectionAllowed(boolean b){
+		table.setRowSelectionAllowed(b);
+	}
+	
 	private void setupTable(){
 		
 		table = new JTable(tableModel);
@@ -185,65 +192,6 @@ public class CardGrid extends JPanel implements TableModelListener {
 		table.getTableHeader().setDefaultRenderer(
 				new HeaderCellDecorator(origHeaderRenderer));
 		
-		//table.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		
-		/*
-		table.getColumnModel().addColumnModelListener(new TableColumnModelListener() {
-			
-			@Override
-			public void columnSelectionChanged(ListSelectionEvent e) {}
-			@Override
-			public void columnRemoved(TableColumnModelEvent e) {}
-			@Override
-			public void columnMoved(TableColumnModelEvent e) {}
-			@Override
-			public void columnMarginChanged(ChangeEvent e) {}
-			@Override
-			public void columnAdded(TableColumnModelEvent e) {
-				@SuppressWarnings("unchecked")
-				TableRowSorter<TableModel> trs = (TableRowSorter<TableModel>) table.getRowSorter();
-				
-				for (int i = e.getFromIndex() ; i <= e.getToIndex() ;i++)
-					trs.setComparator(i, new CellComparator());
-				setColumnsAutoWidth();
-				
-			}
-		});
-		
-		table.getModel().addTableModelListener(new TableModelListener() {
-			
-			@Override
-			public void tableChanged(TableModelEvent e) {
-				//If we delete row. No row is selected.
-				if (e.getType() == TableModelEvent.DELETE)
-					gridSelectionChanged(false);
-				
-				boolean empty = true;
-				if (table.getRowCount() > 0)
-					empty = false;
-				
-				System.out.println("Has focus ? " + table.hasFocus());
-				String s = table.getSelectedRow() + "";
-				System.out.println(s);
-				
-				if (empty != isGridEmpty){
-					CardGrid.this.firePropertyChange(EMPTY_STATE_CHANGED, isGridEmpty, empty);
-					isGridEmpty = empty;
-				}
-			}
-		});
-		
-		table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-			
-			@Override
-			public void valueChanged(ListSelectionEvent e) {
-				System.out.println("selection changed " + e.getFirstIndex() + "  " + table.getSelectedRow());
-				int row = table.getSelectedRow();
-				gridSelectionChanged(row > -1);
-			}
-		});
-	
-		*/
 	}
 	
 	private static int getMinColumnWidth(PricerColumn type){
@@ -258,7 +206,7 @@ public class CardGrid extends JPanel implements TableModelListener {
 	}
 	
 	
-	class TableTransferHandler extends TransferHandler {
+	private static class TableTransferHandler extends TransferHandler {
 
 		@Override
 		public void exportToClipboard(JComponent comp, Clipboard clip,
@@ -300,7 +248,7 @@ public class CardGrid extends JPanel implements TableModelListener {
 	/**
 	 * Decorator to modify rendering of original table cell renderer.
 	 */
-	private class HeaderCellDecorator implements TableCellRenderer{
+	private static class HeaderCellDecorator implements TableCellRenderer{
 		
 		private TableCellRenderer originalRenderer;
 		
@@ -323,7 +271,7 @@ public class CardGrid extends JPanel implements TableModelListener {
 		}
 	}
 	
-	private class CellRenderer extends DefaultTableCellRenderer{
+	private static class CellRenderer extends DefaultTableCellRenderer{
 		
 		private final Border padding = BorderFactory.createEmptyBorder(2, 3, 2, 2);
 		private Color originalColor;
@@ -367,7 +315,6 @@ public class CardGrid extends JPanel implements TableModelListener {
 		
 	}
 	
-	
 	private class InternalTableListener implements ListSelectionListener, FocusListener{
 
 		
@@ -389,6 +336,9 @@ public class CardGrid extends JPanel implements TableModelListener {
 
 		@Override
 		public void valueChanged(ListSelectionEvent e) {
+			firstSelectedRow = e.getFirstIndex();
+			lastSelectedRow = e.getLastIndex();
+			
 			if (e.getSource() != table.getSelectionModel())
 				throw new AssertionError();
 			
@@ -401,22 +351,18 @@ public class CardGrid extends JPanel implements TableModelListener {
 		
 	}
 
-	//TODO Remove later
-	@SuppressWarnings("unused")
-	private class MyTable extends JTable{
-		
-		MyTable(TableModel model){
-			super(model);
-		}
-		
-		@Override
-		public void tableChanged(TableModelEvent e){
-			super.tableChanged(e);
-		}
-	}
 
 	@Override
 	public void tableChanged(TableModelEvent e) {
+		
+		if (table.getRowCount() > 0){
+			//Prevent selected of rows which are no longer in table.
+			firstSelectedRow = Math.min(firstSelectedRow, table.getRowCount()-1);
+			lastSelectedRow = Math.min(lastSelectedRow, table.getRowCount()-1);
+			
+			table.setRowSelectionInterval(firstSelectedRow, lastSelectedRow);
+		}
+		
 		/*The only place where we receive events from changes in model
 		 * so we need to track the changes in  column count this way.
 		 */
