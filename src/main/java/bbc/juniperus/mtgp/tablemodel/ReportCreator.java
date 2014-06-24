@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import bbc.juniperus.mtgp.domain.Card;
-import bbc.juniperus.mtgp.tablemodel.MtgPricerTableModel.PricerColumn;
+import bbc.juniperus.mtgp.tablemodel.MtgPricerTableModel.MtgPricerColumn;
 
 /**
  * Generator of string reports in various formats. Used for export functionality
@@ -130,11 +130,11 @@ public class ReportCreator {
 	 * @return
 	 */
 	private String getPaddedValue(int row, int column, int width) {
-		PricerColumn col = tableModel.getColumnType(column);
+		MtgPricerColumn col = tableModel.getColumnType(column);
 		Cell val = (Cell) tableModel.getValueAt(row, column);
 		String res = val.getText();
 
-		if (col == PricerColumn.QUANTITY || col == PricerColumn.RESULT)
+		if (col == MtgPricerColumn.QUANTITY || col == MtgPricerColumn.RESULT)
 			res = alignRight(res, width);
 		else
 			res = alignLeft(res, width);

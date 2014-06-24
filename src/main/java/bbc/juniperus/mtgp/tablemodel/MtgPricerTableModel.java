@@ -26,12 +26,12 @@ import bbc.juniperus.mtgp.gui.Controller.Phase;
 @SuppressWarnings("serial")
 public class MtgPricerTableModel extends AbstractTableModel {
 
-	public enum PricerColumn {
+	public enum MtgPricerColumn {
 		NAME("Name"), QUANTITY("Quantity"), RESULT("CardFinder");
 	
 		private final String headerText;
 		
-		PricerColumn(String name){
+		MtgPricerColumn(String name){
 			this.headerText = name;
 		}
 		
@@ -84,9 +84,9 @@ public class MtgPricerTableModel extends AbstractTableModel {
 		
 		Card card  = getCardAt(row);
 		
-		if (column == PricerColumn.NAME.ordinal())
+		if (column == MtgPricerColumn.NAME.ordinal())
 			return new Cell(card.getName(), Cell.Type.STRING); 
-		else if (column == PricerColumn.QUANTITY.ordinal())
+		else if (column == MtgPricerColumn.QUANTITY.ordinal())
 			return new Cell(pricingSettings.getQuantity(card) + "", Cell.Type.INTEGER);
 		else
 			if (currentPhase != Phase.SEARCHING && currentPhase != Phase.SEARCHING)
@@ -152,9 +152,9 @@ public class MtgPricerTableModel extends AbstractTableModel {
 	
 	@Override
 	public String getColumnName(int columnIndex) {
-		PricerColumn column = getColumnType(columnIndex);
+		MtgPricerColumn column = getColumnType(columnIndex);
 		
-		if (column == PricerColumn.RESULT){
+		if (column == MtgPricerColumn.RESULT){
 			CardFinder cardFinder = cardFinders.get(columnIndex - 2);
 			return cardFinder.getName();
 		}else
@@ -162,11 +162,11 @@ public class MtgPricerTableModel extends AbstractTableModel {
 		
 	}
 	
-	public PricerColumn getColumnType(int columnIndex){
+	public MtgPricerColumn getColumnType(int columnIndex){
 		if (columnIndex < 2)
-			return PricerColumn.values()[columnIndex];
+			return MtgPricerColumn.values()[columnIndex];
 		else
-			return PricerColumn.RESULT;
+			return MtgPricerColumn.RESULT;
 	}
 	
 	
@@ -180,7 +180,7 @@ public class MtgPricerTableModel extends AbstractTableModel {
 		
 		Card card = getCardAt(rowIndex);
 		
-		if (columnIndex == PricerColumn.NAME.ordinal()){
+		if (columnIndex == MtgPricerColumn.NAME.ordinal()){
 			String str = (String) value;
 			Card newCard = new Card(str.trim());
 			

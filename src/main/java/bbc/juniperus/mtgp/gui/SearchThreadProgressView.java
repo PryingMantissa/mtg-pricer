@@ -4,18 +4,15 @@ package bbc.juniperus.mtgp.gui;
 import java.awt.BorderLayout;
 import java.awt.Font;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 
-import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
-import javax.swing.border.Border;
 
 import bbc.juniperus.mtgp.cardsearch.CardFinder;
-import bbc.juniperus.mtgp.cardsearch.SearchObserver;
 import bbc.juniperus.mtgp.cardsearch.CardSearchResults;
+import bbc.juniperus.mtgp.cardsearch.SearchObserver;
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.domain.CardResult;
 

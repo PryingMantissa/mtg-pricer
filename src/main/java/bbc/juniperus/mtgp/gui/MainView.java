@@ -42,8 +42,8 @@ import bbc.juniperus.mtgp.gui.Controller.UserAction;
  * The view consists of 4 main parts:
  * 
  * <ul>
- * 	<li>A table with card list and search results for each card</li>
- * 	<li>A 'finders pane' - a column on the left which shows the list of 
+ * 	<li>'card grid' - a table with card list and search results for each card</li>
+ * 	<li>'finders pane' - a column on the left which shows the list of 
  *    possible card finders for the search and the search progress for each card finder</li>
  * 	<li>A toolbar with button which trigger user actions </li>
  * 	<li>A menu bar in the top part of the window</li>
@@ -57,7 +57,7 @@ import bbc.juniperus.mtgp.gui.Controller.UserAction;
  * |             |                                     |
  * |             |                                     |                                
  * |             |                                     |
- * |             |    Cards table                      |
+ * |             |    Cards grid                       |
  * |Finders pane |                                     |
  * |             |                                     |
  * |             |                                     |

@@ -5,6 +5,9 @@ import java.net.URL;
 
 import javax.swing.ImageIcon;
 
+/**
+ * A simple static repository for image resources.
+ */
 public class ResourceLoader {
 	
 	private static int ICON_HEIGHT = 20;
@@ -13,10 +16,6 @@ public class ResourceLoader {
 	public static final ImageIcon ICON_REMOVE = loadIcon("/icons/file_delete2.png",ICON_WIDTH,ICON_HEIGHT);
 	//Slightly thinner as its not symmetric.
 	public static final ImageIcon ICON_IMPORT = loadIcon("/icons/import1.png",ICON_WIDTH-1,ICON_HEIGHT);
-	/*
-	private static final ImageIcon ICON_EXPORT = loadIcon("/icons/103.png",ICON_WIDTH,ICON_HEIGHT);
-	private static final ImageIcon ICON_SAVE = loadIcon("/icons/095.png",ICON_WIDTH,ICON_HEIGHT);
-	*/
 	public static final ImageIcon ICON_GO = loadIcon("/icons/play.png",ICON_WIDTH,ICON_HEIGHT);
 	public static final ImageIcon ICON_STOP = loadIcon("/icons/stop-icon_40.png",ICON_WIDTH,ICON_HEIGHT);
 	public static final ImageIcon ICON_BROWSER = loadIcon("/icons/browser.png",ICON_WIDTH,ICON_HEIGHT);
@@ -26,6 +25,10 @@ public class ResourceLoader {
 	public static final ImageIcon ICON_SEARCH_FINISHED = loadIcon("/icons/tick_1.png",10,10);
 	public static final ImageIcon ICON_SEARCH_SETTINGS = loadIcon("/icons/panel_settings.png",12,12);
 	
+	/**
+	 * Creates an image icon from a image file on the specified path
+	 * with a given width and height.
+	 */
 	private static ImageIcon loadIcon(String path, int width, int height){
 		ImageIcon icon = loadIcon(path);
 		Image img = icon.getImage();
@@ -33,9 +36,10 @@ public class ResourceLoader {
 		icon.setImage(img);
 		return icon;
 	}
-	
-	
 
+	/**
+	 *  Creates an image icon from an image file.
+	 */
 	private static ImageIcon loadIcon(String path){
 		URL url = MainView.class.getResource(path);
 		ImageIcon icon = new ImageIcon(url);

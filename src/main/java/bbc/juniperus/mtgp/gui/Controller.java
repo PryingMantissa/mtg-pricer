@@ -55,7 +55,7 @@ import bbc.juniperus.mtgp.tablemodel.ReportCreator;
  * <br>
  * 
  */
-public class Controller implements SearchObserver, GridListener {
+public class Controller implements SearchObserver, CardGridListener {
 
 	/**
 	 * A user action type.

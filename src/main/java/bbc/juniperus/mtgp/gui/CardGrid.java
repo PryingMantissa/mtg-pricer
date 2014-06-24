@@ -32,7 +32,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
@@ -42,10 +41,15 @@ import javax.swing.table.TableRowSorter;
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.tablemodel.Cell;
 import bbc.juniperus.mtgp.tablemodel.MtgPricerTableModel;
-import bbc.juniperus.mtgp.tablemodel.MtgPricerTableModel.PricerColumn;
+import bbc.juniperus.mtgp.tablemodel.MtgPricerTableModel.MtgPricerColumn;
 
+
+/**
+ * A table view component which shows card list and the pricing results for 
+ * each card finder and card.
+ */
 @SuppressWarnings("serial")
-public class CardGrid extends JPanel implements TableModelListener {
+public class CardGrid extends JPanel {
 
 	private final static int NAME_COLUMN_MIN_WIDTH = 90;
 	private final static int QUANTITY_COLUMN_MIN_WIDTH = 40;
@@ -55,24 +59,38 @@ public class CardGrid extends JPanel implements TableModelListener {
 	private JScrollPane scrollPane;
 	private Border EMPTY_BORDER = BorderFactory.createEmptyBorder();
 	private MtgPricerTableModel tableModel;
-	private Set<GridListener> listeners = new HashSet<>();
+	private Set<CardGridListener> listeners = new HashSet<>();
 	private InternalTableListener internalTableListener;
 	private int lastColumnCount;
 	private int firstSelectedRow;
 	private int lastSelectedRow;
 	
+	/**
+	 * Creates a card grid backed by the specified table model.
+	 * @param tableModel application table model
+	 */
 	public CardGrid(MtgPricerTableModel tableModel){   
 		this.tableModel = tableModel;
-		tableModel.addTableModelListener(this);
 		internalTableListener = new InternalTableListener();
+		tableModel.addTableModelListener(internalTableListener);
 		setupTable();
 		setUpGui();
 	}
 	
-	public void addGridListener(GridListener listener){
+	/**
+	 * Adds as card grid listener to receive specific events
+	 * from this card grid.
+	 * @param listener
+	 */
+	public void addGridListener(CardGridListener listener){
 		listeners.add(listener);
+		
 	}
-	
+
+	/**
+	 * Returns the list of cards which are currently selected.
+	 * @return
+	 */
 	public Collection<Card> getSelectedCards(){
 		int[] rows= table.getSelectedRows();
 
@@ -84,10 +102,13 @@ public class CardGrid extends JPanel implements TableModelListener {
 	
 	/**
 	 * Registers an action with this component and binds it to the {@link KeyStroke} returned by
-	 * {@link Action#getValue(String)} with {@link Action#ACCELERATOR_KEY} as an argument. If the returned
+	 * {@link Action#getValue(String)} with {@link Action#ACCELERATOR_KEY} as an argument.  In other words,
+	 * when this component has focus, the registered action can be triggered by the action's keyboard shortcut.
+	 * 
+	 * If the returned
 	 * value is null, the exception is thrown.
 	 * 
-	 * @param action
+	 * @param action action to be bind to this card grid
 	 * @throws IllegalArgumentException if action has no accelerator key value
 	 */
 	public void registerAction(Action action){
@@ -98,7 +119,25 @@ public class CardGrid extends JPanel implements TableModelListener {
 		table.getInputMap().put(keyStroke, action.getValue(Action.NAME));
 		table.getActionMap().put(action.getValue(Action.NAME),action);
 	}
+
+	/**
+	 * Sets whether the rows in this card grid can be selected.
+	 * @param b <code>true</code> if the row selection should be allowed, 
+	 * 	<code>false</code> if it should be prohibited
+	 */
+	public void setRowSelectionAllowed(boolean b){
+		table.setRowSelectionAllowed(b);
+	}
 	
+	
+	/**
+	 * Calculates and returns the maximum column width among all the cells in a column if it is higher
+	 * than passed minimum width value. If not, the minimum width is returned.
+	 * 
+	 * @param column the index of the column
+	 * @param minWidth the initial minimum width
+	 * @return maximum column width of the column or initial minimal width if it is higher
+	 */
 	private int getMaxColumnWidth(int column, int minWidth){
 		int width = minWidth;
 		
@@ -120,7 +159,10 @@ public class CardGrid extends JPanel implements TableModelListener {
 		return width;
 	}
 	
-	
+	/**
+	 * Automatically calculates and sets the maximum required width
+	 * for all the columns.
+	 */
 	private void setColumnsAutoWidth() {
 		assert SwingUtilities.isEventDispatchThread();
 		
@@ -142,7 +184,9 @@ public class CardGrid extends JPanel implements TableModelListener {
 	}
 		
 	
-	
+	/**
+	 * Setups the fundamental view components. 
+	 */
 	private void setUpGui(){
 		setLayout(new BorderLayout());
 		scrollPane = new JScrollPane();
@@ -153,7 +197,7 @@ public class CardGrid extends JPanel implements TableModelListener {
 
 			@Override public Dimension getPreferredSize() {
 		        Dimension d = super.getPreferredSize();
-		        d.height = 25; //TODO magic!
+		        d.height = 25; //TODO magic number!
 		        return d;
 			}
 		});
@@ -162,17 +206,16 @@ public class CardGrid extends JPanel implements TableModelListener {
 		add(scrollPane);
 	}
 	
-	
-	public void setRowSelectionAllowed(boolean b){
-		table.setRowSelectionAllowed(b);
-	}
-	
+
+	/**
+	 * Setups the table component of this card grid view.
+	 */
 	private void setupTable(){
 		
 		table = new JTable(tableModel);
 		table.addFocusListener(internalTableListener);
 		table.getSelectionModel().addListSelectionListener(internalTableListener);
-		table.setDefaultEditor(Cell.class, new GridCellEditor());
+		table.setDefaultEditor(Cell.class, new CellEditor());
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		table.getTableHeader().setReorderingAllowed(false);
 		
@@ -193,25 +236,31 @@ public class CardGrid extends JPanel implements TableModelListener {
 		
 	}
 	
-	private static int getMinColumnWidth(PricerColumn type){
-		if (type == PricerColumn.NAME)
+	/**
+	 * Determines the minimal column width for a given column type.
+	 * @param type type of column
+	 * @return the minimal column width
+	 */
+	private static int getMinColumnWidth(MtgPricerColumn type){
+		if (type == MtgPricerColumn.NAME)
 			return NAME_COLUMN_MIN_WIDTH;
-		else if (type == PricerColumn.QUANTITY)
+		else if (type == MtgPricerColumn.QUANTITY)
 			return QUANTITY_COLUMN_MIN_WIDTH;
-		else if (type == PricerColumn.RESULT)
+		else if (type == MtgPricerColumn.RESULT)
 			return RESULT_COLUMN_MIN_WIDTH;
 		else
 			throw new AssertionError();
 	}
 	
-	
+	/**
+	 * A transfer handler for converting the selected cells/rows
+	 * into meaningful text to be placed in system clipboard.
+	 */
 	private static class TableTransferHandler extends TransferHandler {
 
 		@Override
 		public void exportToClipboard(JComponent comp, Clipboard clip,
 				int action) throws IllegalStateException {
-			// TODO Auto-generated method stub
-			System.out.println("Exporting to clipboard");
 
 			JTable table = (JTable) comp; 
 			TableModel model = table.getModel();
@@ -245,7 +294,8 @@ public class CardGrid extends JPanel implements TableModelListener {
 	}
 	
 	/**
-	 * Decorator to modify rendering of original table cell renderer.
+	 * Decorator to modify rendering of original table cell renderer to
+	 * add custom style.
 	 */
 	private static class HeaderCellDecorator implements TableCellRenderer{
 		
@@ -270,58 +320,20 @@ public class CardGrid extends JPanel implements TableModelListener {
 		}
 	}
 	
-	private static class CellRenderer extends DefaultTableCellRenderer{
-		
-		private final Border padding = BorderFactory.createEmptyBorder(2, 3, 2, 2);
-		private Color originalColor;
-		private final Color notFoundColor = Color.RED; 
-		
-		
-		public CellRenderer(){
-			originalColor = getForeground();
-		}
-		
-		
-		@Override
-		public Component getTableCellRendererComponent(JTable table,
-				Object val, boolean isSelected, boolean hasFocus, int row, int col) {
-			
-			
-			Cell cell = (Cell) val;
-			JLabel lbl = (JLabel) super.getTableCellRendererComponent(table, val, isSelected, hasFocus, row, col);
-			
-			
-			if (cell == Cell.NOT_FOUND_CELL){
-				lbl.setForeground(notFoundColor);
-			}else
-				lbl.setForeground(originalColor);
-
-			lbl.setBorder(padding);
-			lbl.setText(cell.getText());
-			lbl.setHorizontalAlignment(getAllignment(cell.getType()));
-	
-			return lbl;
-		}
-		
-		
-		private int getAllignment(Cell.Type type){
-			if (type == Cell.Type.INTEGER
-					|| type == Cell.Type.PRICE)
-				return SwingConstants.RIGHT;
-			else
-				return SwingConstants.LEFT;
-		}
-		
-	}
-	
-	private class InternalTableListener implements ListSelectionListener, FocusListener{
+	/**
+	 * A list selection, table model and focus listener implementation for capturing
+	 * events from the internal JTable component and firing it as card grid events to the registered
+	 * card grid listeners or doing other internal processing.
+	 */
+	private class InternalTableListener implements ListSelectionListener, 
+		FocusListener, TableModelListener{
 
 		
 		@Override
 		public void focusGained(FocusEvent e) {
 			if (e.getSource() != table)
 				throw new AssertionError();
-			for (GridListener listener : listeners)
+			for (CardGridListener listener : listeners)
 				listener.gridFocusGained();
 		}
 
@@ -329,7 +341,7 @@ public class CardGrid extends JPanel implements TableModelListener {
 		public void focusLost(FocusEvent e) {
 			if (e.getSource() != table)
 				throw new AssertionError();
-			for (GridListener listener : listeners)
+			for (CardGridListener listener : listeners)
 				listener.gridFocusLost();
 		}
 
@@ -344,43 +356,39 @@ public class CardGrid extends JPanel implements TableModelListener {
 			if (e.getValueIsAdjusting())
 				return; //We are interested in finished selection.
 			
-			for (GridListener listener : listeners)
+			for (CardGridListener listener : listeners)
 				listener.gridSelectionChanged(table.getSelectedRows());
 		}
 		
-	}
-
-
-	@Override
-	public void tableChanged(TableModelEvent e) {
-		
-		if (table.getRowCount() > 0){
-			//Prevent selected of rows which are no longer in table.
-			firstSelectedRow = Math.min(firstSelectedRow, table.getRowCount()-1);
-			lastSelectedRow = Math.min(lastSelectedRow, table.getRowCount()-1);
+		@Override
+		public void tableChanged(TableModelEvent e) {
 			
-			table.setRowSelectionInterval(firstSelectedRow, lastSelectedRow);
-		}
-		
-		/*The only place where we receive events from changes in model
-		 * so we need to track the changes in  column count this way.
-		 */
-		if (tableModel.getColumnCount() != lastColumnCount){
-			System.out.println("The table column count changed from " + 
-					lastColumnCount + " to  " + tableModel.getColumnCount());
-			//Set the minimal column widths for all columns.
-			TableColumnModel columnModel = table.getColumnModel();
-			for (int i = 0; i < tableModel.getColumnCount(); i++) {
-				PricerColumn column = tableModel.getColumnType(i);
-				int minWidth = getMinColumnWidth(column);
-				columnModel.getColumn(i).setMinWidth(minWidth);
+			if (table.getRowCount() > 0){
+				//Prevent selected of rows which are no longer in table.
+				firstSelectedRow = Math.min(firstSelectedRow, table.getRowCount()-1);
+				lastSelectedRow = Math.min(lastSelectedRow, table.getRowCount()-1);
+				
+				table.setRowSelectionInterval(firstSelectedRow, lastSelectedRow);
 			}
 			
-			lastColumnCount = tableModel.getColumnCount();
+			/*The only place where we receive events from changes in model
+			 * so we need to track the changes in  column count this way.
+			 */
+			if (tableModel.getColumnCount() != lastColumnCount){
+				System.out.println("The table column count changed from " + 
+						lastColumnCount + " to  " + tableModel.getColumnCount());
+				//Set the minimal column widths for all columns.
+				TableColumnModel columnModel = table.getColumnModel();
+				for (int i = 0; i < tableModel.getColumnCount(); i++) {
+					MtgPricerColumn column = tableModel.getColumnType(i);
+					int minWidth = getMinColumnWidth(column);
+					columnModel.getColumn(i).setMinWidth(minWidth);
+				}
+				
+				lastColumnCount = tableModel.getColumnCount();
+			}
+			setColumnsAutoWidth();
 		}
-			
-			
-		setColumnsAutoWidth();
+		
 	}
-	
 }

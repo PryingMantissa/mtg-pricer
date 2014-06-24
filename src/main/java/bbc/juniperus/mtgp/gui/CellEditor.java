@@ -12,21 +12,23 @@ import javax.swing.table.TableCellEditor;
 
 import bbc.juniperus.mtgp.tablemodel.Cell;
 
+
+/**
+ * A cell editor used in {@link CardGrid} table.
+ * It supports editing of card name - with text field
+ * or card quantity - with spinner.
+ */
 @SuppressWarnings("serial")
-public class GridCellEditor extends AbstractCellEditor implements TableCellEditor{
+public class CellEditor extends AbstractCellEditor 
+	implements TableCellEditor{
 	
 	private final JSpinner spinner = new QuantitySpinner();
 	private final JTextField textField = new JTextField();
 	private Component editor; 
 	private String originalValue;
 	
-	public GridCellEditor() {
-	
-	}
-
-	//Implement the one CellEditor method that AbstractCellEditor doesn't.
+	@Override
 	public Object getCellEditorValue() {
-		System.out.println("getting edti value");
 		if (editor instanceof JSpinner)
 			return ((JSpinner) editor).getValue();
 		
@@ -36,7 +38,7 @@ public class GridCellEditor extends AbstractCellEditor implements TableCellEdito
 		return spinner.getValue();
 	}
 	
-	//Implement the one method defined by TableCellEditor.
+	@Override
 	public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected,
 	                        int row, int column) {
 		Cell cell = (Cell) value;
