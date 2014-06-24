@@ -6,6 +6,10 @@ import javax.swing.UnsupportedLookAndFeelException;
 import bbc.juniperus.mtgp.gui.Controller;
 import bbc.juniperus.mtgp.gui.MainView;
 
+/**
+ * An entry class for the application which creates
+ * all the fundamental components.
+ */
 public class Main {
 
 	public Main() {
@@ -23,7 +27,10 @@ public class Main {
 			}
 		});
 	}
-	
+
+	/**
+	 * Set the platform look and feel. TODO FINISH and REVIEW!!!!
+	 */
 	private void setLookAndFeel(){
 		try {
 			
