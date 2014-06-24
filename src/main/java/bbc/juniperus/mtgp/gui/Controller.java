@@ -11,7 +11,6 @@ import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -25,6 +24,8 @@ import javax.swing.JFileChooser;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
+import com.sun.xml.internal.ws.api.config.management.policy.ManagementAssertion.Setting;
+
 import bbc.juniperus.mtgp.cardsearch.CardFinder;
 import bbc.juniperus.mtgp.cardsearch.CardFinderFactory;
 import bbc.juniperus.mtgp.cardsearch.CardParser;
@@ -37,6 +38,23 @@ import bbc.juniperus.mtgp.domain.PricingSettings;
 import bbc.juniperus.mtgp.tablemodel.MtgPricerTableModel;
 import bbc.juniperus.mtgp.tablemodel.ReportCreator;
 
+/**
+ * An application controller.It manages the whole flow and contains most of the logic and
+ * contains actions implementation as inner classes.
+ * <br>
+ * The whole process of finding the prices of the card on the web is referred to 
+ * as card pricing. The pricing process involves three main states (see {@link Phase} ):
+ * <br> 
+ * <ol>
+ * 	<li>Setting phase where the list of card is loaded and the card finders (objects responsible
+ * for retrieving the price information from vendors) are chosen.</li>
+ *  <li>Actual pricing process which consists of downloading and parsing the card information</li>
+ *  <li>Final phase where results are presented</li>
+ * </ol>
+ * 
+ * <br>
+ * 
+ */
 public class Controller implements SearchObserver, GridListener {
 
 	/**
@@ -51,7 +69,20 @@ public class Controller implements SearchObserver, GridListener {
 	 * A phase of pricing type.
 	 */
 	public enum Phase {
-		SETTING, SEARCHING, PRICING_FINISHED
+		/**
+		 * Setting phase where the card finders are selected and 
+		 * card list is created by the user.
+		 */
+		SETTING,
+		/**
+		 * Actual process of pricing.
+		 */
+		SEARCHING, 
+		
+		/**
+		 * A phase where the pricing has finished and results are presented.
+		 */
+		PRICING_FINISHED
 	}
 
 	private Map<UserAction, AbstractAction> actionMap = new HashMap<>();
@@ -66,6 +97,9 @@ public class Controller implements SearchObserver, GridListener {
 											// value
 	private List<Card> selectedCards = new ArrayList<>();
 
+	/**
+	 * Constructs a controller.
+	 */
 	public Controller() {
 		createActions();
 		finders = CardFinderFactory.allCardFinders();
@@ -74,6 +108,12 @@ public class Controller implements SearchObserver, GridListener {
 		mainView.show();
 	}
 
+	
+	/**
+	 * Makes the application enter the initial {@link Setting} phase.
+	 * All settings and results are discarded and everything is reset
+	 * and set ready for user input.
+	 */
 	public void newPricing() {
 		currentPhase = Phase.SETTING;
 		pricingSettings = new PricingSettings();
@@ -86,22 +126,28 @@ public class Controller implements SearchObserver, GridListener {
 		tableModel.fireTableStructureChanged();
 	}
 
+	/**
+	 * Returns the pricing settings object.
+	 * @return the current pricing settings
+	 */
 	public PricingSettings getPricingSettings() {
 		return pricingSettings;
 	}
 
+	/**
+	 * Returns an application table model.
+	 * @return the current table model
+	 */
 	public MtgPricerTableModel getTableModel() {
 		return tableModel;
 	}
 
 	/**
-	 * Enables/disable given {@link CardFinder} for pricing. Possible only
+	 * Enables or disables  the specified {@link CardFinder} for pricing. Possible only
 	 * during {@link Phase#SETTING} phase.
-	 * 
-	 * @param finder
-	 *            the finder to be enabled/disabled
-	 * @param enabled
-	 *            <code>true</code> if
+	 * @param finder  the finder to be enabled/disabled
+	 * @param enabled <code>true</code> if the card finder should be enabled, <code>false</code> if disabled
+	 * @throws IllegalStateException if an attempt is made to use these method outside the settings phase.
 	 */
 	public void setFinderEnabled(CardFinder finder, boolean enabled) {
 		if (currentPhase != Phase.SETTING)
@@ -120,11 +166,17 @@ public class Controller implements SearchObserver, GridListener {
 	/**
 	 * Returns all possible card finders regardless whether they are selected
 	 * for the search or not.
+	 * @return an unmodifiable list of all card finders
 	 */
 	public Collection<CardFinder> getCardFinders() {
 		return Collections.unmodifiableList(finders);
 	}
 
+	/**
+	 * Invoked on controller (from the presentation layer) if the text field value has been changed.
+	 * TOOD: Maybe reduce coupling and define listener interface for event from view.
+	 * @param newText a new text of the text field 
+	 */
 	public void cardTextFieldValueChanged(String newText) {
 		if (newText.isEmpty()) {
 			cardNameTextFieldValue = null;
@@ -135,10 +187,19 @@ public class Controller implements SearchObserver, GridListener {
 		}
 	}
 
+	/**
+	 * Invoked on controller (from the presentation layer) if the card quantity spinner value has been changed.
+	 * TOOD: Maybe reduce coupling and define listener interface for event from view.
+	 * @param newValue a new value of card quantity spinner component
+	 */
 	public void quantitySpinnerValueChanged(int newValue) {
 		quantitySpinnerValue = newValue;
 	}
 
+	/**
+	 * Orders this controller to display an error message to the user.
+	 * @param txt the text of the message
+	 */
 	public void displayErroMessage(String txt) {
 		mainView.reportError(txt);
 	}
@@ -166,11 +227,8 @@ public class Controller implements SearchObserver, GridListener {
 			@Override
 			public void run() {
 				tableModel.fireTableRowsUpdated(0, Integer.MAX_VALUE);
-
 			}
-
 		});
-
 	}
 
 	@Override
@@ -196,11 +254,18 @@ public class Controller implements SearchObserver, GridListener {
 				disableAction(UserAction.STOP_SEARCH);
 				enableAction(UserAction.NEW_SEARCH);
 			}
-
 		});
-
 	}
 
+	/**
+	 * Adds a card to the list of cards for which the price should be find. If the 
+	 * card is already in the card list a pop-up dialog is shown and ask user if
+	 * instead of replacing the old quantity of the card, the new quantity should be
+	 * the sum of the old and the new quantity (<b>quantity</b>).
+	 * 
+	 * @param card the card to be added
+	 * @param quantity the quantity of the card
+	 */
 	private void addCardLeniently(Card card, int quantity) {
 
 		if (pricingSettings.getCards().contains(card)) {
@@ -245,7 +310,7 @@ public class Controller implements SearchObserver, GridListener {
 	}
 
 	/**
-	 * Creates all actions.
+	 * Creates all actions and puts them to the action map.
 	 */
 	private void createActions() {
 
@@ -284,6 +349,10 @@ public class Controller implements SearchObserver, GridListener {
 		actionMap.get(action).setEnabled(false);
 	}
 
+	/**
+	 * Sets the default or starting actions availability as it
+	 * should be in the first (setting) phase.
+	 */
 	private void setDefaultActionAvailability() {
 		enableAction(UserAction.IMPORT_CARDS);
 		disableAction(UserAction.REMOVE_CARD);
@@ -294,10 +363,19 @@ public class Controller implements SearchObserver, GridListener {
 		disableAction(UserAction.REMOVE_CARD);
 	}
 
+	/**
+	 * Returns the action implementation for the specified
+	 * user action type.
+	 * @param action the action type
+	 * @return the action for the specified action type
+	 */
 	public Action getAction(UserAction action) {
 		return actionMap.get(action);
 	}
 
+	/**
+	 * A user interface action which starts the new pricing.
+	 */
 	@SuppressWarnings("serial")
 	private class NewPricingAction extends AbstractAction {
 
@@ -307,13 +385,17 @@ public class Controller implements SearchObserver, GridListener {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-
 			assert currentPhase != Phase.SEARCHING;
 			newPricing();
 		}
 
 	}
 
+	/**
+	 *  A user interface action which take the current value from the card name text
+	 *  field, creates a card based on that value and adds it leniently to the card list.
+	 *
+	 */
 	@SuppressWarnings("serial")
 	private class AddCardAction extends AbstractAction {
 
@@ -337,6 +419,10 @@ public class Controller implements SearchObserver, GridListener {
 														// we added some cards
 		}
 
+		/**
+    	 * Intercepts the call and inspects if the action can really be enabled.
+		 * The add card action can be enabled only in the setting phase.
+		 */
 		@Override
 		public void setEnabled(boolean newValue) {
 			if (newValue) {
@@ -348,6 +434,10 @@ public class Controller implements SearchObserver, GridListener {
 
 	}
 
+	/**
+	 * A user interface action which removes the cards selected in the table from the card list.
+	 *
+	 */
 	@SuppressWarnings("serial")
 	private class RemoveCardAction extends AbstractAction {
 
@@ -371,7 +461,10 @@ public class Controller implements SearchObserver, GridListener {
 														// left
 				disableAction(UserAction.START_SEARCH);
 		}
-
+		
+		/**
+		 * The remove card action cannot be enabled during the searching phase.
+		 */
 		@Override
 		public void setEnabled(boolean newValue) {
 			if (newValue) {
@@ -383,6 +476,10 @@ public class Controller implements SearchObserver, GridListener {
 
 	}
 
+	/**
+	 * A user interface action which shows a file selection dialog and after submitting
+	 * the file, imports the card names and quantity from this file to the card list.
+	 */
 	private class ImportCardsAction extends AbstractAction {
 
 		private static final long serialVersionUID = 1L;
@@ -428,6 +525,10 @@ public class Controller implements SearchObserver, GridListener {
 		}
 	}
 
+	/**
+	 * A user interface action which exports the current content of the table view
+	 * into a csv file.
+	 */
 	private class ExportTableCsvAction extends AbstractAction {
 
 		private static final long serialVersionUID = 1L;
@@ -463,6 +564,10 @@ public class Controller implements SearchObserver, GridListener {
 
 	}
 
+	/**
+	 * A user interface naction which exports the current content of the table view
+	 * into a csv file.
+	 */
 	private class ExportTableTxtAction extends AbstractAction {
 
 		private static final long serialVersionUID = 1L;
@@ -499,6 +604,10 @@ public class Controller implements SearchObserver, GridListener {
 
 	}
 
+	/**
+	 * A user interface action which starts the search which makes the
+	 * application enter the searching phase.
+	 */
 	@SuppressWarnings("serial")
 	private class StartSearchAction extends AbstractAction {
 
@@ -539,6 +648,9 @@ public class Controller implements SearchObserver, GridListener {
 
 	}
 
+	/**
+	 * A user interface action which stops the ongoing search.
+	 */
 	@SuppressWarnings("serial")
 	private class StopSearchAction extends AbstractAction {
 
@@ -557,6 +669,13 @@ public class Controller implements SearchObserver, GridListener {
 		}
 	}
 
+
+	/**
+	 * A user interface action which issues the request for the card search
+	 * in the browser for each selected card and for each selected card finder.
+	 * This way the web pages of vendors associated with the selected card finders
+	 * are opened which are response to the card search request encoded in the request URL.
+	 */
 	@SuppressWarnings("serial")
 	private class SearchInBrowserAction extends AbstractAction {
 

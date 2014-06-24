@@ -29,22 +29,52 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import bbc.juniperus.mtgp.cardsearch.SearchExecutor;
+import bbc.juniperus.mtgp.gui.Controller.Phase;
 import bbc.juniperus.mtgp.gui.Controller.UserAction;
 
 /**
- * The main class and the app entry point.
+ * A main view class which aggregates all view components
+ * and provides unified view interface for the classes
+ * which contain the application logic.<br>
+ * Presentation logic
+ * is also included here.
+ * 
+ * The view consists of 4 main parts:
+ * 
+ * <ul>
+ * 	<li>A table with card list and search results for each card</li>
+ * 	<li>A 'finders pane' - a column on the left which shows the list of 
+ *    possible card finders for the search and the search progress for each card finder</li>
+ * 	<li>A toolbar with button which trigger user actions </li>
+ * 	<li>A menu bar in the top part of the window</li>
+ *
+ * 
+ * _____________________________________________________
+ * | Menu bar                                          | 	
+ * |---------------------------------------------------|
+ * | Tool bar                                          |
+ * |---------------------------------------------------|
+ * |             |                                     |
+ * |             |                                     |                                
+ * |             |                                     |
+ * |             |    Cards table                      |
+ * |Finders pane |                                     |
+ * |             |                                     |
+ * |             |                                     |
+ * |_____________|_____________________________________|
+ * 
+ *
  */
 public class MainView {
 	
 	
 	private final static Color BORDER_COLOR = new Color(190,190,190);
-	//private static final Border ETCHED_BORDER = BorderFactory.createEtchedBorder();
 	private static final Border LINE_BORDER = BorderFactory.createLineBorder(BORDER_COLOR);
 	private static final Border PADDING_BORDER = BorderFactory.createEmptyBorder(1, 1, 1, 1);
 	private static final Border ETCHED_BORDER = BorderFactory.createCompoundBorder(PADDING_BORDER, LINE_BORDER);
 	
 	private static final int PADDING = 1;
-	//private final static Border PADDING_BORDER = BorderFactory.createEmptyBorder(PADDING,PADDING,PADDING,PADDING);
+	//TODO what with these?
 	private static final int HEIGHT = 500;
  	private static final int WIDTH = 850;
 
@@ -61,7 +91,10 @@ public class MainView {
 	private JDialog aboutDialog;
 	private Controller controller;
 	
-	
+	/**
+	 * Constructs a new main view build around the specified controller.
+	 * @param controller the main application controller
+	 */
 	public MainView(Controller controller){
 		window = new JFrame();
 		window.setTitle(TITLE);
@@ -74,21 +107,35 @@ public class MainView {
 		this.controller = controller;
 		setupGui();
 	}
-	
+
+	/**
+	 * Makes the whole gui of the application visible.
+	 */
 	public void show(){
 		window.pack();
 		window.setVisible(true);
 	}
-	
+
+	/**
+	 * Invoked when the search has started to let the view
+	 * react on entering the setting phase. 
+	 * Apart from preparing the whole view for the search state it also 
+	 * disables the control elements which should not
+	 * be enabled during the searching (or also during the final) phase.
+	 * 
+	 * @param executor the search executor used in the starting search
+	 */
 	public void searchStarted(SearchExecutor executor){
 		findersPane.showSearchProgress(executor);
 		addSpinner.setEnabled(false);
 		addTextField.setEnabled(false);
-		//cardGrid.setRowSelectionAllowed(false);
 		window.pack();
 	}
 	
-	
+	/**
+	 * Invoked when the application has entered the first - setting phase.
+	 * Changes the view look and enabled state of the controls accordingly.
+	 */
 	public void newPricing(){
 		addSpinner.setEnabled(true);
 		addTextField.setEnabled(true);
@@ -96,21 +143,38 @@ public class MainView {
 		findersPane.showFinderSettings();
 	}
 	
-	
+	/**
+	 * Clears the actual text value in the card name text field.
+	 */
 	public void clearAddCardTextField(){
 		addTextField.setText("");
 	}
+	
+	/**
+	 * Invoked when the user has stopped the search. Commands
+	 * the view to have 'search is being stopped' look.
+	 */
 	public void stopSearchIssued(){
 		window.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 		findersPane.displayStoppingSearch();
 	}
-	
+
+	/**
+	 * Invoked when the search has been stopped. Logically following the
+	 * 'search is being stopped phase' and it commands the view
+	 * to change 'search is being stopped ' into 'search has been stopped' look. 
+	 * Also implies entering the final ( {@link Phase#PRICING_FINISHED} ) phase.
+	 */
 	public void searchStopped(){
 		window.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		findersPane.displaySearchStopped();
 		cardGrid.setRowSelectionAllowed(true);
 	}
-	
+
+	/**
+	 * Invoked when the search has successfully finished without stop from the user and
+	 *  the application has entered the final ( {@link Phase#PRICING_FINISHED} ) phase.
+	 */
 	public void searchFinished(){
 		findersPane.displaySearchFinished();
 		cardGrid.setRowSelectionAllowed(true);
@@ -118,26 +182,40 @@ public class MainView {
 	
 	
 	/**
-	 * Shows modal 'About' dialog.
+	 * Shows modal 'About' dialog with the information abou
+	 * the application and the author.
 	 */
 	public void showAbout() {
 		if (aboutDialog == null)
 			aboutDialog = new AboutDialog(window);
 		aboutDialog.setVisible(true);
     }
-	
+
+	/**
+	 * Reports an error message  to the user.
+	 * @param text the description of the error
+	 */
 	public void reportError(String text){
 		JOptionPane.showMessageDialog(window,
 				text ,"Sorry...",JOptionPane.ERROR_MESSAGE);
 	}
 	
+	/**
+	 * Commands this view to interactively demand confirmation (yes/no)
+	 * for a given question from the user and returns the answer.
+	 * 
+	 * @param title the title of the confirmation request
+	 * @param text the text of the confirmation request
+	 * @return <code>true</code> if the user has confirmed  
+	 * 	<code>false</code> if the user has declined
+	 */
 	public boolean askForConfirmation(String title, String text){
 		int response = JOptionPane.showConfirmDialog(window, text, title, JOptionPane.YES_NO_OPTION);
 		return (response == JOptionPane.YES_OPTION);
 	}
 	
 	/**
-	 * Setups all GUI elements.
+	 * Setups all the main GUI elements.
 	 */
 	private void setupGui(){
 		
@@ -156,6 +234,9 @@ public class MainView {
 		
 	}
 	
+	/**
+	 * Creates a new finders pane component.
+	 */
 	private void setNewFindersPane(){
 		if (findersPane != null)
 			windowPane.remove(findersPane);
@@ -165,7 +246,9 @@ public class MainView {
 		windowPane.revalidate();
 	}
 	
-	
+	/**
+	 * Creates a new tool bar for this view.
+	 */
 	private JToolBar createToolBar(){
 		JToolBar tb = new JToolBar();
 		
@@ -232,7 +315,9 @@ public class MainView {
 		return tb;
 	}
 	
-
+	/**
+	 * Creates a new menu bar for this view.
+	 */
 	private JMenuBar createMenuBar(){
 		JMenuBar  menuBar = new JMenuBar();
 		JMenu menu = new JMenu();
