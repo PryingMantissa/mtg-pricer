@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 
@@ -108,16 +107,12 @@ public class MtgPricerTableModel extends AbstractTableModel {
 	}
 
 
-	
-	
-	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public Class getColumnClass(int index){
 
 		return Cell.class;
 	}
-	
 
 	@Override
 	public int getRowCount(){
@@ -125,7 +120,6 @@ public class MtgPricerTableModel extends AbstractTableModel {
 			return 0;
 		return pricingSettings.getCards().size();
 	}
-	
 
 	@Override
 	public int getColumnCount(){
@@ -143,8 +137,6 @@ public class MtgPricerTableModel extends AbstractTableModel {
 	}
 	
 
-	
-	
 	@Override
 	public boolean isCellEditable(int rowIndex, int columnIndex){
 		return (currentPhase == Phase.SETTING); //Can edit either card name or quantity when in settings phase
@@ -168,7 +160,6 @@ public class MtgPricerTableModel extends AbstractTableModel {
 		else
 			return MtgPricerColumn.RESULT;
 	}
-	
 	
 	/**
 	 * Refer to {@link TableModel}. The value taken into consideration

@@ -4,7 +4,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import bbc.juniperus.mtgp.gui.Controller;
-import bbc.juniperus.mtgp.gui.MainView;
 
 /**
  * An entry class for the application which creates

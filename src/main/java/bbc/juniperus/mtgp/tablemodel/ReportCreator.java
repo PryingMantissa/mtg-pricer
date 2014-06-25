@@ -3,7 +3,6 @@ package bbc.juniperus.mtgp.tablemodel;
 import java.util.HashMap;
 import java.util.Map;
 
-import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.tablemodel.MtgPricerTableModel.MtgPricerColumn;
 
 /**

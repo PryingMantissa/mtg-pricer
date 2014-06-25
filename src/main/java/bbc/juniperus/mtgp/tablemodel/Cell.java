@@ -2,9 +2,8 @@ package bbc.juniperus.mtgp.tablemodel;
 
 
 /**
- * Class representing the cell in the table containing necessary information in order
- * to be rendered/ordered properly.
- *
+ * A representation of the cell in the application table model.
+ * The cell contains text and is of a given cell type.
  */
 public class Cell implements Comparable<Cell>{
 	
@@ -22,25 +21,19 @@ public class Cell implements Comparable<Cell>{
 	public Cell(String text, Type type){
 		this.text = text;
 		this.type = type;
-		/*
-		if (text.equalsIgnoreCase("N/A"))
-			this.type = Type.NA;
-		else
-			this.type = type;
-			*/
 	}
 	
 	/**
-	 * Returns text inside the cell.
-	 * @return cell text
+	 * Returns this cells's text.
+	 * @return the cell text
 	 */
 	public String getText(){
 		return text;
 	}
 	
 	/**
-	 * Returns cell type.
-	 * @return cell type.
+	 * Returns the cell type.
+	 * @return the cell type.
 	 */
 	public Type getType(){
 		return type;
@@ -129,5 +122,4 @@ public class Cell implements Comparable<Cell>{
 		
 		throw new AssertionError();
 	}
-	
 }

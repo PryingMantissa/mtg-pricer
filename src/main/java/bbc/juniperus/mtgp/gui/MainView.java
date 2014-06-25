@@ -48,7 +48,6 @@ import bbc.juniperus.mtgp.gui.Controller.UserAction;
  * 	<li>A toolbar with button which trigger user actions </li>
  * 	<li>A menu bar in the top part of the window</li>
  *
- * 
  * _____________________________________________________
  * | Menu bar                                          | 	
  * |---------------------------------------------------|

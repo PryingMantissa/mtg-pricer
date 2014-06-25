@@ -6,7 +6,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.text.NumberFormatter;
 
 /**
- * An extension of Swing spinner 
+ * An extension of the Swing spinner 
  * which implements stricter validation.
  */
 public class QuantitySpinner extends JSpinner {

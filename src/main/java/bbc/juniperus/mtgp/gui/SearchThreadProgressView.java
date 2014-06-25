@@ -16,6 +16,11 @@ import bbc.juniperus.mtgp.cardsearch.SearchObserver;
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.domain.CardResult;
 
+/**
+ * A view component which shows the current progress of the search
+ * for a given search thread/card finder based on the events
+ * received from a search executor.
+ */
 @SuppressWarnings("serial")
 public class SearchThreadProgressView extends JPanel implements SearchObserver{
 
@@ -23,7 +28,11 @@ public class SearchThreadProgressView extends JPanel implements SearchObserver{
 	private final JLabel resultsLabel = new JLabel();
 	private final CardFinder finder;
 	private final static DecimalFormat DOUBLE_FORMAT = new DecimalFormat("#.##");
-	
+
+	/**
+	 * Construct a search thread progress view for a given card finder.
+	 * @param finder the card finder for which this view is constructed
+	 */
 	public SearchThreadProgressView(CardFinder finder){
 		super (new BorderLayout());
 		this.finder = finder;
@@ -35,33 +44,10 @@ public class SearchThreadProgressView extends JPanel implements SearchObserver{
 		
 		Font f  = label.getFont().deriveFont(Font.BOLD);
 		label.setFont(f);
-		//cardNameLabel.setText("No serch...");	
-		/*
-		//setBackground(Color.green);
-		//setBorder(border);
-		this.pricer = pricer;
-		MigLayout m =new MigLayout("ins 0");
-		setLayout(m);
-	
-		progressBar = new JProgressBar();
-
-		lblPrice = new JLabel("Search will begin shortly");
-		lblPrice.setFont(lblPrice.getFont().deriveFont((float)11.0));
-
-		lblName = new JLabel(searcher.getName());
-		lblName.setFont(lblName.getFont().deriveFont(Font.BOLD));
-		lblFoundNumber = new JLabel();
-		lblFoundNumber.setVisible(false);
-		
-		add(lblName,"wrap");
-		add(lblFoundNumber,"wrap");
-		add(lblPrice,"width 170:170:170, wrap");
-		add(progressBar,"width 150:150:150");*/
-		
 	}
 
 	/**
-	 * Helper method to set the test of the label on the event dispatch thread
+	 * Sets the results label text on the EDT.
 	 */
 	private void setLabelText(final String text){
 		SwingUtilities.invokeLater(new Runnable() {
@@ -136,6 +122,11 @@ public class SearchThreadProgressView extends JPanel implements SearchObserver{
 		}
 	}
 	
+	/**
+	 * Formats a long value into a formatted string.
+	 * @param time the value in the millis to be converted to string
+	 * @return a formatted date
+	 */
 	private static String formatTime(long time){
 		int timeSeconds = (int) (time /1000); //Convert to seconds
 		int seconds = timeSeconds % 60;
@@ -162,6 +153,5 @@ public class SearchThreadProgressView extends JPanel implements SearchObserver{
 	public void searchingFinished(boolean interrupted) {
 		// No implementation
 	}
-
 
 }

@@ -14,6 +14,10 @@ import javax.swing.JPanel;
 
 import net.miginfocom.swing.MigLayout;
 
+/**
+ * A dialog with the information about the
+ * application and the author.
+ */
 public class AboutDialog extends JDialog {
 
 	private static final long serialVersionUID = 1L;
@@ -25,6 +29,13 @@ public class AboutDialog extends JDialog {
 			+ "the Magic the Gathering card prices<br><br>"
 			+ "<i>GLS 2013</i></html>";
 	
+	/**
+	 * Constructs an about dialog with a given parent frame.
+	 * If parent is null, a shared, hidden
+	 * frame will be set as the parent of the dialog. 
+	 * 
+	 * @param parent the frame from which the dialog is displayed
+	 */
 	public AboutDialog(JFrame parent) {
 		super(parent,true);
 		setUndecorated(true);

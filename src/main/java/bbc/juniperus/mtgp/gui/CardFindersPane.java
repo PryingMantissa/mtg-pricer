@@ -18,6 +18,14 @@ import net.miginfocom.swing.MigLayout;
 import bbc.juniperus.mtgp.cardsearch.CardFinder;
 import bbc.juniperus.mtgp.cardsearch.SearchExecutor;
 
+/**
+ * A Swing component which serves as a view for card pricer related information
+ * and displays the progress of the search for each card finder.
+ * <br><br>
+ * In the setting phase all available card pricers are listed.
+ * During the searching phase the progress of each card finder search thread
+ * is shown with the name of the card for which the price is being searched.
+ */
 @SuppressWarnings("serial")
 public class CardFindersPane extends JPanel{
 	
@@ -36,7 +44,11 @@ public class CardFindersPane extends JPanel{
 	private final static Border HEADER_BORDER = BorderFactory.createCompoundBorder(LINE_BORDER, PADDING_BORDER);
 	private Color bcgColor = Color.white;
 	
-	
+
+	/**
+	 * Creates a card finders pane bound to the specified controller.
+	 * @param controller
+	 */
 	public CardFindersPane(Controller controller){
 		super(new BorderLayout());
 		setBorder(BorderFactory.createEmptyBorder());
@@ -44,9 +56,7 @@ public class CardFindersPane extends JPanel{
 		MigLayout mig = new MigLayout("gap 0"); //Specify no gaps
 		body.setLayout(mig);
 		this.controller = controller;
-		//JLabel lbl = new JLabel(searcher.getName());
-		//add(lbl, BorderLayout.NORTH);
-		//add(new SearchThreadView(pricer,searcher), BorderLayout.CENTER);
+	
 		header = new JPanel(new BorderLayout());
 		headLabelLeft = new JLabel();
 		headLabelRight = new JLabel();
@@ -54,9 +64,8 @@ public class CardFindersPane extends JPanel{
 		header.add(headLabelRight, BorderLayout.EAST);
 		
 		header.setOpaque(true);
-		//header.setBackground(Color.blue);
 		
-		//Fix the size of the header to 25 px so it does not change size with differen icons.
+		//Fix the size of the header to 25 px so it does not change size with different icons.
 		header.setPreferredSize(new Dimension(header.getPreferredSize().width,25));
 		
 		header.setBorder(HEADER_BORDER);
@@ -73,6 +82,10 @@ public class CardFindersPane extends JPanel{
 		return dim;
 	}
 
+	/**
+	 * Shows the list of card finders with associated control elements
+	 * for changing card finder pre-search settings.
+	 */
 	public void showFinderSettings(){
 		
 		headLabelLeft.setText("<html><b> Card pricing sources</b></html>");
@@ -94,7 +107,15 @@ public class CardFindersPane extends JPanel{
 		}
 		
 	}
-	
+
+	/**
+	 * Shows the list of the card finders with the progress feedback
+	 * based on the information from the specified search executor.
+	 * The progress information will be updated according to events
+	 * fired from the search executor.
+	 * 
+	 * @param searchExecutor the search executor for the search
+	 */
 	public void showSearchProgress(SearchExecutor searchExecutor){
 		headLabelLeft.setText("<html><b>Search in progress</b></html>");
 		headLabelRight.setIcon(ResourceLoader.ICON_LOADING);
@@ -110,11 +131,19 @@ public class CardFindersPane extends JPanel{
 		body.revalidate();
 	}
 	
+	/**
+	 * Puts view to a state when it indicates that the search is
+	 *  being stopped after request from user.
+	 */
 	public void displayStoppingSearch(){
 		headLabelLeft.setText("<html><b>Stopping the search</b></html>");
 		headLabelRight.setIcon(ResourceLoader.ICON_STOPPING);
 	}
 	
+	/**
+	 * Puts view to a state when it indicates 
+	 * that the search has been stopped by the user.
+	 */
 	public void displaySearchStopped(){
 		headLabelLeft.setText("<html><b>Search stopped by user</b></html>");
 		headLabelRight.setIcon(ResourceLoader.ICON_SEARCH_FINISHED);
@@ -126,7 +155,11 @@ public class CardFindersPane extends JPanel{
 		body.revalidate();
 	}
 	
-	
+
+	/**
+	 *  Internal check-box which forwards the changes in the 
+	 *  card finder selection directly to the controller.
+	 */
 	private class CheckBoxListener implements ActionListener{
 
 		@Override
