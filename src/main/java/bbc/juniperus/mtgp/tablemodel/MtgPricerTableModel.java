@@ -7,24 +7,31 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableModel;
 
 import bbc.juniperus.mtgp.cardsearch.CardFinder;
 import bbc.juniperus.mtgp.cardsearch.CardSearchResults;
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.domain.CardResult;
 import bbc.juniperus.mtgp.domain.PricingSettings;
+import bbc.juniperus.mtgp.gui.CardGrid;
 import bbc.juniperus.mtgp.gui.Controller;
 import bbc.juniperus.mtgp.gui.Controller.Phase;
 
 /**
- * Implementation of {@link TableModel} which serves as a table model for GUI app table.
- * It is backed by {@link DataStorage}.
- *
+ * A table model for  {@link CardGrid}.
+ * The table has the following columns:
+ * <ol>
+ * 	<li>Card name column</li>
+ * 	<li>Card quantity column</li>
+ * 	<li>Card price columns, one for each card pricer used in search</li>
+ * </ol>
  */
 @SuppressWarnings("serial")
 public class MtgPricerTableModel extends AbstractTableModel {
 
+	/**
+	 * The type of a column in {@link MtgPricerTableModel} / {@link CardGrid}
+	 */
 	public enum MtgPricerColumn {
 		NAME("Name"), QUANTITY("Quantity"), RESULT("CardFinder");
 	
@@ -37,7 +44,6 @@ public class MtgPricerTableModel extends AbstractTableModel {
 		public String getName(){
 			return headerText;
 		}
-		
 	}
 	
 	private PricingSettings pricingSettings;
@@ -45,39 +51,39 @@ public class MtgPricerTableModel extends AbstractTableModel {
 	private Controller controller;
 	private List<CardFinder> cardFinders;
 	private Map<CardFinder,CardSearchResults> resultsContainer;
-	
+
 	/**
-	 * Constructs table model around {@link DataStorage}.
-	 * @param data central data storage.
+	 * Constructs an mtg pricer table model and binds it to a given controller.
+	 * @param controller the main controller
 	 */
 	public MtgPricerTableModel(Controller controller){
-		//data.addDataChangeListener(this);
-		//Default columns.
 		this.controller = controller;
 	}
-	
+
+	/**
+	 * Sets this table model for a new pricing with a given
+	 * pricing settings.
+	 * @param settings the settings of the new pricing
+	 */
 	public void newPricing(PricingSettings settings){
 		pricingSettings = settings;
 		currentPhase = Phase.SETTING;
 	}
-	
-	public void startPresentingResults(Collection<CardSearchResults> searchResults){
+
+	/**
+	 * Invoked when the card price search has started 
+	 * @param searchResults a collection of the involved card pricers' search results
+	 */
+	public void searchStarted(Collection<CardSearchResults> searchResults){
 		resultsContainer = new HashMap<>();
 		
-		for (CardSearchResults res : searchResults) //Store it in inernal hash map for faster acces
+		for (CardSearchResults res : searchResults) //Store it in the internal hash map for faster access
 			resultsContainer.put(res.getFinder(),res);
 		currentPhase = Phase.SEARCHING;
 		cardFinders = new ArrayList<>(resultsContainer.keySet());
 		fireTableStructureChanged();
 	}
 	
-	
-	//========== AbstractTableModel implementation ======================
-	
-	/**
-	 * Refer to {@link TableModel}. This implementation returns
-	 * {@link Cell} object.
-	 */
 	@Override
 	public Object getValueAt(int row,int column){
 		
@@ -154,6 +160,11 @@ public class MtgPricerTableModel extends AbstractTableModel {
 		
 	}
 	
+	/**
+	 * Returns the column type of a column at the specified index.
+	 * @param columnIndex the column index
+	 * @return the type of the column
+	 */
 	public MtgPricerColumn getColumnType(int columnIndex){
 		if (columnIndex < 2)
 			return MtgPricerColumn.values()[columnIndex];
@@ -161,10 +172,6 @@ public class MtgPricerTableModel extends AbstractTableModel {
 			return MtgPricerColumn.RESULT;
 	}
 	
-	/**
-	 * Refer to {@link TableModel}. The value taken into consideration
-	 * is the result of {@link Object#toString()} invoked on <b>value</b> object.
-	 */
 	@Override
 	public void setValueAt(Object value, int rowIndex, int columnIndex){
 
@@ -190,9 +197,9 @@ public class MtgPricerTableModel extends AbstractTableModel {
 	}
 
 	/**
-	 * Returns a card for a given row.
-	 * @param row row 
-	 * @return card 
+	 * Returns a card for a given row index.
+	 * @param row the row index
+	 * @return the card at the specified row index 
 	 */
 	public Card getCardAt(int row){
 		return pricingSettings.getCards().get(row);

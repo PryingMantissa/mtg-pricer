@@ -6,7 +6,7 @@ import java.net.URL;
 import javax.swing.ImageIcon;
 
 /**
- * A simple static repository for image resources.
+ * A simple static repository of image resources.
  */
 public class ResourceLoader {
 	

@@ -621,7 +621,7 @@ public class Controller implements SearchObserver, CardGridListener {
 			currentPhase = Phase.SEARCHING;
 			mainView.searchStarted(searchExecutor);
 			searchExecutor.startSearch();
-			tableModel.startPresentingResults(searchExecutor.getResultsStorage());
+			tableModel.searchStarted(searchExecutor.getResultsStorage());
 			enableAction(UserAction.STOP_SEARCH);
 			disableAction(UserAction.START_SEARCH);
 			disableAction(UserAction.ADD_CARD);

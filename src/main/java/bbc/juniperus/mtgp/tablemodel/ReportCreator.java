@@ -3,24 +3,30 @@ package bbc.juniperus.mtgp.tablemodel;
 import java.util.HashMap;
 import java.util.Map;
 
+import bbc.juniperus.mtgp.gui.CardGrid;
 import bbc.juniperus.mtgp.tablemodel.MtgPricerTableModel.MtgPricerColumn;
 
 /**
- * Generator of string reports in various formats. Used for export functionality
- * or also for CLI usage.
+ * A generator of the simple text reports in various formats which
+ * are based on the contents of the mtg pricer table. 
+ * Used for export functionality.
  */
 public class ReportCreator {
 
 	private MtgPricerTableModel tableModel;
 
+	/**
+	 * Constructs a report creator bound to the specified table model.
+	 * @param tableModel the table model containing the data
+	 */
 	public ReportCreator(MtgPricerTableModel tableModel) {
 		this.tableModel = tableModel;
 	}
 
 	/**
-	 * Creates card pricing table in normal txt format.
-	 * 
-	 * @return txt format card - price table.
+	 * Creates a simple text report with ASCII table which 
+	 * shows the content of the card grid/table model
+	 * @return ASCII table with information from the card grid/table model
 	 */
 	public String generateTxtReport() {
 
@@ -91,12 +97,12 @@ public class ReportCreator {
 		return sb.toString();
 	}
 
+
 	/**
-	 * Creates card pricing report table in CSV format
-	 * 
-	 * @param separator
-	 *            CSV separator character
-	 * @return string representing the CSV report/table of the priced cards
+	 * Returns a string which contains the contents of the table model  - {@link MtgPricerTableModel}/{@link CardGrid}. 
+	 * The columns are separated by the specified separator.
+	 * @param separator the separating character
+	 * @return the string representation of the table contents with columns separated by <code>separator</code>
 	 */
 	public String createCSVReport(String separator) {
 
@@ -121,12 +127,12 @@ public class ReportCreator {
 	}
 
 	/**
-	 * Gets the padding string inserted between columns based on column type and
-	 * alignment.
-	 * 
-	 * @param row
-	 * @param column
-	 * @return
+	 * Returns a string for a given row and column index in the table model
+	 * which is padded either left or right based on the column type and with
+	 * the specified padding width.
+	 * @param row the row index
+	 * @param column the column index
+	 * @return the padded string at the row and column index
 	 */
 	private String getPaddedValue(int row, int column, int width) {
 		MtgPricerColumn col = tableModel.getColumnType(column);
@@ -142,18 +148,21 @@ public class ReportCreator {
 	}
 
 	/**
-	 * Pads the string based on the alignment in the text table.
-	 * 
-	 * @param s
-	 *            string to be padded
-	 * @param width
-	 *            padding width/quantity
-	 * @return formatted string with padding
+	 * Pads the right side of a string.
+	 * @param s the string to be padded
+	 * @param width the width of padding
+	 * @return the padded string
 	 */
 	private String alignLeft(String s, int width) {
 		return String.format("%-" + width + "s", s);
 	}
 
+	/**
+	 * Pads the left side of a string.
+	 * @param s the string to be padded
+	 * @param width the width of the padding
+	 * @return the padded string
+	 */
 	private String alignRight(String s, int width) {
 		return String.format("%" + width + "s", s);
 	}

@@ -47,7 +47,8 @@ public class SearchThreadProgressView extends JPanel implements SearchObserver{
 	}
 
 	/**
-	 * Sets the results label text on the EDT.
+	 * Sets the results label text. This call is invoked on
+	 * the AWT Event Dispatch Thread.
 	 */
 	private void setLabelText(final String text){
 		SwingUtilities.invokeLater(new Runnable() {

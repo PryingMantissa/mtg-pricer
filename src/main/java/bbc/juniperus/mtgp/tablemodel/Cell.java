@@ -2,8 +2,8 @@ package bbc.juniperus.mtgp.tablemodel;
 
 
 /**
- * A representation of the cell in the application table model.
- * The cell contains text and is of a given cell type.
+ * A representation of the cell in the table model - {@link MtgPricerTableModel}.
+ * The cell contains a text and is of a given cell type.
  */
 public class Cell implements Comparable<Cell>{
 	
@@ -12,8 +12,8 @@ public class Cell implements Comparable<Cell>{
 	 */
 	public static enum Type {STRING, PRICE, INTEGER};
 	
-	public static Cell NOT_FOUND_CELL = new Cell("not found",Type.PRICE);
-	public static Cell NOT_PROCESSED_CELL = new Cell("",Type.PRICE);
+	public static Cell NOT_FOUND_CELL = new Cell("not found", Type.PRICE);
+	public static Cell NOT_PROCESSED_CELL = new Cell("", Type.PRICE);
 	
 	private String text;
 	private Type type;
@@ -25,15 +25,15 @@ public class Cell implements Comparable<Cell>{
 	
 	/**
 	 * Returns this cells's text.
-	 * @return the cell text
+	 * @return the text inside this cell
 	 */
 	public String getText(){
 		return text;
 	}
 	
 	/**
-	 * Returns the cell type.
-	 * @return the cell type.
+	 * Returns this cells's type.
+	 * @return the type of this cell
 	 */
 	public Type getType(){
 		return type;
@@ -75,6 +75,8 @@ public class Cell implements Comparable<Cell>{
 
 	@Override
 	public int compareTo(Cell anotherCell) {
+	
+		//Node - "NA" = not available/not found cell.
 		
 		//If the first is not loaded
 		if (this == Cell.NOT_PROCESSED_CELL)
