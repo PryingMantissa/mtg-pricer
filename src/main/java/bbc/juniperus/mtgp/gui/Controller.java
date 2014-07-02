@@ -27,7 +27,7 @@ import javax.swing.SwingUtilities;
 import bbc.juniperus.mtgp.cardsearch.CardFinder;
 import bbc.juniperus.mtgp.cardsearch.CardFinderFactory;
 import bbc.juniperus.mtgp.cardsearch.CardParser;
-import bbc.juniperus.mtgp.cardsearch.CardSearchResults;
+import bbc.juniperus.mtgp.cardsearch.CardSearchResultSet;
 import bbc.juniperus.mtgp.cardsearch.SearchExecutor;
 import bbc.juniperus.mtgp.cardsearch.SearchObserver;
 import bbc.juniperus.mtgp.domain.Card;
@@ -64,7 +64,7 @@ public class Controller implements SearchObserver, CardGridListener {
 	}
 
 	/**
-	 * A phase of pricing type.
+	 * A phase of the pricing process.
 	 */
 	public enum Phase {
 		/**
@@ -230,7 +230,7 @@ public class Controller implements SearchObserver, CardGridListener {
 	}
 
 	@Override
-	public void searchThreadFinished(CardFinder finder, CardSearchResults results) {
+	public void searchThreadFinished(CardFinder finder, CardSearchResultSet results) {
 		// TODO Auto-generated method stub
 
 	}

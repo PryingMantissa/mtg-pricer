@@ -11,28 +11,32 @@ import java.util.Set;
 
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.domain.CardResult;
+import bbc.juniperus.mtgp.gui.Controller.Phase;
 
 /**
- * Executor for  card search. Searches for all set {@link Card} with each set {@link CardFinder}.
- * When started, each {@CardFinder} is run in separate thread. All notifications to observers are therefore
- * on various threads.     
+ * Executor for  card search. Searches for prices of {@link Card} with collection of {@link CardFinder}.
+ * When started, each card finder runs its job in separate thread. All notifications to observers are therefore
+ * on various worker threads and not on the EDT.
  */
 public class SearchExecutor{
-
-	public enum Phase {SETTING, SEARCHING, PRICING_FINISHED}
 
 	//To prevent concurrent modification exception when iterating concurrently we use concurrent hash set.
 	private Set<SearchObserver> observers = Collections.newSetFromMap(new HashMap<SearchObserver,Boolean>());
 	
 	private volatile boolean interruped;
 	private volatile int findersLeft;
-	private volatile Map<CardFinder, CardSearchResults> results;
+	private volatile Map<CardFinder, CardSearchResultSet> results;
 	
 	private final Collection<CardFinder> finders;
 	private final Collection<Card> cards;
 	private Phase currentPhase;
 	
-	
+	/**
+	 * Constructs a search executor which will execute search for a given list
+	 * of cards using the specified card finders.
+	 * @param cards the cards for which the price should be found
+	 * @param finders the finders which should look price of the cards
+	 */
 	public SearchExecutor(Collection<Card> cards, Collection<CardFinder> finders){
 		this.cards = cards;
 		this.finders = finders;
@@ -40,7 +44,7 @@ public class SearchExecutor{
 		results = new HashMap<>();
 		fireSearchStarted(cards.size());
 		for (CardFinder f : finders){
-			results.put(f, new CardSearchResults(f));
+			results.put(f, new CardSearchResultSet(f));
 			new Thread(new SearchRunnable(f)).start();
 		}
 	}
@@ -64,7 +68,7 @@ public class SearchExecutor{
 	/**
 	 * Sets the interrupt flag to <code>true</code> which stops
 	 * the running search threads. All pending requests issues by card finders on
-	 * web servers need to return before the search as a whole is stopped.
+	 * web servers need to be responded to before the search as a whole is stopped.
 	 */
 	public void stopSearch(){
 		if (currentPhase != Phase.SEARCHING)
@@ -95,7 +99,7 @@ public class SearchExecutor{
 	 * 
 	 * @throws IllegalArgumentException if null or unknown card finder is used as an argument, or when the search has not started yet
 	 */
-	public CardSearchResults getResultsStorage(CardFinder cardFinder){
+	public CardSearchResultSet getResultsStorage(CardFinder cardFinder){
 		if (!finders.contains(cardFinder))
 			throw new IllegalArgumentException("No such finder registered with this search executor or null");
 
@@ -108,8 +112,8 @@ public class SearchExecutor{
 	 * 
 	 * @throws IllegalArgumentException if null or unknown card finder is used as an argument, or when the search has not started yet
 	 */
-	public Collection<CardSearchResults> getResultsStorage(){
-		List<CardSearchResults> resList = new ArrayList<>();
+	public Collection<CardSearchResultSet> getResultsStorage(){
+		List<CardSearchResultSet> resList = new ArrayList<>();
 		
 		for (CardFinder cf : results.keySet())
 			resList.add(getResultsStorage(cf));
@@ -126,7 +130,7 @@ public class SearchExecutor{
 	 */
 	private void doSearch(CardFinder finder) throws IOException {
 		long timeStart = System.currentTimeMillis();
-		CardSearchResults theResults = this.results.get(finder);
+		CardSearchResultSet theResults = this.results.get(finder);
 		
 		for (Card card : cards){
 			//Test if stopped.
@@ -203,7 +207,7 @@ public class SearchExecutor{
 	}
 	
 
-	private void fireSearchThreadFinished(CardFinder finder, CardSearchResults theResults){
+	private void fireSearchThreadFinished(CardFinder finder, CardSearchResultSet theResults){
 		for (SearchObserver o : observers)
 				o.searchThreadFinished(finder, theResults);
 	}

@@ -11,7 +11,7 @@ import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 
 import bbc.juniperus.mtgp.cardsearch.CardFinder;
-import bbc.juniperus.mtgp.cardsearch.CardSearchResults;
+import bbc.juniperus.mtgp.cardsearch.CardSearchResultSet;
 import bbc.juniperus.mtgp.cardsearch.SearchObserver;
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.domain.CardResult;
@@ -97,7 +97,7 @@ public class SearchThreadProgressView extends JPanel implements SearchObserver{
 	}
 
 	@Override
-	public void searchThreadFinished(CardFinder finder, CardSearchResults results) {
+	public void searchThreadFinished(CardFinder finder, CardSearchResultSet results) {
 		if (this.finder == finder){
 			
 			int all = results.getCardResults().size();

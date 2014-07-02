@@ -17,7 +17,7 @@ import bbc.juniperus.mtgp.domain.CardResult;
  * Methods are thread safe - getters and setters are synchronized.
  * 
  */
-public class CardSearchResults {
+public class CardSearchResultSet {
 	
 	private long searchTime;
 	private final List<Card> notFound = new ArrayList<>();
@@ -26,7 +26,7 @@ public class CardSearchResults {
 	private final Map<Card, CardResult> results;
 	private final Map<Card, CardResult> resultsView;
 	
-	public CardSearchResults(CardFinder finder){
+	public CardSearchResultSet(CardFinder finder){
 		this.finder = finder;  
 		results = new HashMap<>();
 		resultsView = Collections.unmodifiableMap(results);

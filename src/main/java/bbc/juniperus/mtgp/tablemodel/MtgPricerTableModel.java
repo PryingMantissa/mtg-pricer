@@ -9,7 +9,7 @@ import java.util.Map;
 import javax.swing.table.AbstractTableModel;
 
 import bbc.juniperus.mtgp.cardsearch.CardFinder;
-import bbc.juniperus.mtgp.cardsearch.CardSearchResults;
+import bbc.juniperus.mtgp.cardsearch.CardSearchResultSet;
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.domain.CardResult;
 import bbc.juniperus.mtgp.domain.PricingSettings;
@@ -50,7 +50,7 @@ public class MtgPricerTableModel extends AbstractTableModel {
 	private Phase currentPhase;
 	private Controller controller;
 	private List<CardFinder> cardFinders;
-	private Map<CardFinder,CardSearchResults> resultsContainer;
+	private Map<CardFinder,CardSearchResultSet> resultsContainer;
 
 	/**
 	 * Constructs an mtg pricer table model and binds it to a given controller.
@@ -74,10 +74,10 @@ public class MtgPricerTableModel extends AbstractTableModel {
 	 * Invoked when the card price search has started 
 	 * @param searchResults a collection of the involved card pricers' search results
 	 */
-	public void searchStarted(Collection<CardSearchResults> searchResults){
+	public void searchStarted(Collection<CardSearchResultSet> searchResults){
 		resultsContainer = new HashMap<>();
 		
-		for (CardSearchResults res : searchResults) //Store it in the internal hash map for faster access
+		for (CardSearchResultSet res : searchResults) //Store it in the internal hash map for faster access
 			resultsContainer.put(res.getFinder(),res);
 		currentPhase = Phase.SEARCHING;
 		cardFinders = new ArrayList<>(resultsContainer.keySet());
