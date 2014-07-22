@@ -5,7 +5,8 @@ import java.util.List;
 
 
 /**
- * Factory which provides static methods to retrieve varius {@link CardFinder} implementations.
+ * A card finder factory.
+ * @see CardFinder
  */
 public class CardFinderFactory {
 
@@ -13,9 +14,8 @@ public class CardFinderFactory {
 	private static ModraVeverickaCardFinder modraVevericka;
 	private static DragonHostCardFinder dragon;
 	
-	
 	/**
-	 * Returns new <code>List</code> with all the card finders be provided by this factory.
+	 * Returns a list with all the card finders which are provided by this factory
 	 * @return
 	 */
 	public static List<CardFinder> allCardFinders(){
@@ -24,14 +24,12 @@ public class CardFinderFactory {
 		finders.add(getCernyRytirPricer());
 		finders.add(getDragonPricer());
 		finders.add(getModraVeverickaPricer());
-		
 		return finders;
 	}
 	
-	
 	/**
-	 * Returns single shared instance of {@link CernyRytirCardFinder}
-	 * @return shared singleton instance of {@link CernyRytirCardFinder}
+	 * Returns and instance of {@link CernyRytirCardFinder}
+	 * @return an instance of {@link CernyRytirCardFinder}
 	 */
 	public static CardFinder getCernyRytirPricer(){
 		if (cernyRytir == null)
@@ -40,8 +38,8 @@ public class CardFinderFactory {
 	}
 	
 	/**
-	 * Returns single shared instance of {@link ModraVeverickaCardFinder}
-	 * @return shared singleton instance of {@link ModraVeverickaCardFinder}
+	 * Returns an instance of {@link ModraVeverickaCardFinder}
+	 * @return an instance of {@link ModraVeverickaCardFinder}
 	 */
 	public static CardFinder getModraVeverickaPricer(){
 		if (modraVevericka == null)
@@ -50,8 +48,8 @@ public class CardFinderFactory {
 	}
 	
 	/**
-	 * Returns single shared instance of {@link DragonCardFinder}
-	 * @return shared singleton instance of {@link DragonCardFinder}
+	 * Returns an instance of {@link DragonCardFinder}
+	 * @return an instance of {@link DragonCardFinder}
 	 */
 	public static CardFinder getDragonPricer(){
 		if (dragon == null)
