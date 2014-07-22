@@ -17,6 +17,9 @@ import bbc.juniperus.mtgp.domain.CardResult;
 /**
  * An abstract class which provides base for implementation of specific ways how to scrap
  * the card prices from a html page.
+ * 
+ * TODO: reduce the duplicate code across implementing classes. Evidently more
+ * functionality can be made abstract.
  *
  */
 public abstract class CardFinder {

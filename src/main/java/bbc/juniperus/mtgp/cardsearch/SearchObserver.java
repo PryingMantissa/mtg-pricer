@@ -6,8 +6,6 @@ import bbc.juniperus.mtgp.domain.CardResult;
 /**
  * An observer for events related to card search. <p>
  * 
- * <b>NOTE:</b> If used with {@link SearchExecutor}, the methods <b>WILL NOT BE</b> invoked on the event dispatch thread!
- *
  *@see {@link SearchExecutor}
  *@see {@link CardFinder}
  */

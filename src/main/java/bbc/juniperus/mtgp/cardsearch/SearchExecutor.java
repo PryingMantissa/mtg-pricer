@@ -8,20 +8,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import bbc.juniperus.mtgp.domain.Card;
 import bbc.juniperus.mtgp.domain.CardResult;
 import bbc.juniperus.mtgp.gui.Controller.Phase;
 
 /**
- * Executor for  card search. Searches for prices of {@link Card} with collection of {@link CardFinder}.
- * When started, each card finder runs its job in separate thread. All notifications to observers are therefore
- * on various worker threads and not on the EDT.
+ * An executor of card search process. Searches for prices of {@link Card} with
+ * collection of {@link CardFinder} objects. When started, each card finder runs
+ * its job in a separate thread. All notifications to observers are therefore on
+ * various worker threads and <b>NOT</b> on the EDT.
  */
 public class SearchExecutor{
 
-	//To prevent concurrent modification exception when iterating concurrently we use concurrent hash set.
-	private Set<SearchObserver> observers = Collections.newSetFromMap(new HashMap<SearchObserver,Boolean>());
+	//To prevent concurrent modification exception when iterating 
+	//concurrently we use concurrent hash set - a set backed by 
+	private Set<SearchObserver> observers =
+			Collections.newSetFromMap(new ConcurrentHashMap <SearchObserver,Boolean>());
 	
 	private volatile boolean interruped;
 	private volatile int findersLeft;

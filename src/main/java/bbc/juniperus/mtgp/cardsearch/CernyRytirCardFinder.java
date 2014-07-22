@@ -13,27 +13,22 @@ import org.jsoup.select.Elements;
 import bbc.juniperus.mtgp.domain.CardResult;
 
 /**
- * Implementation of {@link CardFinder} html scrapper for web page <b>http://www.cernyrytir.cz/</b>.
+ * Implementation of {@link CardFinder} for web page <b>http://www.cernyrytir.cz/</b>.
  *
  */
 class CernyRytirCardFinder extends CardFinder{
 	
-	public static final int RESULT_PER_PAGE = 30;
-	public static final String URL = "http://www.cernyrytir.cz/";
-	public static final String NAME = "Cerny Rytir";
-	public static Currency currency;
-	
-	/** Default constructor*/
-	CernyRytirCardFinder(){
-		currency = Currency.getInstance("CZK");
-	}
+	private static final int RESULT_PER_PAGE = 30;
+	private static final String URL = "http://www.cernyrytir.cz/";
+	private static final String NAME = "Cerny Rytir";
+	private static Currency CURRENCY = Currency.getInstance("CZK");
 
 	/**
-	 * Retrieves the list of cards that match the card name.
-	 * @param cardName Name of the card to be found.
-	 * @return
-	 * @throws IOException
+	 * Constructor with the default access modifier.
 	 */
+	CernyRytirCardFinder(){}
+
+
 	@Override
 	public List<CardResult> getCardResults(String cardName) throws IOException{
 		
@@ -70,9 +65,9 @@ class CernyRytirCardFinder extends CardFinder{
 	
 	
 	/**
-	 * Parses single html page and creates List of Card objects.
-	 * @param html
-	 * @return
+	 * Parses a given html document and returns list of found cards results.
+	 * @param html the html document in string form
+	 * @return list parsed card results
 	 */
 	public List<CardResult> extractCardsFromHtml(String html){
 		
@@ -105,23 +100,31 @@ class CernyRytirCardFinder extends CardFinder{
 				price = resultRows.get(i).select("td:eq(2)").text();
 				//Add card
 				foundCards.add(new CardResult(name,type, edition, 
-						getDoubleFromString(price,1), currency));
+						getDoubleFromString(price,1), CURRENCY));
 			}
 		}
 		
 		return foundCards;
 	}
 	
-	
+
+	/**
+	 * Creates URL which navigates to a given page of results set
+	 * for a given card. The page size is {@link #RESULT_PER_PAGE}.
+	 * @param cardName the name of the card to be found
+	 * @param page the number of the page of card results set
+	 * @return the url which navigates to the specified results page
+	 */
 	private String createURL(String cardName, int page){
 		
-		final String addressCR = "http://www.cernyrytir.cz/index.php3";
+		final String addressCR = URL + "index.php3";
 		final String urlParam = "akce=3&"
 				
 				+ "limit="+ (page-1) * RESULT_PER_PAGE
 				+ "&jmenokarty="+ cardName.replace(" ", "+")
 				
-				+ "&edice_magic=libovolna&poczob=30&foil=A&"
+				+ "&edice_magic=libovolna&poczob=" + RESULT_PER_PAGE
+				+ "&foil=A&"
 				+ "triditpodle=ceny&hledej_pouze_magic=1&submit=Vyhledej";
 		
 		return addressCR + "?" + urlParam;
@@ -139,7 +142,7 @@ class CernyRytirCardFinder extends CardFinder{
 
 	@Override
 	public Currency getCurrency() {
-		return currency;
+		return CURRENCY;
 	}
 
 	@Override

@@ -13,7 +13,6 @@ import bbc.juniperus.mtgp.domain.CardResult;
  * A container of search results for a given card finder. Has read-only public interface.
  * Updating and reading from card result set is synchronised and 
  * intermediate results can be read from it while new results are being added.
- * 
  */
 public class CardSearchResultSet {
 	
