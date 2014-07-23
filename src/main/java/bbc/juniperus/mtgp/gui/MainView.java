@@ -72,10 +72,9 @@ public class MainView {
 	private static final Border PADDING_BORDER = BorderFactory.createEmptyBorder(1, 1, 1, 1);
 	private static final Border ETCHED_BORDER = BorderFactory.createCompoundBorder(PADDING_BORDER, LINE_BORDER);
 	
-	private static final int PADDING = 1;
 	//TODO what with these?
 	private static final int HEIGHT = 500;
- 	private static final int WIDTH = 850;
+ 	private static final int WIDTH = 750;
 
  	private JPanel windowPane;
 	private JPanel tablePane;
@@ -111,7 +110,7 @@ public class MainView {
 	 * Makes the whole gui of the application visible.
 	 */
 	public void show(){
-		window.pack();
+		window.setSize(WIDTH, HEIGHT);
 		window.setVisible(true);
 	}
 
@@ -128,7 +127,6 @@ public class MainView {
 		findersPane.showSearchProgress(executor);
 		addSpinner.setEnabled(false);
 		addTextField.setEnabled(false);
-		window.pack();
 	}
 	
 	/**
@@ -345,12 +343,14 @@ public class MainView {
 		menuBar.add(menu);
 		
 		menu = new JMenu("Export");
+		menu.setMnemonic(KeyEvent.VK_X);
 		mi = new JMenuItem(controller.getAction(UserAction.EXPORT_TO_CSV));
 		menu.add(mi);
 		mi = new JMenuItem(controller.getAction(UserAction.EXPORT_TO_TXT));
 		menu.add(mi);
 		menuBar.add(menu);
 		menu= new JMenu("Help");
+		menu.setMnemonic(KeyEvent.VK_H);
 		mi = new JMenuItem("About MtGPricer");
 		mi.addActionListener(new ActionListener() {
 			

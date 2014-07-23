@@ -29,7 +29,7 @@ import bbc.juniperus.mtgp.cardsearch.SearchExecutor;
 @SuppressWarnings("serial")
 public class CardFindersPane extends JPanel{
 	
-	private static final int TOTAL_WIDTH = 170;
+	private static final int TOTAL_WIDTH = 200;
 	
 	private Map<JCheckBox, CardFinder> checkBoxMap = new HashMap<>();
 	private Controller controller;
