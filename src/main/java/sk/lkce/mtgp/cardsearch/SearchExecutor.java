@@ -42,11 +42,6 @@ public class SearchExecutor{
 		this.finders = finders;
 		currentPhase = Phase.SETTING;
 		results = new HashMap<>();
-		fireSearchStarted(cards.size());
-		for (CardFinder f : finders){
-			results.put(f, new CardSearchResultSet(f));
-			new Thread(new SearchRunnable(f)).start();
-		}
 	}
 	
 	/**
@@ -63,6 +58,10 @@ public class SearchExecutor{
 		currentPhase = Phase.SEARCHING;
 		findersLeft = finders.size();
 		fireSearchStarted(cards.size());
+		for (CardFinder f : finders){
+			results.put(f, new CardSearchResultSet(f));
+			new Thread(new SearchRunnable(f)).start();
+		}
 	}
 	
 	/**
@@ -115,7 +114,7 @@ public class SearchExecutor{
 	public Collection<CardSearchResultSet> getResultsStorage(){
 		List<CardSearchResultSet> resList = new ArrayList<>();
 		
-		for (CardFinder cf : results.keySet())
+		for (CardFinder cf : finders)
 			resList.add(getResultsStorage(cf));
 		
 		return resList;
@@ -197,8 +196,9 @@ public class SearchExecutor{
 	
 
 	private void fireCardSearchStarted(Card card, CardFinder finder){
-		for (SearchObserver o : observers)
+		for (SearchObserver o : observers){
 			o.cardSearchStarted(card, finder);
+		}
 	}
 	
 	private void fireCardSearchEnded(Card card, CardResult result, CardFinder finder){

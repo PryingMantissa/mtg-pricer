@@ -71,13 +71,21 @@ public class SearchThreadProgressView extends JPanel implements SearchObserver{
 	}
 	
 	@Override
-	public void cardSearchStarted(Card card, CardFinder finder) {
+	public void cardSearchStarted(final Card card, CardFinder finder) {
 		if (finder != this.finder)
 			return;
+	
+		if(finder.getName().equals("Draco"))
+			System.out.println("Started " + card);
 		
-		//setLabelText(card.getName());
-		progressBar.setStringPainted(true);
-		progressBar.setString(card.getName());
+		
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				progressBar.setStringPainted(true);
+				progressBar.setString(card.getName());
+			}
+		});
 		
 	}
 
@@ -114,7 +122,7 @@ public class SearchThreadProgressView extends JPanel implements SearchObserver{
 			
 			
 			String  text = "Found " + found + "/" + all  + " cards <br/>" + 
-			"Pricing time: "+ formatTime(time) + "<br/>" +
+			"Time:"+ formatTime(time) + "<br/>" +
 			"Total price: " + DOUBLE_FORMAT.format(totalPrice) + " " + finder.getCurrency().getCurrencyCode(); 
 			
 			text = "<html><body style='padding-left:10px;'>"+  text + "</body></html>";

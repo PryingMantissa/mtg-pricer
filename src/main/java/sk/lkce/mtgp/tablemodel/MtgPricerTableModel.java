@@ -77,10 +77,12 @@ public class MtgPricerTableModel extends AbstractTableModel {
 	public void searchStarted(Collection<CardSearchResultSet> searchResults){
 		resultsContainer = new HashMap<>();
 		
-		for (CardSearchResultSet res : searchResults) //Store it in the internal hash map for faster access
+		cardFinders = new ArrayList<>();
+		for (CardSearchResultSet res : searchResults){ //Store it in the internal hash map for faster access
 			resultsContainer.put(res.getFinder(),res);
+			cardFinders.add(res.getFinder());
+		}
 		currentPhase = Phase.SEARCHING;
-		cardFinders = new ArrayList<>(resultsContainer.keySet());
 		fireTableStructureChanged();
 	}
 	

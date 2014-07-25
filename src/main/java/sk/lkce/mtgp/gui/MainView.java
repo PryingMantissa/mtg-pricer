@@ -74,7 +74,7 @@ public class MainView {
 	
 	//TODO what with these?
 	private static final int HEIGHT = 500;
- 	private static final int WIDTH = 750;
+ 	private static final int WIDTH = 850;
 
  	private JPanel windowPane;
 	private JPanel tablePane;
