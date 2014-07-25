@@ -7,7 +7,7 @@
     <dependencySets>
         <dependencySet>
             <useProjectArtifact>false</useProjectArtifact>
-            <outputDirectory>lib</outputDirectory>
+            <outputDirectory>data/lib</outputDirectory>
             <unpack>false</unpack>
         </dependencySet>
     </dependencySets>
@@ -22,9 +22,16 @@
         </fileSet>
         <fileSet>
             <directory>${project.build.directory}</directory>
-            <outputDirectory></outputDirectory>
+            <outputDirectory>data/lib</outputDirectory>
             <includes>
                 <include>*.jar</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>${project.build.outputDirectory}</directory>
+            <outputDirectory>data</outputDirectory>
+            <includes>
+                <include>splash.png</include>
             </includes>
         </fileSet>
     </fileSets>

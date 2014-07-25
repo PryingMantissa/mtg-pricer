@@ -27,11 +27,12 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/ma
 
 	</dependencies>
 	<build>
-		<finalName>${artifactId}</finalName>
+		<finalName>${project.artifactId}</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.5.1</version>
 				<configuration>
 					<source>1.7</source>
 					<target>1.7</target>
@@ -49,7 +50,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/ma
 						<configuration>
 							<appendAssemblyId>false</appendAssemblyId>
 							<descriptors>
-								<descriptor>/src/main/assembly/assembly-win.xml</descriptor>
+								<!-- <descriptor>/src/main/assembly/assembly-win.xml</descriptor> -->
 								<descriptor>/src/main/assembly/assembly-nix.xml</descriptor>
 							</descriptors>
 							<descriptorRefs>
@@ -57,17 +58,15 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/ma
 							</descriptorRefs>
 							<archive>
 								<manifest>
-									<mainClass>bbc.juniperus.mtgp.Main</mainClass>
+									<mainClass>sk.lkce.mtgp.MtgPricerMain</mainClass>
 								</manifest>
+								<manifestEntries>
+									<SplashScreen-Image>splash.png</SplashScreen-Image>
+								</manifestEntries>
 							</archive>
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<configuration></configuration>
 			</plugin>
 			<plugin>
 				<groupId>com.akathist.maven.plugins.launch4j</groupId>
@@ -85,7 +84,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/ma
 							<jar>target/${project.build.finalName}.jar</jar>
 							<outfile>target/${project.build.finalName}.exe</outfile>
 							<classPath>
-								<mainClass>bbc.juniperus.mtgp.Main</mainClass>
+								<mainClass>sk.lkce.mtgp.MtgPricerMain</mainClass>
 							</classPath>
 							<icon>src/main/resources/icon.ico</icon>
 							<jre>
@@ -102,6 +101,14 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/ma
 								<internalName>${project.build.finalName}</internalName>
 								<originalFilename>${project.build.finalName}.exe</originalFilename>
 							</versionInfo>
+							<!--
+							<splash>
+								<file>src/main/resources/splash.bmp</file>
+								<waitForWindow>false</waitForWindow>
+								<timeout>3</timeout>
+								<timeoutErr>false</timeoutErr>
+							</splash>
+							-->
 						</configuration>
 					</execution>
 				</executions>
