@@ -14,25 +14,27 @@ import org.jsoup.select.Elements;
 import sk.lkce.mtgp.domain.CardResult;
 
 /**
- * Implementation of {@link CardFinder} html scrapper for web page <b>http://shop.dragonhost.eu/</b>.
+ * Implementation of {@link CardFinder} for web page <b>http://shop.dragonhost.eu/</b>.
  *
  */
 class DragonHostCardFinder extends CardFinder {
-	public static final int RESULT_PER_PAGE = 120;
-	public static final String URL = "http://shop.dragonhost.eu/";
-	public static final String NAME = "Draco";
-	public static Currency currency;
-	
-	public DragonHostCardFinder() {
-		currency = Currency.getInstance("EUR");
-	}
+
+	private static final int RESULT_PER_PAGE = 120;
+	private static final String URL = "http://shop.dragonhost.eu/";
+	private static final String NAME = "Draco";
+	private static Currency CURRENCY = Currency.getInstance("EUR");
+
+	/**
+	 * Constructor with the default access modifier.
+	 */
+	DragonHostCardFinder() {}
 	
 
 	@Override
 	List<CardResult> getCardResults(String normalizedCardName) throws IOException {
 		
 		
-		String html = getHTMLString(getQueryUrl(normalizedCardName,1));
+		String html = getHTMLString(createSearchUrl(normalizedCardName,1));
 		
 		//Parse the first page.
 		List<CardResult> results = extractCardsFromHtml(html);
@@ -48,7 +50,7 @@ class DragonHostCardFinder extends CardFinder {
 		//Load other pages.
 		if (pagesTotal > 1)
 			for (int i = 2; i <= pagesTotal;i++){
-				html = getHTMLString(getQueryUrl(normalizedCardName,i));
+				html = getHTMLString(createSearchUrl(normalizedCardName,i));
 				results.addAll(extractCardsFromHtml(html));
 			}
 		
@@ -56,12 +58,16 @@ class DragonHostCardFinder extends CardFinder {
 	}
 
 	
-	
+	/**
+	 * Determines how many card search results are present for the given html 
+	 * document.
+	 * @param html the html document in string form
+	 * @return the number of results in the document
+	 */
 	private int getResultsCountFromHtml(String html){
 		Document doc = Jsoup.parse(html);
 		
 		Elements els = doc.select("div.category-products").select("p.amount");
-
 		
 		if (els.size() == 0)
 			return 0;
@@ -76,16 +82,23 @@ class DragonHostCardFinder extends CardFinder {
 		int position = 1;
 		
 		//If there are <= 120 results the format is : Results: 19
-		//If > 120 the format is Results: 1 to 120 fomr 129. 
+		//If > 120 the format is Results: 1 to 120 from 129. 
 		if (countRegexMatches(content, "[\\d]+") > 1)
 			position =3;
 				
 		//First get number at first position (if there are less than 120 results
 		//there is only one number)
 		int result =(int) getDoubleFromString(content, position);
+
 		return result;
 	}
 	
+	
+	/**
+	 * Parses a given html document and returns list of found cards results.
+	 * @param html the html document in string form
+	 * @return list parsed card results
+	 */	
 	private List<CardResult> extractCardsFromHtml(String html){
 		
 		Document doc = Jsoup.parse(html);
@@ -104,7 +117,7 @@ class DragonHostCardFinder extends CardFinder {
 			name = card.select("h2.product-name a").text();
 			price = card.select("span.price").text();
 			foundCards.add(new CardResult(name,type, edition, 
-					getDoubleFromString(price,1), currency));
+					getDoubleFromString(price,1), CURRENCY));
 			
 		}
 		
@@ -112,8 +125,14 @@ class DragonHostCardFinder extends CardFinder {
 	}
 	
 	
-	
-	private String getQueryUrl(String cardName, int page){
+	/**
+	 * Creates URL which navigates to a given page of results set
+	 * for a given card. The page size is {@link #RESULT_PER_PAGE}.
+	 * @param cardName the name of the card to be found
+	 * @param page the number of the page of card results set
+	 * @return the url which navigates to the specified results page
+	 */
+	private String createSearchUrl(String cardName, int page){
 		//Max limit allowed seems to be 120.No matter if higher humber is entered.
 		final String  queryString="catalogsearch/result/index/?limit=120&"
 				+ "p=" + page + "&" 
@@ -134,7 +153,7 @@ class DragonHostCardFinder extends CardFinder {
 
 	@Override
 	public Currency getCurrency() {
-		return currency;
+		return CURRENCY;
 	}
 	
 	@Override
@@ -142,7 +161,7 @@ class DragonHostCardFinder extends CardFinder {
 		String normalizedName = normalizeCardName(cardName);
 		java.net.URL url;
 		try {
-			url = new java.net.URL(getQueryUrl(normalizedName,0));
+			url = new java.net.URL(createSearchUrl(normalizedName,0));
 		} catch (MalformedURLException e) {
 			//This should not happen. Re-throw it anyway.
 			throw new RuntimeException(e);

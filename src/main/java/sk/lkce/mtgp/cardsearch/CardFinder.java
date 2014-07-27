@@ -15,8 +15,11 @@ import java.util.regex.Pattern;
 import sk.lkce.mtgp.domain.CardResult;
 
 /**
- * Abstract class which provides base for implementation of specific ways how to retrieve
- * card prices from html page.
+ * An abstract class which provides base for implementation of specific ways how to scrap
+ * the card prices from a html page.
+ * 
+ * TODO: reduce the duplicate code across implementing classes. Evidently more
+ * functionality can be made abstract.
  *
  */
 public abstract class CardFinder {
@@ -28,17 +31,40 @@ public abstract class CardFinder {
 	 * @throws IOException
 	 */
 	abstract List<CardResult> getCardResults(String normalizedCardName) throws IOException;
-	
+
+	/**
+	 * Returns URL of the web page from which this card finder scraps
+	 * card prices data
+	 * @return the url of the associated web page
+	 */
 	public abstract String getURL();
+	
+	/**
+	 * Returns the name of this card pricer
+	 * @return card pricer's name
+	 */
 	public abstract String getName();
+	
+	/**
+	 * Returns currency of the card prices for this card finder
+	 * @return card prices currency of this card finder
+	 */
 	public abstract Currency getCurrency();
+	
+	/**
+	 * Returns built URL which display search results of a given
+	 * card on the web page associated with this card finder
+	 * @param cardName
+	 * @return
+	 */
 	public abstract URL getURLForCard(String cardName);
 	
 	
 	/**
-	 * Finds the cheapest match for the card.
-	 * @param cardName
-	 * @return
+	 * Finds the card result for a given card which has the
+	 * lowest price
+	 * @param cardName the name of the mtg card
+	 * @return card results for the card with the lowest price
 	 * @throws IOException
 	 */
 	public CardResult findCheapestCard(String cardName) throws IOException{
@@ -78,7 +104,8 @@ public abstract class CardFinder {
 	} 
 	
 	/**
-	 * Custom equals implementation. Two CardFinders are equals when they have same <code>NAME</code> and same <code>URL</code>. 
+	 * Custom equals implementation. Two CardFinders are equals when 
+	 * they have same <code>NAME</code> and same <code>URL</code>. 
 	 */
 	@Override
 	public boolean equals(Object o){
@@ -98,9 +125,9 @@ public abstract class CardFinder {
 	}
 	
 	/**
-	 * Retrieves HTML document in the form of String for given URL.
-	 * @param address URL in from of String
-	 * @return String of retrieved html document
+	 * Retrieves HTML document as string for a given URL.
+	 * @param address URL of the web page
+	 * @return html document as string
 	 * @throws IOException
 	 */
 	static String getHTMLString(String address) throws IOException{
@@ -124,7 +151,7 @@ public abstract class CardFinder {
 	}
 	
 	/**
-	 * Return the first occurrence of the number in a String. If not found, an exception is thrown.
+	 * Returns the first occurrence of a number in a string. If not found, an exception is thrown.
 	 * @param text String containing the number
 	 * @return found number
 	 */
@@ -143,10 +170,10 @@ public abstract class CardFinder {
 	}
 	
 	/**
-	 * Counts the number of regular expressoin matches in a string.
+	 * Counts the number of regular expression matches in a string.
 	 * @param text <code>String</code> where to look in
 	 * @param regex regular expression to look for
-	 * @return number of occurences of regular expression in a string
+	 * @return number of occurrences of regular expression in a string
 	 */
 	static int countRegexMatches(String text, String regex){
 		
@@ -162,7 +189,7 @@ public abstract class CardFinder {
 	
 	
 	/**
-	 * Transform  a name of the card containing more spaces than standard
+	 * Transforms the name of an mtg card containing more spaces than standard
 	 * to normalized format. E.g. <i> Flames     of   Firebrand" to "Flames of Firebrand"</i>.
 	 * @param cardName
 	 * @return normalized card name

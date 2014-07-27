@@ -13,22 +13,19 @@ import java.util.regex.Pattern;
 import sk.lkce.mtgp.domain.Card;
 
 /**
- * Utility class which provides methods for parsing {@link File} or string into {@link Card}.
- * @author juniperus
- *
+ * A utility class which provides methods for parsing {@link File} or string into {@link Card}
+ * objects.
  */
 public class CardParser {
 	
 	//Any sequence of letter,',-,/ or white space (includes leading and trailing white spaces).
-	public final static String REG_EXP_NAME = "[a-zA-Z\\s'-/]+";
-	public final static String REG_EXP_NUMBER = "\\d+";
+	private final static String REG_EXP_NAME = "[a-zA-Z\\s'-/]+";
+	private final static String REG_EXP_NUMBER = "\\d+";
 	
 	/**
-	 * Reads the file, parses it and returns {@link Map} with {@link Card} - <i>quantity</i> pairs. 
-	 * @param file file containing the characters which can be parsed into card set
-	 * @return {@link Card} - <i>quantity</i> map
-	 * @throws IOException
-	 * @throws ParseException
+	 * Parses a file to card - card quantity map. 
+	 * @param file the file containing characters which can be parsed into card set
+	 * @return parsed card - card quantity map
 	 */
 	public static Map<Card,Integer> parseFromFile(File file) throws IOException, ParseException{
 		
@@ -69,7 +66,7 @@ public class CardParser {
 	
 	/**
 	 * Retrieves quantity information from a string.
-	 * @param line a string which to look in
+	 * @param line the string which to look in
 	 * @return the quantity parsed from the string
 	 */
 	private static int parseQuantity(String line){
@@ -85,8 +82,8 @@ public class CardParser {
 	}
 	
 	/**
-	 * Retrieves card name information from a string.
-	 * @param line a string which to look in
+	 * Retrieves card name from a string.
+	 * @param line the string to look in 
 	 * @return the name retrieved from the string
 	 */
 	private static String parseCardName(String line){
