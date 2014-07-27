@@ -44,16 +44,16 @@ public class MtgPricerMain {
 			
 			javax.swing.UIManager.getDefaults().put("Button.showMnemonics", Boolean.TRUE);
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
+			//Nothing to do here. Just print to err stream.
 			e.printStackTrace();
 		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
+			//Nothing to do here. Just print to err stream.
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
+			//Nothing to do here. Just print to err stream.
 			e.printStackTrace();
 		} catch (UnsupportedLookAndFeelException e) {
-			// TODO Auto-generated catch block
+			//Nothing to do here. Just print to err stream.
 			e.printStackTrace();
 		}
 	}
